@@ -12,3 +12,5 @@ toolchains/
 pico_w_intro
 projects/pico-sdk*
 projects/.env
+
+projects/Wifi_Test_3/secrets.py
