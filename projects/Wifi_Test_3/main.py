@@ -1,4 +1,5 @@
 import ssd1306
+import time
 from machine import Pin, I2C
 # Setup I2C + OLED
 i2c = I2C(1, scl=Pin(3), sda=Pin(2), freq=400000)
@@ -69,17 +70,19 @@ def simple_http_get(url=b"http://httpbin.org/json", use_stream=False):
 
     s.close()
 
-def display_json_author():
+def note():
     import socket
     import ujson
     from time import sleep
 
-    url = b"http://httpbin.org/json"
+    url = b"http://3.19.70.134:8081/"
     proto, _, host, path = url.split(b"/", 3)
     assert proto == b"http:"
+    host = host.split(b":")[0]
 
     # Resolve host
-    ai = socket.getaddrinfo(host, 80)[0]
+    ai = socket.getaddrinfo(host, 8081)[0]
+
     addr = ai[-1]
 
     # Connect to server
@@ -104,13 +107,39 @@ def display_json_author():
     try:
         header, body = response.split(b"\r\n\r\n", 1)
         data = ujson.loads(body)
-        author = data["slideshow"]["author"]
+        author = data["note"]
     except Exception as e:
         print("❌ Error parsing JSON:", e)
         author = "No Author"
 
     # Display on OLED
     oled.fill(0)
-    oled.text("Author:", 0, 0)
-    oled.text(author, 0, 16)
+    draw_wrapped_text(oled, author.encode(), 0, 0)
+
     oled.show()
+
+def draw_wrapped_text(oled, text, x=0, y=0, max_width=128, line_height=10):
+    max_chars = max_width // 8  # each char ~8px wide on 128x64 display
+
+    lines = []
+    while text:
+        # Take up to max_chars
+        chunk = text[:max_chars]
+        # If it's not the whole string and doesn't end with space, backtrack to last space
+        if len(chunk) == max_chars and b' ' in chunk:
+            space = chunk.rfind(b' ')
+            chunk = chunk[:space]
+        lines.append(chunk)
+        text = text[len(chunk):].lstrip()
+
+    for i, line in enumerate(lines):
+        oled.text(line.decode(), x, y + i * line_height)
+
+
+def init():
+    start()
+    time.sleep(2)
+    note()
+
+if __name__ == "__main__":
+    init()
