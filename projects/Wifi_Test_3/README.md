@@ -1,88 +1,134 @@
-# Raspberry Pi Pico W + OLED: Quick Start Refresher
+# Pico W Internet Note Display
 
-This is your refresher doc for jumping back into your Pico W + OLED + MicroPython project.
-
----
-
-## 🧠 Project Overview
-- Uses MicroPython on a Raspberry Pi Pico W
-- Connects to Wi-Fi using `secrets.py`
-- Fetches JSON from http://httpbin.org/json
-- Displays `slideshow.author` field on an SSD1306 OLED
+A minimalist microcontroller device that fetches a message from a web server and displays it on a small OLED screen. Designed to boot on power, connect to Wi-Fi, and support a manual fetch button and hardware reset.
 
 ---
 
-## 📁 Project Directory Layout
+## What This Is
+A Raspberry Pi Pico W-based device that:
+
+- Connects to Wi-Fi on power-up
+- Fetches a note from a web server
+- Displays the note on an SSD1306 OLED screen
+- Supports a manual button press to refetch the note
+- Supports a hardware reset via the RUN pin
+
+---
+
+## Hardware Used
+
+| Component         | Description                             |
+|------------------|-----------------------------------------|
+| Raspberry Pi Pico W | Microcontroller with Wi-Fi               |
+| SSD1306 OLED      | 128x64 pixel I2C display (3V3 logic)     |
+| Button 1          | Connected to GP16 for note refetch      |
+| Button 2 (optional) | Connected between RUN and GND for reset |
+| Jumper Wires      | Standard male-to-male                   |
+| Breadboard        | Optional, for quick prototyping         |
+
+---
+
+## Wiring Summary
+
+### OLED (I2C1)
+- SDA → GP2 (Physical pin 4)
+- SCL → GP3 (Physical pin 5)
+- VCC → 3V3
+- GND → GND
+
+### Button (Refetch Note)
+- One side → GP16 (Physical pin 21)
+- Other side → GND
+
+### Optional Reset Button
+- One side → RUN pin
+- Other side → GND
+
+> Buttons must straddle the center trench on a breadboard for correct contact.
+
+---
+
+## Software
+
+- Language: MicroPython
+- Display Driver: `ssd1306.py`
+- Networking: Raw sockets (no external libraries needed)
+- Server: Any HTTP server returning `application/json` in the format:
+
+```json
+{ "note": "Hello from the internet!" }
+```
+
+Example PHP server:
+```bash
+php -S 0.0.0.0:8081
+```
+
+Example `index.php`:
+```php
+<?php
+header('Content-Type: application/json');
+$notes = ["You're awesome!", "Stay hydrated.", "Keep building."];
+echo json_encode(["note" => $notes[array_rand($notes)]]);
+```
+
+---
+
+## File Layout
 ```
 project-folder/
-├── boot.py           # Optional 3-second delay on boot (for REPL access)
-├── main.py           # Contains OLED + Wi-Fi + HTTP logic
-├── secrets.py        # Stores your Wi-Fi credentials (NOT in git)
-├── urequests.py      # Optional HTTP helper (not used if using socket)
-└── ssd1306.py        # OLED driver (if not using a built-in one)
+├── main.py         # Contains all logic (OLED, Wi-Fi, HTTP, button)
+├── secrets.py      # Stores Wi-Fi credentials (not committed)
+├── ssd1306.py      # OLED driver (if not built-in)
+└── boot.py         # Optional 3s delay for REPL access
+```
+
+### `secrets.py` example:
+```python
+WIFI_SSID = "your-ssid"
+WIFI_PASSWORD = "your-password"
 ```
 
 ---
 
-## 🧼 First-Time Setup (Already Done)
-- MicroPython UF2 is already on the board — you don't need BOOTSEL anymore
-- Pico will boot into MicroPython automatically when plugged in
+## Usage
 
----
-
-## 🔁 Uploading Files to the Pico W
-Use `mpremote`:
-
+### Upload the Files
 ```bash
 mpremote connect auto fs cp main.py :
 mpremote connect auto fs cp secrets.py :
+mpremote connect auto fs cp ssd1306.py :
 ```
 
-Upload any new file the same way.
-
-You can soft-reset the board afterward:
+### Reboot the Pico
 ```bash
 mpremote connect auto exec "import machine; machine.reset()"
 ```
 
----
-
-## 💻 REPL (Read-Eval-Print Loop)
-Access the MicroPython REPL:
-```bash
-mpremote connect auto repl
-```
-
-### ⚠️ Note:
-You may not see the `>>>` prompt right away. **Just hit Enter once**, and the prompt should appear.
+### Device Behavior
+- On power-up, it fetches and displays the note
+- Press the button to re-fetch anytime
+- Reset with the RUN button if needed
 
 ---
 
-## ▶️ Running Your Code
-Once in REPL:
-```python
-import main
-main.start()              # Connect to Wi-Fi and init OLED
-main.display_json_author()  # Fetch and display author field
-```
+## Behavior Summary
+
+| Action                | Result                        |
+|-----------------------|-------------------------------|
+| Plug into USB power   | Boots, connects to Wi-Fi, fetches message |
+| Press fetch button    | Re-fetches and displays new message |
+| Press reset button    | Fully reboots device |
 
 ---
 
-## 🛠️ Optional Dev Tip: Use `boot.py`
-If you want a startup delay for easier REPL access, include this `boot.py`:
-```python
-import time
-time.sleep(3)
-```
+## Notes
+- Minimal external dependencies; built entirely with MicroPython socket and display modules
+- Compatible with any HTTP server that returns a valid JSON note object
+- Designed for continuous power-on environments
+- Reset functionality ensures reliability for long-running use cases
 
 ---
 
-## 🔌 Hardware Summary
-- OLED connected to I2C1 (SDA=GP2, SCL=GP3)
-- Pull-up resistors (internal or external)
-- RUN pin connected to GND via button = hardware reset
-
----
-
-Take a break, solder away, and come back ready to ship magic. 🛠️💡
+Clean hardware. Minimal firmware. Purpose-built for demo and diagnostic displays.
 

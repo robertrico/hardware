@@ -4,6 +4,7 @@ from machine import Pin, I2C
 # Setup I2C + OLED
 i2c = I2C(1, scl=Pin(3), sda=Pin(2), freq=400000)
 oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+button = Pin(16, Pin.IN, Pin.PULL_UP)
 
 def start():
     try:
@@ -12,7 +13,7 @@ def start():
         import time
 
         oled.fill(0)
-        oled.text("Starting up!!!", 0, 0)
+        oled.text("Initializing...", 0, 0)
         oled.show()
 
         # Wi-Fi
@@ -36,7 +37,6 @@ def start():
                 return
             time.sleep(0.5)
 
-        oled.fill(0)
         oled.text("Wi-Fi Fail!", 0, 0)
         oled.show()
 
@@ -75,25 +75,25 @@ def note():
     import ujson
     from time import sleep
 
+    print("Starting note()")
     url = b"http://3.19.70.134:8081/"
     proto, _, host, path = url.split(b"/", 3)
     assert proto == b"http:"
     host = host.split(b":")[0]
 
-    # Resolve host
+    print("Resolving host...")
     ai = socket.getaddrinfo(host, 8081)[0]
-
     addr = ai[-1]
 
-    # Connect to server
+    print("Connecting to server...")
     s = socket.socket()
     s.connect(addr)
 
-    # Send raw GET request
+    print("Sending GET request...")
     request = b"GET /%s HTTP/1.0\r\nHost: %s\r\n\r\n" % (path, host)
     s.send(request)
 
-    # Read full response
+    print("Reading response...")
     response = b""
     while True:
         chunk = s.recv(512)
@@ -102,8 +102,8 @@ def note():
         response += chunk
 
     s.close()
+    print("Finished reading, parsing JSON...")
 
-    # Parse HTTP response
     try:
         header, body = response.split(b"\r\n\r\n", 1)
         data = ujson.loads(body)
@@ -112,11 +112,10 @@ def note():
         print("❌ Error parsing JSON:", e)
         author = "No Author"
 
-    # Display on OLED
     oled.fill(0)
     draw_wrapped_text(oled, author.encode(), 0, 0)
-
     oled.show()
+    print("Displayed on OLED")
 
 def draw_wrapped_text(oled, text, x=0, y=0, max_width=128, line_height=10):
     max_chars = max_width // 8  # each char ~8px wide on 128x64 display
@@ -135,11 +134,27 @@ def draw_wrapped_text(oled, text, x=0, y=0, max_width=128, line_height=10):
     for i, line in enumerate(lines):
         oled.text(line.decode(), x, y + i * line_height)
 
+def is_connected():
+    import network
+    return network.WLAN(network.STA_IF).isconnected()
 
 def init():
+    oled.fill(0)
+    print("Button pressed! Refetching message...")
     start()
     time.sleep(2)
     note()
+    print(button.value())
+    while True:
+        if button.value() == 0:
+            print("Button pressed! Refetching message...")
+            if is_connected():
+                note()
+            else:
+                oled.fill(0)
+                oled.text("No Wi-Fi!", 0, 0)
+                oled.show()
+            time.sleep(0.3)
 
 if __name__ == "__main__":
     init()
