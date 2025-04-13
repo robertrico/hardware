@@ -95,6 +95,7 @@ WIFI_PASSWORD = "your-password"
 
 ### Upload the Files
 ```bash
+mpremote connect auto fs cp boot.py :
 mpremote connect auto fs cp main.py :
 mpremote connect auto fs cp secrets.py :
 mpremote connect auto fs cp ssd1306.py :
@@ -103,6 +104,11 @@ mpremote connect auto fs cp ssd1306.py :
 ### Reboot the Pico
 ```bash
 mpremote connect auto exec "import machine; machine.reset()"
+```
+
+### Connect to REPL
+```bash
+mpremote connect auto
 ```
 
 ### Device Behavior

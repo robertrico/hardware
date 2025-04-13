@@ -4,7 +4,7 @@ from machine import Pin, I2C
 # Setup I2C + OLED
 i2c = I2C(1, scl=Pin(3), sda=Pin(2), freq=400000)
 oled = ssd1306.SSD1306_I2C(128, 64, i2c)
-button = Pin(16, Pin.IN, Pin.PULL_UP)
+button = Pin(0, Pin.IN, Pin.PULL_UP)
 
 def start():
     try:
@@ -113,26 +113,37 @@ def note():
         author = "No Author"
 
     oled.fill(0)
-    draw_wrapped_text(oled, author.encode(), 0, 0)
+    draw_wrapped_text(oled, author, 0, 6)
+    print("Author:", repr(author))
     oled.show()
     print("Displayed on OLED")
 
 def draw_wrapped_text(oled, text, x=0, y=0, max_width=128, line_height=10):
-    max_chars = max_width // 8  # each char ~8px wide on 128x64 display
+    if isinstance(text, bytes):
+        text = text.decode()
 
+    max_chars = max_width // 8
     lines = []
-    while text:
-        # Take up to max_chars
-        chunk = text[:max_chars]
-        # If it's not the whole string and doesn't end with space, backtrack to last space
-        if len(chunk) == max_chars and b' ' in chunk:
-            space = chunk.rfind(b' ')
-            chunk = chunk[:space]
-        lines.append(chunk)
-        text = text[len(chunk):].lstrip()
+
+    for raw_line in text.splitlines():
+        while raw_line:
+            chunk = raw_line[:max_chars]
+            if len(chunk) == max_chars and ' ' in chunk:
+                space = chunk.rfind(' ')
+                chunk = chunk[:space]
+            lines.append(chunk)
+            raw_line = raw_line[len(chunk):].lstrip()
+
+        if not raw_line:
+            lines.append("")
 
     for i, line in enumerate(lines):
-        oled.text(line.decode(), x, y + i * line_height)
+        line = line.strip()
+        line_px = len(line) * 8
+        centered_x = (max_width - line_px) // 2 if line else x
+        oled.text(line, centered_x, y + i * line_height)
+
+
 
 def is_connected():
     import network
@@ -144,17 +155,20 @@ def init():
     start()
     time.sleep(2)
     note()
-    print(button.value())
-    while True:
-        if button.value() == 0:
-            print("Button pressed! Refetching message...")
-            if is_connected():
-                note()
-            else:
-                oled.fill(0)
-                oled.text("No Wi-Fi!", 0, 0)
-                oled.show()
-            time.sleep(0.3)
+
+    try:
+        while True:
+            if button.value() == 0:
+                print("Button pressed! Refetching message...")
+                if is_connected():
+                    note()
+                else:
+                    oled.fill(0)
+                    oled.text("No Wi-Fi!", 0, 0)
+                    oled.show()
+                time.sleep(0.3)
+    except KeyboardInterrupt:
+        print("Exiting loop cleanly.")
 
 if __name__ == "__main__":
     init()

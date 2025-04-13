@@ -6,11 +6,12 @@ build
 build-*
 build_*
 .DS_Store
-*.pdf
 
-toolchains/
+toolchains/*
 pico_w_intro
 projects/pico-sdk*
 projects/.env
 
 projects/Wifi_Test_3/secrets.py
+
+projects/Wifi_Test_3/.env
