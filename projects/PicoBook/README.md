@@ -17,14 +17,14 @@ A Raspberry Pi Pico W-based device that:
 
 ## Hardware Used
 
-| Component         | Description                             |
-|------------------|-----------------------------------------|
+| Component           | Description                              |
+|---------------------|------------------------------------------|
 | Raspberry Pi Pico W | Microcontroller with Wi-Fi               |
-| SSD1306 OLED      | 128x64 pixel I2C display (3V3 logic)     |
-| Button 1          | Connected to GP16 for note refetch      |
-| Button 2 (optional) | Connected between RUN and GND for reset |
-| Jumper Wires      | Standard male-to-male                   |
-| Breadboard        | Optional, for quick prototyping         |
+| SSD1306 OLED        | 128x64 pixel I2C display (3V3 logic)     |
+| Button 1            | Connected to GP16 for note refetch       |
+| Button 2 (optional) | Connected between RUN and GND for reset  |
+| Jumper Wires        | Standard male-to-male                    |
+| Breadboard          | Optional, for quick prototyping          |
 
 ---
 
