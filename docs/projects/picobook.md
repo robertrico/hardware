@@ -38,7 +38,7 @@ PicoBook is a compact, self-contained embedded device that fetches book titles a
 
 - [Main Code](https://github.com/robertrico/hardware/blob/main/projects/PicoBook/main.py)
 - [Wiring Diagram](https://github.com/robertrico/hardware/tree/main/projects/PicoBook/docs/wiring_diagram.md)
-- [Case Design](https://github.com/robertrico/hardware/tree/main/projects/PicoBook/docs/case-design.jpeg)
+- [Case Design](https://raw.githubusercontent.com/robertrico/hardware/main/projects/PicoBook/images/case-design.jpeg)
 
 ---
 

@@ -6,7 +6,7 @@ Welcome to my collection of embedded projects. Each project highlights specific 
 
 ## 📁 Projects
 
-- [PicoBook](picobook.md): A Wi-Fi-connected, book-shaped display device powered by a Raspberry Pi Pico W.
+- [PicoBook](projects/picobook.md): A Wi-Fi-connected, book-shaped display device powered by a Raspberry Pi Pico W.
 
 ---
 
