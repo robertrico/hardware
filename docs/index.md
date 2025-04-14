@@ -1,5 +1,3 @@
-# Rob Rico's Embedded Systems Portfolio
-
 Welcome to my collection of embedded projects. Each project highlights specific technologies and skills.
 
 ## Projects
