@@ -1,17 +1,18 @@
-# Pico W Internet Note Display
+# PicoBook – Pico W Internet Note Display
 
-A minimalist microcontroller device that fetches a message from a web server and displays it on a small OLED screen. Designed to boot on power, connect to Wi-Fi, and support a manual fetch button and hardware reset.
+A minimalist embedded device that fetches and displays messages from a web server onto a small OLED screen. Designed for instant-on behavior with local Wi-Fi support, manual refresh, and optional hardware reset. Shaped and built like a small book, it combines physical presence with purposeful microcontroller design.
 
 ---
 
 ## What This Is
-A Raspberry Pi Pico W-based device that:
+A Raspberry Pi Pico W-based tangible display device that:
 
-- Connects to Wi-Fi on power-up
-- Fetches a note from a web server
-- Displays the note on an SSD1306 OLED screen
-- Supports a manual button press to refetch the note
-- Supports a hardware reset via the RUN pin
+- Boots and connects to Wi-Fi on power-up
+- Fetches a note from a remote server (JSON over HTTP)
+- Displays the message on a 128x64 SSD1306 OLED screen
+- Supports a physical button press to fetch a new message
+- Supports optional hardware reset via the Pico’s RUN pin
+- Enclosed in a hand-cut, book-shaped plastic casing
 
 ---
 
@@ -19,12 +20,12 @@ A Raspberry Pi Pico W-based device that:
 
 | Component           | Description                              |
 |---------------------|------------------------------------------|
-| Raspberry Pi Pico W | Microcontroller with Wi-Fi               |
-| SSD1306 OLED        | 128x64 pixel I2C display (3V3 logic)     |
-| Button 1            | Connected to GP0 for note refetch        |
-| Button 2 (optional) | Connected between RUN and GND for reset  |
+| Raspberry Pi Pico W | Wi-Fi enabled microcontroller             |
+| SSD1306 OLED        | 128x64 pixel I2C display (3.3V logic)     |
+| Button 1            | GP16 (or GP0) used for manual fetch       |
+| Button 2 (optional) | RUN → GND hardware reset switch           |
 | Jumper Wires        | Standard male-to-male                    |
-| Breadboard          | Optional, for quick prototyping          |
+| Hand-built case     | Scored plastic sheet, folded and glued    |
 
 ---
 
@@ -33,33 +34,33 @@ A Raspberry Pi Pico W-based device that:
 ### OLED (I2C1)
 - SDA → GP2 (Physical pin 4)
 - SCL → GP3 (Physical pin 5)
-- VCC → 3V3
+- VCC → 3.3V
 - GND → GND
 
-### Button (Refetch Note)
-- One side → GP0 (Physical pin 1)
+### Button (Fetch New Message)
+- One side → GP16 (or GP0)
 - Other side → GND
 
 ### Optional Reset Button
-- One side → RUN pin
+- One side → RUN
 - Other side → GND
 
-> Buttons must straddle the center trench on a breadboard for correct contact.
+> Tip: On breadboards, buttons must straddle the center trench to function correctly.
 
 ---
 
 ## Software
 
-- Language: MicroPython
-- Display Driver: `ssd1306.py`
-- Networking: Raw sockets (no external libraries needed)
-- Server: Any HTTP server returning `application/json` in the format:
+- Language: MicroPython (latest Pico W firmware)
+- Display: `ssd1306.py` driver
+- Networking: raw sockets (`urequests` not used)
+- Server format:
 
 ```json
 { "note": "Hello from the internet!" }
 ```
 
-Example PHP server:
+Example local PHP server:
 ```bash
 php -S 0.0.0.0:8081
 ```
@@ -77,13 +78,13 @@ echo json_encode(["note" => $notes[array_rand($notes)]]);
 ## File Layout
 ```
 project-folder/
-├── main.py         # Contains all logic (OLED, Wi-Fi, HTTP, button)
-├── secrets.py      # Stores Wi-Fi credentials (not committed)
-├── ssd1306.py      # OLED driver (if not built-in)
-└── boot.py         # Optional 3s delay for REPL access
+├── boot.py         # Optional REPL delay on startup
+├── main.py         # All device logic (Wi-Fi, fetch, render)
+├── secrets.py      # Wi-Fi credentials (never committed)
+├── ssd1306.py      # OLED display driver
 ```
 
-### `secrets.py` example:
+### `secrets.py` Format
 ```python
 WIFI_SSID = "your-ssid"
 WIFI_PASSWORD = "your-password"
@@ -91,9 +92,9 @@ WIFI_PASSWORD = "your-password"
 
 ---
 
-## Usage
+## Deployment
 
-### Upload the Files
+### Upload Files
 ```bash
 mpremote connect auto fs cp boot.py :
 mpremote connect auto fs cp main.py :
@@ -101,7 +102,7 @@ mpremote connect auto fs cp secrets.py :
 mpremote connect auto fs cp ssd1306.py :
 ```
 
-### Reboot the Pico
+### Reboot Device
 ```bash
 mpremote connect auto exec "import machine; machine.reset()"
 ```
@@ -111,30 +112,43 @@ mpremote connect auto exec "import machine; machine.reset()"
 mpremote connect auto
 ```
 
-### Device Behavior
-- On power-up, it fetches and displays the note
-- Press the button to re-fetch anytime
-- Reset with the RUN button if needed
-
 ---
 
 ## Behavior Summary
 
-| Action                | Result                        |
-|-----------------------|-------------------------------|
-| Plug into USB power   | Boots, connects to Wi-Fi, fetches message |
-| Press fetch button    | Re-fetches and displays new message |
-| Press reset button    | Fully reboots device |
+| Action              | Result                                      |
+|---------------------|---------------------------------------------|
+| Plug in power       | Connects to Wi-Fi, fetches and displays note |
+| Press fetch button  | Fetches and replaces message                |
+| Press reset button  | Full hardware reboot                        |
 
 ---
 
-## Notes
-- Minimal external dependencies; built entirely with MicroPython socket and display modules
-- Compatible with any HTTP server that returns a valid JSON note object
-- Designed for continuous power-on environments
-- Reset functionality ensures reliability for long-running use cases
+## Project Learnings
+
+- Raw socket usage in MicroPython (no TLS, no external libs)
+- OLED line-wrapping and text centering for 128x64 layout
+- Secrets handling via `git-secrets` and strict `.gitignore`
+- REPL lockout prevention using `boot.py` delay
+- Hands-on practice with desoldering headers and trimming fitment for enclosures
 
 ---
 
-Clean hardware. Minimal firmware. Purpose-built for demo and diagnostic displays.
+## Known Issues
 
+- If your server fails or hangs, the device may soft-lock or show blank
+- Some OLEDs (SSD1309) require driver mods; this uses SSD1306-compatible modules
+- Does not retry failed Wi-Fi connects after boot; must reset
+
+---
+
+## Status
+- Wi-Fi connects and screen displays notes
+- Server became unresponsive during extended test (not firmware fault)
+- Production case is hand crafted and prone to breakage.
+
+---
+
+## Final Words
+
+This was a fun project. I do not plan on furthering anymore MicroPython unless I deem it necessary. Baremetal is the way to go for my understanding of MCUs and how they communicate with things. I found MicroPython EXCELLENT to quickly prototype ideas, but C++ to fine-tune the code. ( Not that my code is polished. )

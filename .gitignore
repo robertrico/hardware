@@ -13,3 +13,7 @@ projects/pico-sdk*
 
 secrets.py
 *.env*
+
+esp_projects/init/sdkconfig
+managed_components/
+*.heic

@@ -1,4 +1,5 @@
 <?php
+// Example "Server" code. This is a simple PHP script that returns a random book title and author in JSON format.
 $phrases = [
 "The Hobbit\n\nJ.R.R Tolkien",
 "Three Novels\n\nJack London",
