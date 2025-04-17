@@ -1,18 +1,24 @@
 #include "ota_manager.hpp"
 #include "pico/stdlib.h"
+#include "pico/cyw43_arch.h"
+#include "lwip/tcp.h"
 #include "lwip/apps/http_client.h"
 #include "lwip/dns.h"
 #include "lwip/ip_addr.h"
 #include "hardware/flash.h"
+#include "hardware/sync.h"
+#include "version.h"
 #include <string>
 #include <cstring>
 #include <cstdio>
-#include "version.h"
-#include "pico/cyw43_arch.h"
+
+#define OTA_WRITE_OFFSET (0x0C0000) // Firmware B region
+#define OTA_FLASH_SECTOR_SIZE 4096  // Minimum erase/write size
 
 static constexpr const char* OTA_SERVER_IP = "3.128.180.81"; // Change to your Mac IP
 static constexpr uint16_t OTA_SERVER_PORT = 8081;
 static constexpr const char* OTA_META_PATH = "/";
+static constexpr const char* OTA_FIRMWARE_PATH = "/ota/firmware_*version*.bin";
 
 bool OTAManager::checkForUpdate() {
     ip_addr_t server_ip;
@@ -85,3 +91,107 @@ bool OTAManager::checkForUpdate() {
     printf("Current: %s | Incoming: %s\n", VERSION, incoming_version);
     return strcmp(VERSION, incoming_version) != 0;
 }
+
+static err_t on_tcp_connected(void* arg, struct tcp_pcb* tpcb, err_t err) {
+    const char* path = (const char*)arg;
+
+    std::string req = "GET ";
+    req += path;
+    req += " HTTP/1.1\r\nHost: 3.128.180.81\r\n\r\n"; // hardcode or pass later
+    tcp_write(tpcb, req.c_str(), req.size(), TCP_WRITE_FLAG_COPY);
+
+    return ERR_OK;
+}
+
+bool OTAManager::downloadAndWrite() {
+    printf("Starting firmware download...\n");
+
+    // Extract IP
+    char ipbuf[32] = {0};
+    std::string firmware_path = OTA_FIRMWARE_PATH;
+    size_t version_pos = firmware_path.find("*version*");
+    if (version_pos != std::string::npos) {
+        firmware_path.replace(version_pos, 9, "v1_01");
+    }
+    memcpy(ipbuf, OTA_SERVER_IP, strlen(OTA_SERVER_IP)); // Use OTA_SERVER_IP directly
+    const char* path = firmware_path.c_str();
+    
+    ip_addr_t server_ip;
+    ip4addr_aton(ipbuf, &server_ip);
+
+
+    struct tcp_pcb* pcb = tcp_new();
+    if (!pcb) {
+        printf("Failed to create TCP PCB\n");
+        return false;
+    }
+
+    static uint8_t flash_buf[OTA_FLASH_SECTOR_SIZE] = {0};
+    static size_t flash_offset = 0;
+    flash_offset = 0;
+
+    tcp_recv(pcb, [](void* arg, struct tcp_pcb* tpcb, struct pbuf* p, err_t err) -> err_t {
+        if (!p) {
+            printf("Connection closed.\n");
+            tcp_close(tpcb);
+            return ERR_OK;
+        }
+
+        static bool skipping_headers = true;
+        static size_t header_offset = 0;
+
+        uint8_t* data = (uint8_t*)p->payload;
+        size_t len = p->len;
+
+        // Skip HTTP headers
+        if (skipping_headers) {
+            char* body_start = strstr((char*)data, "\r\n\r\n");
+            if (body_start) {
+                size_t header_len = body_start + 4 - (char*)data;
+                data += header_len;
+                len -= header_len;
+                skipping_headers = false;
+            } else {
+                tcp_recved(tpcb, p->len);
+                pbuf_free(p);
+                return ERR_OK;
+            }
+        }
+
+        // Align to flash sector writes
+        while (len > 0) {
+            size_t chunk = OTA_FLASH_SECTOR_SIZE - (flash_offset % OTA_FLASH_SECTOR_SIZE);
+            if (chunk > len) chunk = len;
+
+            memcpy(flash_buf, data, chunk);
+
+            uint32_t flash_addr = OTA_WRITE_OFFSET + flash_offset;
+            uint32_t ints = save_and_disable_interrupts();
+
+            flash_range_erase(flash_addr, OTA_FLASH_SECTOR_SIZE);
+            flash_range_program(flash_addr, flash_buf, chunk);
+
+            restore_interrupts(ints);
+
+            flash_offset += chunk;
+            data += chunk;
+            len -= chunk;
+        }
+
+        tcp_recved(tpcb, p->len);
+        pbuf_free(p);
+        return ERR_OK;
+    });
+
+    tcp_arg(pcb, (void*)path);
+    tcp_connect(pcb, &server_ip, 8081, on_tcp_connected);
+
+    for (int i = 0; i < 200; ++i) {
+        cyw43_arch_poll();
+        sleep_ms(50);
+    }
+
+    printf("Firmware written to offset 0x%06X\n", OTA_WRITE_OFFSET);
+    return true;
+}
+

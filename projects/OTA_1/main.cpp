@@ -6,6 +6,7 @@
 #include "pico/cyw43_arch.h"
 #include "wifi_manager.hpp"
 #include "ota_manager.hpp"
+#include "version.h"
 
 #define LED_GRN 14
 #define LED_RED 15
@@ -34,7 +35,6 @@ int main() {
         if (wifi.testConnectivity()) {
             printf("Internet is OK!\n");
             gpio_put(LED_GRN, 1);
-            ota.checkForUpdate();
         } else {
             printf("No Internet!\n");
             gpio_put(LED_YLW, 1);
@@ -42,6 +42,26 @@ int main() {
     } else {
         printf("Wi-Fi Failed!\n");
         gpio_put(LED_RED, 1);
+    }
+
+    if (ota.checkForUpdate()) {
+        printf("New version available! Starting download...\n");
+        // TODO: parse URL from metadata, for now hardcode:
+        if (ota.downloadAndWrite()) {
+            printf("Firmware written. Marking for reboot...\n");
+            // TODO: write boot flag + reboot
+        } else {
+            printf("Download or write failed\n");
+        }
+    } else {
+        printf("Firmware up-to-date.\n");
+    }
+
+    while (true) {
+        // Your main firmware logic
+        // For now, just blink an LED or print heartbeat
+        sleep_ms(1000);
+        printf(".\n");
     }
 
     return 0;

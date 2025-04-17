@@ -4,7 +4,7 @@
 class OTAManager {
 public:
     bool checkForUpdate();
-    bool downloadAndWrite(const std::string& url);
+    bool downloadAndWrite();
     bool switchToB();
     void rebootToB();
 };
