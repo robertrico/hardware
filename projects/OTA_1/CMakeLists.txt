@@ -33,6 +33,7 @@ pico_sdk_init()
 add_executable(${PROJECT_NAME}
     main.cpp
     wifi_manager.cpp
+    ota_manager.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})  # ✅ add this
 

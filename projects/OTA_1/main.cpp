@@ -5,6 +5,7 @@
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 #include "wifi_manager.hpp"
+#include "ota_manager.hpp"
 
 #define LED_GRN 14
 #define LED_RED 15
@@ -19,6 +20,7 @@ int main() {
     }
 
     WiFiManager wifi;
+    OTAManager ota;
 
     gpio_init(LED_GRN);
     gpio_init(LED_RED);
@@ -32,6 +34,7 @@ int main() {
         if (wifi.testConnectivity()) {
             printf("Internet is OK!\n");
             gpio_put(LED_GRN, 1);
+            ota.checkForUpdate();
         } else {
             printf("No Internet!\n");
             gpio_put(LED_YLW, 1);
