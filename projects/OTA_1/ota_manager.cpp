@@ -240,10 +240,6 @@ bool OTAManager::checkBootFlag(char* out_version) {
 
     BootFlag* flag = (BootFlag*)flag_ptr;
     
-    for (int i = 0; i < 16; ++i) {
-        printf("flash[%02d] = 0x%02X\n", i, ((uint8_t*)flag)[i]);
-    }
-
     if (memcmp(flag->magic, "BOOT", 4) != 0) {
         return false;
     }
@@ -261,4 +257,18 @@ bool OTAManager::clearBootFlag() {
     flash_range_erase(OTA_FLAG_OFFSET, OTA_FLAG_SIZE);
     restore_interrupts(ints);
     return true;
+}
+
+void OTAManager::jumpToB() {
+    const uint32_t app_base = 0x10C0000;
+
+    // Load stack pointer and reset handler from new image
+    uint32_t sp = *(uint32_t*)(app_base + 0x00);
+    uint32_t entry = *(uint32_t*)(app_base + 0x04);
+
+    // Set MSP (Main Stack Pointer)
+    __asm volatile("msr msp, %0" :: "r"(sp) : );
+
+    // Jump to entry point
+    ((void (*)())entry)();
 }

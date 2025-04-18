@@ -8,7 +8,7 @@ public:
     bool switchToB(const char* version);
     bool checkBootFlag(char* out_version);
     bool clearBootFlag();
-    void rebootToB();
+    void jumpToB();
 };
 
 struct BootFlag {
