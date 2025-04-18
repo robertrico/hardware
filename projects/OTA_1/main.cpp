@@ -14,6 +14,16 @@
 
 int main() {
     stdio_init_all();
+
+    OTAManager ota;
+
+    char incoming_version[9] = {0};  // 8 + null
+    if (ota.checkBootFlag(incoming_version)) {
+        printf("Boot flag found for version: %s\n", incoming_version);
+
+        // TODO: jump to 0x0C0000
+    }
+
     printf("Initializing Wi-Fi Connection (CPP)...\n");
     if (cyw43_arch_init_with_country(CYW43_COUNTRY_USA)) {
         printf("CYW43 init failed!\n");
@@ -21,7 +31,6 @@ int main() {
     }
 
     WiFiManager wifi;
-    OTAManager ota;
 
     gpio_init(LED_GRN);
     gpio_init(LED_RED);
@@ -49,7 +58,7 @@ int main() {
         // TODO: parse URL from metadata, for now hardcode:
         if (ota.downloadAndWrite()) {
             printf("Firmware written. Marking for reboot...\n");
-            // TODO: write boot flag + reboot
+            ota.switchToB(VERSION);
         } else {
             printf("Download or write failed\n");
         }

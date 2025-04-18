@@ -5,6 +5,13 @@ class OTAManager {
 public:
     bool checkForUpdate();
     bool downloadAndWrite();
-    bool switchToB();
+    bool switchToB(const char* version);
+    bool checkBootFlag(char* out_version);
+    bool clearBootFlag();
     void rebootToB();
+};
+
+struct BootFlag {
+    char magic[4];
+    char version[8];
 };
