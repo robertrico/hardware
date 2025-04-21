@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "hardware/gpio.h"
 
 #define LED_GRN 14
 #define LED_RED 15

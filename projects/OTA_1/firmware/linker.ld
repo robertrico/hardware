@@ -24,14 +24,13 @@
 /* Constants (bytes) */
 BOOTLOADER_SIZE  = 400K;  /* 40 KB */
 BOOTFLAG_SIZE    = 4K;   /* 4 KB */
-RAM_BUFFER_SIZE  = 4K;
 FLASH_TOTAL_SIZE = 2M;     /* 2048 KB */
 
 /* Derived addresses */
 FLASH_BASE       = 0x10000000;
 BOOTLOADER_END   = FLASH_BASE + BOOTLOADER_SIZE;
-FIRMWARE_OFFSET  = BOOTLOADER_END + BOOTFLAG_SIZE + RAM_BUFFER_SIZE;
-FIRMWARE_LENGTH  = FLASH_TOTAL_SIZE - BOOTLOADER_SIZE - BOOTFLAG_SIZE - RAM_BUFFER_SIZE;
+FIRMWARE_OFFSET  = BOOTLOADER_END + BOOTFLAG_SIZE;
+FIRMWARE_LENGTH  = FLASH_TOTAL_SIZE - BOOTLOADER_SIZE - BOOTFLAG_SIZE;
 
 MEMORY
 {
@@ -53,7 +52,18 @@ SECTIONS
     .flash_begin : {
         __flash_binary_start = .;
     } > FLASH
+    
+    /* 
 
+    .boot2 : {
+        __boot2_start__ = .;
+        KEEP (*(.boot2))
+        __boot2_end__ = .;
+    } > FLASH
+
+    ASSERT(__boot2_end__ - __boot2_start__ == 256,
+        "ERROR: Pico second stage bootloader must be 256 bytes in size")
+    */
     /* The second stage will always enter the image at the start of .text.
        The debugger will use the ELF entry point, which is the _entry_point
        symbol if present, otherwise defaults to start of .text.

@@ -154,6 +154,7 @@ bool OTAManager::downloadAndWrite()
         .path = (char *)path,
     };
 
+    printf("Starting firmware writes...\n");
     tcp_recv(pcb, &FlashManager::tcp_trampoline);
         
     tcp_arg(pcb, &ota_session);
@@ -217,18 +218,21 @@ bool OTAManager::clearBootFlag()
 
 void OTAManager::jumpToB()
 {
+    // Disable interrupts
+    __asm volatile ("cpsid i");
 
-    // In an assembly snippet . . .
-    // Set VTOR register, set stack pointer, and jump to reset
-    asm volatile (
-        "mov r0, %[start]\n"
-        "ldr r1, =%[vtable]\n"
-        "str r0, [r1]\n"
-        "ldmia r0, {r0, r1}\n"
-        "msr msp, r0\n"
-        "bx r1\n"
-        :
-        : [start] "r" (OTA_WRITE_OFFSET), [vtable] "X" (PPB_BASE + M0PLUS_VTOR_OFFSET)
-        :
-        );
+    // Set stack pointer from vector table (offset 0)
+    uint32_t new_sp = *((uint32_t*)OTA_WRITE_OFFSET);
+    __asm volatile ("msr msp, %0" :: "r" (new_sp) : );
+
+    // Set VTOR to new firmware's base address
+    *(volatile uint32_t*)0xE000ED08 = OTA_WRITE_OFFSET;
+
+    // Read reset handler address (offset 4)
+    uint32_t reset_handler = *((uint32_t*)(OTA_WRITE_OFFSET + 4));
+
+    // Optional: flush caches, disable subsystems
+
+    // Jump to reset handler
+    ((void (*)(void))reset_handler)();
 }
