@@ -17,3 +17,16 @@ secrets.py
 esp_projects/init/sdkconfig
 managed_components/
 *.heic
+projects/OTA_1/firmware/pico-sdk/
+
+projects/OTA_1/firmware/pioasm/
+
+projects/OTA_1/firmware/pioasm-install/
+
+projects/OTA_1/firmware/generated/
+
+projects/OTA_1/firmware/CMakeFiles/
+
+projects/OTA_1/firmware/CMakeCache.txt
+
+projects/OTA_1/firmware/cmake_install.cmake

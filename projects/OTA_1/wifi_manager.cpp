@@ -4,7 +4,6 @@
 #include "lwip/dhcp.h"
 #include "lwip/netif.h"
 #include <cstdio>
-#include "hardware/i2c.h"       // for i2c_init and i2c1
 #include "lwip/tcp.h"           // for tcp_new, tcp_connect, tcp_write, etc.
 #include "lwip/pbuf.h"          // for pbuf_free
 #include "lwip/ip_addr.h"       // for ip4addr_aton
@@ -26,16 +25,7 @@ static void dns_callback(const char *name, const ip_addr_t *ipaddr, void *arg) {
 }
 
 WiFiManager::WiFiManager() {
-    setupGpios();
     dns_init();
-}
-
-void WiFiManager::setupGpios() {
-    i2c_init(i2c1, 400000);
-    gpio_set_function(2, GPIO_FUNC_I2C);
-    gpio_set_function(3, GPIO_FUNC_I2C);
-    gpio_pull_up(2);
-    gpio_pull_up(3);
 }
 
 bool WiFiManager::connect() {

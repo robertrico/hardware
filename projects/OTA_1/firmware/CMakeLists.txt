@@ -1,14 +1,14 @@
-set(PROJECT_NAME ota_1)
+set(PROJECT_NAME firmware)
 
 cmake_minimum_required(VERSION 3.13)
 
-set(PICO_SDK_PATH "../../pico-sdk")
+set(PICO_SDK_PATH "../../../pico-sdk")
 set(PICO_BOARD pico_w)
 
 # Import Pico SDK
-include(pico_sdk_import.cmake)
+include("../pico_sdk_import.cmake")
 
-project(${PROJECT_NAME} C CXX ASM)
+project(firmware C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -31,21 +31,17 @@ endif()
 pico_sdk_init()
 
 # Add your project executable
-add_executable(${PROJECT_NAME}
+add_executable(firmware
     main.cpp
-    wifi_manager.cpp
-    ota_manager.cpp
-    flash_manager.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+pico_set_linker_script(firmware ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
+
+target_include_directories(firmware PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Link with standard libraries
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(firmware
     pico_stdlib
-    hardware_i2c
-    pico_cyw43_arch_lwip_threadsafe_background
 )
 
-# Add USB/UART/Flash output formats
 pico_add_extra_outputs(${PROJECT_NAME})

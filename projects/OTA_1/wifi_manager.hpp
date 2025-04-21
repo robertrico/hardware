@@ -9,7 +9,4 @@ public:
     bool connect();
     bool testConnectivity();
     void poll();
-
-private:
-    void setupGpios();
 };
