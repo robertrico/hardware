@@ -1,13 +1,5 @@
+
 #include "wifi_manager.hpp"
-#include "pico/stdlib.h"
-#include "lwip/dns.h"
-#include "lwip/dhcp.h"
-#include "lwip/netif.h"
-#include <cstdio>
-#include "lwip/tcp.h"           // for tcp_new, tcp_connect, tcp_write, etc.
-#include "lwip/pbuf.h"          // for pbuf_free
-#include "lwip/ip_addr.h"       // for ip4addr_aton
-#include <string.h>             // for memcpy, strtok, strchr
 
 #define WIFI_CONNECT_RETRIES 5
 #define WIFI_RETRY_DELAY_MS 3000
@@ -24,12 +16,17 @@ static void dns_callback(const char *name, const ip_addr_t *ipaddr, void *arg) {
     }
 }
 
-WiFiManager::WiFiManager() {
+void WiFiManager::init() {
+    printf("Initializing Wi-Fi Connection (CPP)...\n");
+    if (cyw43_arch_init_with_country(CYW43_COUNTRY_USA) != 0) {
+        printf("Failed to initialize Wi-Fi\n");
+        while (1);
+    }
     dns_init();
+    cyw43_arch_enable_sta_mode();
 }
 
 bool WiFiManager::connect() {
-    cyw43_arch_enable_sta_mode();
     auto netif = netif_default;
 
     for (int attempt = 1; attempt <= WIFI_CONNECT_RETRIES; ++attempt) {

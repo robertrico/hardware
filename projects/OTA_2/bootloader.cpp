@@ -1,8 +1,6 @@
-#include "pico/stdio_usb.h"
-#include "pico/cyw43_arch.h"
 #include "hardware/gpio.h"
 #include <cstdio>
-#include "wifi_manager.hpp"
+#include "lib/wifi_manager.hpp"
 
 #define LED_GRN 14
 #define LED_RED 15
@@ -30,16 +28,12 @@ int main() {
     gpio_set_dir(LED_RED, GPIO_OUT);
     gpio_set_dir(LED_YLW, GPIO_OUT);
 
-    printf("Initializing Wi-Fi Connection (CPP)...\n");
-    if (cyw43_arch_init_with_country(CYW43_COUNTRY_USA))
-    {
-        printf("CYW43 init failed!\n");
-        return 1;
-    }
 
-    WiFiManager wifi;
     gpio_put(LED_RED, 1); // Turn on red LED to indicate Wi-Fi connection attempt
-    if (wifi.connect())
+
+    WiFiManager::init(); // Initialize Wi-Fi
+
+    if (WiFiManager::connect())
     {
         printf("Wi-Fi connected!\n");
         gpio_put(LED_GRN, 1); // Turn on green LED to indicate successful connection
