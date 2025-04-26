@@ -1,0 +1,160 @@
+#include "ota_manager.hpp"
+#include "../include/bootloader.h"
+
+static constexpr const char *OTA_SERVER_IP = "3.128.180.81"; // Change to your Mac IP
+static constexpr uint16_t OTA_SERVER_PORT = 8081;
+static constexpr const char *OTA_META_PATH = "/";
+static constexpr const char *OTA_FIRMWARE_PATH = "/ota/firmware_*version*.php";
+
+bool OTAManager::checkForUpdate()
+{
+    BootConfig boot_config = boot_config_flash;
+
+    printf("Current version: %s\n", boot_config.version);
+    printf("Flash app start: 0x%08X\n", boot_config.flash_app_start);
+    printf("Bootloader mode: %d\n", boot_config.mode);
+    printf("Bootloader magic: 0x%08X\n", boot_config.magic);
+
+    // Simple check: is the version field erased (all 0xFF)?
+    bool flash_uninitialized = true;
+
+    return false;
+}
+
+/*
+static err_t on_tcp_connected(void *arg, struct tcp_pcb *tpcb, err_t err)
+{
+    OTASession* ctx = static_cast<OTASession*>(arg);
+
+    std::string req = "GET ";
+    req += ctx->path;
+    req += " HTTP/1.1\r\nHost: 3.128.180.81\r\n\r\n"; // hardcode or pass later
+
+    tcp_write(tpcb, req.c_str(), req.size(), TCP_WRITE_FLAG_COPY);
+
+    return ERR_OK;
+}
+
+bool OTAManager::downloadAndWrite()
+{
+    printf("Starting firmware download...\n");
+
+    // Extract IP
+    char ipbuf[32] = {0};
+    std::string firmware_path = OTA_FIRMWARE_PATH;
+    size_t version_pos = firmware_path.find("*version*");
+
+    if (version_pos != std::string::npos) {
+        firmware_path.replace(version_pos, 9, "v1_01");
+    }
+
+    memcpy(ipbuf, OTA_SERVER_IP, strlen(OTA_SERVER_IP)); // Use OTA_SERVER_IP directly
+
+    const char *path = firmware_path.c_str();
+    ip_addr_t server_ip;
+    ip4addr_aton(ipbuf, &server_ip);
+
+    struct tcp_pcb *pcb = tcp_new();
+
+    FlashSession flash_ctx = {
+        .flash_offset = OTA_WRITE_OFFSET,
+        .buffered = 0,
+        .skipping_headers = true,
+    };
+
+    if (!pcb) {
+        printf("Failed to create TCP PCB\n");
+        return false;
+    }
+
+    OTASession ota_session = {
+        .flash_session = flash_ctx,
+        .path = (char *)path,
+    };
+
+    printf("Starting firmware writes...\n");
+    tcp_recv(pcb, &FlashManager::tcp_trampoline);
+        
+    tcp_arg(pcb, &ota_session);
+
+    tcp_connect(pcb, &server_ip, 8081, on_tcp_connected);
+
+    for (int i = 0; i < 200; ++i) {
+        cyw43_arch_poll();
+        sleep_ms(50);
+    }
+
+    printf("Firmware written to offset 0x%06X\n", OTA_WRITE_OFFSET);
+    return true;
+}
+
+bool OTAManager::switchToB(const char *version)
+{
+    BootFlag boot_flag;
+    static_assert(sizeof(BootFlag) <= OTA_FLAG_SIZE, "BootFlag too large!");
+
+    memcpy(boot_flag.magic, "BOOT", 4);
+    memcpy(boot_flag.version, version, 8);
+
+    static uint8_t flash_buf[OTA_FLAG_SIZE] = {0};
+
+    memset(flash_buf, 0, OTA_FLAG_SIZE);
+    memcpy(flash_buf, &boot_flag, sizeof(boot_flag));
+
+    FlashManager::store(OTA_FLAG_OFFSET, flash_buf, sizeof(boot_flag));
+
+    return true;
+}
+
+bool OTAManager::checkBootFlag(char *out_version)
+{
+    const uint8_t *flag_ptr = (const uint8_t *)(OTA_FLAG_OFFSET);
+
+    BootFlag *flag = (BootFlag *)flag_ptr;
+
+    if (memcmp(flag->magic, "BOOT", 4) != 0)
+    {
+        return false;
+    }
+
+    if (out_version)
+    {
+        memcpy(out_version, flag->version, sizeof(flag->version));
+        out_version[sizeof(flag->version)] = '\0'; // Ensure null termination
+    }
+
+    return true;
+}
+
+bool OTAManager::clearBootFlag()
+{
+    uint32_t ints = save_and_disable_interrupts();
+    flash_range_erase(FLASH_OFFSET(OTA_FLAG_OFFSET), OTA_FLAG_SIZE);
+    restore_interrupts(ints);
+    return true;
+}
+
+void __attribute__((noreturn)) OTAManager::jumpToB() {
+    __asm volatile ("cpsid i");  // Disable interrupts
+
+    // Set stack pointer to value at OTA vector table
+    __asm volatile ("msr msp, %0" :: "r" (*(uint32_t*)OTA_WRITE_OFFSET) : );
+
+    // Set LR to trap if returned
+    __asm volatile ("mov lr, %0" :: "r" (0xFFFFFFFF));
+
+    // Set VTOR to new firmware region
+    *(volatile uint32_t*)0xE000ED08 = OTA_WRITE_OFFSET;
+
+    // Read reset vector
+    uint32_t reset_handler = *((uint32_t*)(OTA_WRITE_OFFSET + 4));
+    reset_handler |= 0x1;  // Thumb mode
+
+    __asm volatile ("bkpt #43");
+
+    // Jump
+    ((void (*)(void))reset_handler)();
+
+    __builtin_unreachable();
+}
+*/

@@ -23,6 +23,7 @@ pico_sdk_init()
 add_executable(bootloader
     bootloader.cpp
     lib/wifi_manager.cpp
+    lib/ota_manager.cpp
     )
 
 target_link_libraries(bootloader PUBLIC
