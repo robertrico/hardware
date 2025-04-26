@@ -20,35 +20,37 @@
  * SOFTWARE.
  */
 
- #ifndef PICO_FOTA_BOOTLOADER_LINKER_DEFINITIONS_H
- #define PICO_FOTA_BOOTLOADER_LINKER_DEFINITIONS_H
- 
- #include <pico/stdlib.h>
- 
+ #ifndef BOOTLOADER_H
+ #define BOOTLOADER_H
+
+#define FLASH_OFFSET(addr) ((addr) - XIP_BASE) 
+#define FLASH_APP_START (XIP_BASE + (508 * 1024)) // 508kB Bootloader Size
+#define BOOTCONFIG_MAGIC 0x424F4F54
+
+#include "hardware/gpio.h"
+#include <cstdio>
+#include <pico/stdlib.h>
+#include "lib/wifi_manager.hpp"
+#include "lib/ota_manager.hpp"
+
  #ifdef __cplusplus
  extern "C" {
  #endif
- 
- #define PFB_ADDR_AS_U32(Data) (uint32_t) & (Data)
- #define PFB_ADDR_WITH_XIP_OFFSET_AS_U32(Data) \
-     (PFB_ADDR_AS_U32(Data) - (XIP_BASE))
- 
- extern uint32_t __flash_info_app_vtor;
- extern uint32_t __FLASH_SLOT;
- extern uint32_t __FLASH_INFO_START;
- extern uint32_t __FLASH_INFO_APP_HEADER;
- extern uint32_t __FLASH_INFO_DOWNLOAD_HEADER;
- extern uint32_t __FLASH_INFO_IS_DOWNLOAD_SLOT_VALID;
- extern uint32_t __FLASH_INFO_IS_FIRMWARE_SWAPPED;
- extern uint32_t __FLASH_INFO_IS_AFTER_ROLLBACK;
- extern uint32_t __FLASH_INFO_SHOULD_ROLLBACK;
- extern uint32_t __FLASH_APP_START;
- extern uint32_t __FLASH_DOWNLOAD_SLOT_START;
- extern uint32_t __FLASH_SWAP_SPACE_LENGTH;
+
+typedef uint8_t Mode;
+ struct BootConfig {
+    uint32_t const magic = BOOTCONFIG_MAGIC;
+    uint32_t const flash_app_start = FLASH_APP_START;
+    Mode mode;
+    char version[8];
+    char padding[4074];        // Padding to align memory + SOME flash usage
+};
+
+extern const BootConfig boot_config_flash;
  
  #ifdef __cplusplus
  }
  #endif
  
- #endif // PICO_FOTA_BOOTLOADER_LINKER_DEFINITIONS_H
+ #endif // BOOTLOADER_H
  

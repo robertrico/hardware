@@ -1,12 +1,19 @@
-#include "hardware/gpio.h"
-#include <cstdio>
-#include "lib/wifi_manager.hpp"
+
+#include "include/bootloader.h"
 
 #define LED_GRN 14
 #define LED_RED 15
 #define LED_YLW 16
 #define LED_PIN 19 // Onboard LED pin for Raspberry Pi Pico
 #define LED_PIN2 18 // Onboard LED pin for Raspberry Pi Pico
+
+__attribute__((section(".boot_config")))
+__attribute__((used))
+const BootConfig boot_config_flash = {
+        .mode = 0,
+        .version = "1.0.0",
+        .padding = {0},
+    };
 
 int main() {
     // Initialize the LED pin
@@ -51,6 +58,8 @@ int main() {
         }
         return 1;
     }
+
+    OTAManager::checkForUpdate(); // Check for OTA update
 
     while (true) {
         // Fun LED "dance" with two LEDs

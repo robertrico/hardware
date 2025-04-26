@@ -24,18 +24,6 @@
     +-------------------------------------------+  <-- __BOOTCONFIG
     |       Boot Config Slot       (4096)       |
     +-------------------------------------------+
-
-    struct {
-        struct BootConfig {
-            uint32_t app_header;                 // Application header
-            uint32_t download_header;            // Download header
-            uint32_t is_download_slot_valid;     // Flag indicating if download slot is valid
-            uint32_t is_firmware_swapped;        // Flag indicating if firmware is swapped
-            uint32_t is_after_rollback;          // Flag indicating if it is after rollback
-            uint32_t should_rollback;            // Flag indicating if rollback should occur
-            uint8_t app_flash_misc[4072];        // Padding to align memory + SOME flash usage
-        };
-    }
 */
 
 __XIP = 0x10000000;

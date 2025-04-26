@@ -73,25 +73,7 @@ SECTIONS
     } > FLASH
 
     .flash_info : {
-        __flash_info_app_vtor = .;
-        LONG(__FLASH_SLOT)
-        __flash_info_download_slot_vtor = .;
-        LONG(__FLASH_DL_SLOT)
-        __flash_info_is_download_slot_valid = .;
-        /* after flashing bootloader, download slot is invalid */
-        LONG(0x00000000)
-        __flash_info_is_firmware_is_swapped = .;
-        /* after flashing bootloader, firmware has not yet been swapped */
-        LONG(0x00000000)
-        __flash_info_is_after_rollback = .;
-        /* after flashing bootloader, app is not affter a rollback */
-        LONG(0x00000000)
-        __flash_info_should_rollback = .;
-        /* after flashing bootloader, rollback shouldn't be performed */
-        LONG(0x00000000)
-        __boot_slot = .;
-        /* after flashing bootloader, rollback shouldn't be performed */
-        LONG(__BOOT_SLOT)
+        KEEP(*(.boot_config*))
     } > BOOT_CONFIG
 
     .rodata : {
@@ -297,8 +279,4 @@ SECTIONS
     ASSERT((__logical_binary_start & 0x3) == 0, "ERROR: .text section is not 4-byte aligned")
     ASSERT((__data_start__ & 0x3) == 0, "ERROR: .data section is not 4-byte aligned")
     ASSERT((__bss_start__ & 0x3) == 0, "ERROR: .bss section is not 4-byte aligned")
-
-    ASSERT(__flash_info_download_slot_vtor >= ORIGIN(BOOT_CONFIG), "ERROR: Download slot overlaps BOOT_CONFIG")
-    ASSERT(__flash_info_app_vtor >= ORIGIN(FLASH), "ERROR: App VTOR is outside FLASH region")
 }
-
