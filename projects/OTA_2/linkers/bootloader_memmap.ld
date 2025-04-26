@@ -32,6 +32,7 @@ SECTIONS
 
     ASSERT(__boot2_end__ - __boot2_start__ == 256,
         "ERROR: Pico second stage bootloader must be 256 bytes in size")
+    ASSERT(__boot2_end__ <= ORIGIN(FLASH) + LENGTH(FLASH), "ERROR: Bootloader exceeds FLASH memory")
 
     /* The second stage will always enter the image at the start of .text.
        The debugger will use the ELF entry point, which is the _entry_point
@@ -123,6 +124,8 @@ SECTIONS
     __binary_info_end = .;
     . = ALIGN(4);
 
+    ASSERT(__binary_info_end - __binary_info_start <= 256, "ERROR: Binary info section exceeds 256 bytes")
+
     .ram_vector_table (NOLOAD): {
         *(.ram_vector_table)
     } > RAM
@@ -210,6 +213,7 @@ SECTIONS
         . = ALIGN(4);
         __bss_end__ = .;
     } > RAM
+    ASSERT(__bss_end__ <= ORIGIN(RAM) + LENGTH(RAM), "ERROR: RAM memory overflow")
 
     .heap (NOLOAD):
     {
@@ -238,6 +242,9 @@ SECTIONS
     } > SCRATCH_Y AT > FLASH
     __scratch_y_source__ = LOADADDR(.scratch_y);
 
+    ASSERT(__scratch_x_end__ <= ORIGIN(SCRATCH_X) + LENGTH(SCRATCH_X), "ERROR: SCRATCH_X memory overflow")
+    ASSERT(__scratch_y_end__ <= ORIGIN(SCRATCH_Y) + LENGTH(SCRATCH_Y), "ERROR: SCRATCH_Y memory overflow")
+
     /* .stack*_dummy section doesn't contains any symbols. It is only
      * used for linker to calculate size of stack sections, and assign
      * values to stack symbols later
@@ -260,6 +267,7 @@ SECTIONS
         KEEP(*(.embedded_end_block*))
         PROVIDE(__flash_binary_end = .);
     } > FLASH
+    ASSERT(__flash_binary_end <= ORIGIN(FLASH) + LENGTH(FLASH), "ERROR: Flash memory overflow")
 
     /* stack limit is poorly named, but historically is maximum heap ptr */
     __StackLimit = ORIGIN(RAM) + LENGTH(RAM);
@@ -268,6 +276,7 @@ SECTIONS
     __StackOneBottom = __StackOneTop - SIZEOF(.stack1_dummy);
     __StackBottom = __StackTop - SIZEOF(.stack_dummy);
     PROVIDE(__stack = __StackTop);
+    ASSERT(__StackBottom >= __HeapLimit, "ERROR: Stack and heap overlap")
 
     /* picolibc and LLVM */
     PROVIDE (__heap_start = __end__);
@@ -284,6 +293,12 @@ SECTIONS
     ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed")
 
     ASSERT( __binary_info_header_end - __logical_binary_start <= 256, "Binary info must be in first 256 bytes of the binary")
-    /* todo assert on extra code */
+
+    ASSERT((__logical_binary_start & 0x3) == 0, "ERROR: .text section is not 4-byte aligned")
+    ASSERT((__data_start__ & 0x3) == 0, "ERROR: .data section is not 4-byte aligned")
+    ASSERT((__bss_start__ & 0x3) == 0, "ERROR: .bss section is not 4-byte aligned")
+
+    ASSERT(__flash_info_download_slot_vtor >= ORIGIN(BOOT_CONFIG), "ERROR: Download slot overlaps BOOT_CONFIG")
+    ASSERT(__flash_info_app_vtor >= ORIGIN(FLASH), "ERROR: App VTOR is outside FLASH region")
 }
 
