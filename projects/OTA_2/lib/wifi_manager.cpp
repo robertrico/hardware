@@ -137,9 +137,3 @@ bool WiFiManager::testConnectivity() {
     printf("No response received\n");
     return false;
 }
-
-
-
-void WiFiManager::poll() {
-    cyw43_arch_poll();
-}

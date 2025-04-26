@@ -15,5 +15,4 @@ public:
     static void init();
     static bool connect();
     static bool testConnectivity();
-    static void poll();
 };
