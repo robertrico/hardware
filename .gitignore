@@ -30,3 +30,11 @@ projects/OTA_1/firmware/CMakeFiles/
 projects/OTA_1/firmware/CMakeCache.txt
 
 projects/OTA_1/firmware/cmake_install.cmake
+
+*.bin
+
+*.elf
+
+*.o
+
+*.out
