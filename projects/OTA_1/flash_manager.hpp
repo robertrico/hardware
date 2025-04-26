@@ -1,13 +1,14 @@
 #include "lwip/tcp.h"
 #include "hardware/flash.h"
 
-#define FLASH_OFFSET(addr) ((addr) - XIP_BASE)
+#define CXIP_BASE 0x10000000 + 0x1000
+#define FLASH_OFFSET(addr) ((addr) - CXIP_BASE)
 #define FLASH_BUFFER_SIZE FLASH_SECTOR_SIZE
 
 #define OTA_BOOTLOADER_SIZE (FLASH_SECTOR_SIZE * 100) // 400 KB
 #define OTA_FLAG_SIZE FLASH_SECTOR_SIZE                // 4 KB
 
-#define OTA_FLAG_OFFSET (XIP_BASE + OTA_BOOTLOADER_SIZE)   // 0x10064000
+#define OTA_FLAG_OFFSET (CXIP_BASE + OTA_BOOTLOADER_SIZE)   // 0x10064000
 #define OTA_WRITE_OFFSET (OTA_FLAG_OFFSET + OTA_FLAG_SIZE) // 0x10065000
 
 struct FlashSession {

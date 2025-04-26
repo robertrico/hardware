@@ -27,6 +27,7 @@ MEMORY
     RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k
     SCRATCH_X(rwx) : ORIGIN = 0x20040000, LENGTH = 4k
     SCRATCH_Y(rwx) : ORIGIN = 0x20041000, LENGTH = 4k
+    BOOT_FLASH (rx) : ORIGIN = 0x1000000, LENGTH = 256
 }
 
 ENTRY(_entry_point)
@@ -57,7 +58,13 @@ SECTIONS
        This can be used to transfer control back to the bootrom on debugger
        launches only, to perform proper flash setup.
     */
-
+  
+    .boot_block (NOLOAD) :
+    {
+        KEEP(*(.bootblock*))  /* Optional: if you ever want to assign something here */
+        _boot_block_start = .;
+    } > SCRATCH_X
+  
     .text : {
         __logical_binary_start = .;
         KEEP (*(.vectors))
@@ -268,7 +275,7 @@ SECTIONS
     /* stack limit is poorly named, but historically is maximum heap ptr */
     __StackLimit = ORIGIN(RAM) + LENGTH(RAM);
     __StackOneTop = ORIGIN(SCRATCH_X) + LENGTH(SCRATCH_X);
-    __StackTop = ORIGIN(SCRATCH_Y) + LENGTH(SCRATCH_Y) - 0x10;
+    __StackTop = ORIGIN(SCRATCH_Y) + LENGTH(SCRATCH_Y);
     __StackOneBottom = __StackOneTop - SIZEOF(.stack1_dummy);
     __StackBottom = __StackTop - SIZEOF(.stack_dummy);
     PROVIDE(__stack = __StackTop);

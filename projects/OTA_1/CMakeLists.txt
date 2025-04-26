@@ -38,6 +38,8 @@ add_executable(${PROJECT_NAME}
     flash_manager.cpp
 )
 
+pico_set_linker_script(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/bootloader_memmap.ld)
+
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Link with standard libraries

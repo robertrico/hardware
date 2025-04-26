@@ -1,18 +1,4 @@
 #include "ota_manager.hpp"
-#include "flash_manager.hpp"
-#include "pico/cyw43_arch.h"
-#include "lwip/tcp.h"
-#include "lwip/apps/http_client.h"
-#include "lwip/dns.h"
-#include "lwip/ip_addr.h"
-#include "hardware/flash.h"
-#include "hardware/sync.h"
-#include "version.h"
-#include <string>
-#include <cstring>
-#include <cstdio>
-#include "pico/stdlib.h"
-#include "hardware/structs/scb.h"
 
 static constexpr const char *OTA_SERVER_IP = "3.128.180.81"; // Change to your Mac IP
 static constexpr uint16_t OTA_SERVER_PORT = 8081;
@@ -216,23 +202,26 @@ bool OTAManager::clearBootFlag()
     return true;
 }
 
-void OTAManager::jumpToB()
-{
-    // Disable interrupts
-    __asm volatile ("cpsid i");
+void __attribute__((noreturn)) OTAManager::jumpToB() {
+    __asm volatile ("cpsid i");  // Disable interrupts
 
-    // Set stack pointer from vector table (offset 0)
-    uint32_t new_sp = *((uint32_t*)OTA_WRITE_OFFSET);
-    __asm volatile ("msr msp, %0" :: "r" (new_sp) : );
+    // Set stack pointer to value at OTA vector table
+    __asm volatile ("msr msp, %0" :: "r" (*(uint32_t*)OTA_WRITE_OFFSET) : );
 
-    // Set VTOR to new firmware's base address
+    // Set LR to trap if returned
+    __asm volatile ("mov lr, %0" :: "r" (0xFFFFFFFF));
+
+    // Set VTOR to new firmware region
     *(volatile uint32_t*)0xE000ED08 = OTA_WRITE_OFFSET;
 
-    // Read reset handler address (offset 4)
+    // Read reset vector
     uint32_t reset_handler = *((uint32_t*)(OTA_WRITE_OFFSET + 4));
+    reset_handler |= 0x1;  // Thumb mode
 
-    // Optional: flush caches, disable subsystems
+    __asm volatile ("bkpt #43");
 
-    // Jump to reset handler
+    // Jump
     ((void (*)(void))reset_handler)();
+
+    __builtin_unreachable();
 }
