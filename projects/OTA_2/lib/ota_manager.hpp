@@ -22,11 +22,12 @@
 class OTAManager {
 public:
     static bool checkForUpdate();
-    static bool downloadAndWrite(char* version);
-    static bool switchToB(const char* version);
-    static bool checkBootFlag(char* out_version);
-    static bool clearBootFlag();
-    static void jumpToB();
+    static bool updateBootConfig(const char* version);
+    static bool downloadAndWrite();
+    //static bool switchToB(const char* version);
+    //static bool checkBootFlag(char* out_version);
+    //static bool clearBootFlag();
+    //static void jumpToB();
 };
 
 

@@ -13,34 +13,42 @@ bool OTAManager::checkForUpdate()
 
     printf("Current version: %s\n", boot_config.version);
     printf("Flash app start: 0x%08X\n", boot_config.flash_app_start);
-    printf("Bootloader mode: %d\n", boot_config.mode);
+    printf("Bootloader mode: %s\n", boot_config.mode);
     printf("Bootloader magic: 0x%08X\n", boot_config.magic);
 
     char version[8] = "1.0.2";
 
-    OTAManager::downloadAndWrite(version);
+    OTAManager::updateBootConfig(version);
+    OTAManager::downloadAndWrite();
 
     return false;
 }
 
-bool OTAManager::downloadAndWrite(char *version)
+bool OTAManager::updateBootConfig(const char *version)
 {
-    char version_buf[9] = {0};
-    memcpy(version_buf, version, 8);
-
-    printf("Starting firmware download...\n");
+    BootConfig new_config = boot_config_flash; // Start with current config
     printf("Firmware Slot: %08X\n", BOOT_CONFIG_START);
 
-    BootConfig new_config = boot_config_flash; // Start with current config as a template
+    // Update the version
+    memset(new_config.version, 0, 8);
+    memcpy(new_config.version, version, 8);
 
-    // Update version field
-    memset(new_config.version, 0, sizeof(new_config.version));
-    memcpy(new_config.version, version_buf, sizeof(new_config.version));
+    // Set mode to RUN
+    memset(new_config.mode, 0, 5);
+    memcpy(new_config.mode, "_RUN", 5);
 
-    printf("New version: %s\n", new_config.version);
+    printf("Dowloaded version: %s\n", new_config.version);
     bool ret = FlashManager::flash(BOOT_CONFIG_START, (const uint8_t*)&new_config, FLASH_SECTOR_SIZE);
     
     return ret;
+}
+
+bool OTAManager::downloadAndWrite()
+{
+    printf("Starting firmware download...\n");
+    // TODO : Handle OTA download
+
+    return false;
 }
 
 /*
