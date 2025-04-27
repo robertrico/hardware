@@ -42,16 +42,6 @@ bool OTAManager::updateBootConfig(const char *version)
     
     return ret;
 }
-
-bool OTAManager::downloadAndWrite()
-{
-    printf("Starting firmware download...\n");
-    // TODO : Handle OTA download
-
-    return false;
-}
-
-/*
 static err_t on_tcp_connected(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
     OTASession* ctx = static_cast<OTASession*>(arg);
@@ -87,7 +77,7 @@ bool OTAManager::downloadAndWrite()
     struct tcp_pcb *pcb = tcp_new();
 
     FlashSession flash_ctx = {
-        .flash_offset = OTA_WRITE_OFFSET,
+        .flash_offset = FLASH_APP_START,
         .buffered = 0,
         .skipping_headers = true,
     };
@@ -111,13 +101,15 @@ bool OTAManager::downloadAndWrite()
 
     for (int i = 0; i < 200; ++i) {
         cyw43_arch_poll();
+        gpio_put(LED_YLW, 1);
         sleep_ms(50);
     }
 
-    printf("Firmware written to offset 0x%06X\n", OTA_WRITE_OFFSET);
+    printf("Firmware written to offset 0x%06X\n", FLASH_APP_START);
     return true;
 }
 
+/*
 bool OTAManager::switchToB(const char *version)
 {
     BootFlag boot_flag;

@@ -1,5 +1,6 @@
 #include "flash_manager.hpp"
 
+uint8_t ram_flash_buffer[FLASH_SECTOR_SIZE];
 // Trampoline function to handle TCP events
 err_t FlashManager::tcp_trampoline(void *arg, tcp_pcb *tpcb, pbuf *p, err_t err)
 {
@@ -26,7 +27,6 @@ bool FlashManager::flash(uint32_t flash_addr, const uint8_t *data, size_t len)
     return true;
 }
 
-/*
 bool FlashManager::handle(tcp_pcb *tpcb, pbuf *p, err_t err, FlashSession *ctx)
 {
 
@@ -61,7 +61,7 @@ bool FlashManager::handle(tcp_pcb *tpcb, pbuf *p, err_t err, FlashSession *ctx)
     
         if (ctx->buffered == FLASH_SECTOR_SIZE) {
             gpio_put(16, 1);
-            FlashManager::flash(ctx->flash_offset);  // you'll want to track this externally
+            FlashManager::flash(ctx->flash_offset, ram_flash_buffer, FLASH_SECTOR_SIZE);  // you'll want to track this externally
             ctx->flash_offset += FLASH_SECTOR_SIZE;
             ctx->buffered = 0;
         }
@@ -72,18 +72,3 @@ bool FlashManager::handle(tcp_pcb *tpcb, pbuf *p, err_t err, FlashSession *ctx)
     pbuf_free(p);
     return ERR_OK;
 }
-
-bool FlashManager::store(uint32_t flash_addr, const uint8_t *data, size_t len)
-{
-    if (len > FLASH_SECTOR_SIZE) {
-        printf("Error: Data length exceeds flash sector size.\n");
-        return false;
-    }
-
-    // Copy data to the flash buffer
-    memset(ram_flash_buffer, 0, FLASH_SECTOR_SIZE); // Clear the buffer
-    memcpy(ram_flash_buffer, data, len);
-
-    return FlashManager::flash(flash_addr); // Call the flash function
-}
-*/
