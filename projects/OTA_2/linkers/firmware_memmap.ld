@@ -5,6 +5,7 @@ INCLUDE "../linkers/memory_map.ld"
 MEMORY
 {
     FLASH(rx) : ORIGIN = __FLASH_SLOT, LENGTH = __FLASH_APPLICATION_LENGTH
+    BOOT_CONFIG(rx) : ORIGIN = __BOOT_SLOT, LENGTH = __BOOT_CONFIG_LENGTH
     RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k
     SCRATCH_X(rwx) : ORIGIN = 0x20040000, LENGTH = 4k
     SCRATCH_Y(rwx) : ORIGIN = 0x20041000, LENGTH = 4k
@@ -21,7 +22,6 @@ SECTIONS
 
     /* .boot2 was removed since this is the firmware application binary */
 
-    . = ALIGN(4);
     /* The second stage will always enter the image at the start of .text. */
     .text : {
         __logical_binary_start = .;
@@ -51,30 +51,13 @@ SECTIONS
         *(SORT(.dtors.*))
         *(.dtors)
 
-        . = ALIGN(4);
-        /* preinit data */
-        PROVIDE_HIDDEN (__preinit_array_start = .);
-        KEEP(*(SORT(.preinit_array.*)))
-        KEEP(*(.preinit_array))
-        PROVIDE_HIDDEN (__preinit_array_end = .);
-
-        . = ALIGN(4);
-        /* init data */
-        PROVIDE_HIDDEN (__init_array_start = .);
-        KEEP(*(SORT(.init_array.*)))
-        KEEP(*(.init_array))
-        PROVIDE_HIDDEN (__init_array_end = .);
-
-        . = ALIGN(4);
-        /* finit data */
-        PROVIDE_HIDDEN (__fini_array_start = .);
-        *(SORT(.fini_array.*))
-        *(.fini_array)
-        PROVIDE_HIDDEN (__fini_array_end = .);
-
         *(.eh_frame*)
         . = ALIGN(4);
     } > FLASH
+    
+    .flash_info : {
+        KEEP(*(.boot_config*))
+    } > BOOT_CONFIG
 
     .rodata : {
         *(EXCLUDE_FILE(*libgcc.a: *libc.a:*lib_a-mem*.o *libm.a:) .rodata*)
@@ -138,6 +121,26 @@ SECTIONS
         KEEP(*(.mutex_array))
         PROVIDE_HIDDEN (__mutex_array_end = .);
 
+        . = ALIGN(4);
+        /* preinit data */
+        PROVIDE_HIDDEN (__preinit_array_start = .);
+        KEEP(*(SORT(.preinit_array.*)))
+        KEEP(*(.preinit_array))
+        PROVIDE_HIDDEN (__preinit_array_end = .);
+
+        . = ALIGN(4);
+        /* init data */
+        PROVIDE_HIDDEN (__init_array_start = .);
+        KEEP(*(SORT(.init_array.*)))
+        KEEP(*(.init_array))
+        PROVIDE_HIDDEN (__init_array_end = .);
+
+        . = ALIGN(4);
+        /* finit data */
+        PROVIDE_HIDDEN (__fini_array_start = .);
+        *(SORT(.fini_array.*))
+        *(.fini_array)
+        PROVIDE_HIDDEN (__fini_array_end = .);
         . = ALIGN(4);
         *(.jcr)
         . = ALIGN(4);
@@ -230,7 +233,8 @@ SECTIONS
     __StackTop = ORIGIN(SCRATCH_Y) + LENGTH(SCRATCH_Y);
     __StackOneBottom = __StackOneTop - SIZEOF(.stack1_dummy);
     __StackBottom = __StackTop - SIZEOF(.stack_dummy);
-    PROVIDE(__stack = __StackTop);
+    
+    PROVIDE(__stack = __StackTop - 0x1000);
 
     /* picolibc and LLVM */
     PROVIDE (__heap_start = __end__);
