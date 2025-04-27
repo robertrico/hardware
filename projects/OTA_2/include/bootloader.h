@@ -33,6 +33,12 @@
 #define BOOT_CONFIG_START (XIP_BASE + (2048 * 1024) - 4096) // 2048kB Bootloader Size
 #define BOOTCONFIG_MAGIC 0x424F4F54
 
+#define LED_GRN 14
+#define LED_RED 15
+#define LED_YLW 16
+#define LED_PIN 19 
+#define LED_PIN2 18 
+
  #ifdef __cplusplus
  extern "C" {
  #endif

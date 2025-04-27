@@ -1,12 +1,6 @@
 
 #include "include/bootloader.h"
 
-#define LED_GRN 14
-#define LED_RED 15
-#define LED_YLW 16
-#define LED_PIN 19 // Onboard LED pin for Raspberry Pi Pico
-#define LED_PIN2 18 // Onboard LED pin for Raspberry Pi Pico
-
 __attribute__((section(".boot_config")))
 __attribute__((used))
 const BootConfig boot_config_flash = {
