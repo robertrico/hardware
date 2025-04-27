@@ -22,28 +22,27 @@
 
  #ifndef BOOTLOADER_H
  #define BOOTLOADER_H
-
-#define FLASH_OFFSET(addr) ((addr) - XIP_BASE) 
-#define FLASH_APP_START (XIP_BASE + (508 * 1024)) // 508kB Bootloader Size
-#define BOOTCONFIG_MAGIC 0x424F4F54
-
 #include "hardware/gpio.h"
 #include <cstdio>
 #include <pico/stdlib.h>
 #include "lib/wifi_manager.hpp"
 #include "lib/ota_manager.hpp"
 
+#define FLASH_OFFSET(addr) ((addr) - XIP_BASE) 
+#define FLASH_APP_START (XIP_BASE + (508 * 1024)) // 508kB Bootloader Size
+#define BOOT_CONFIG_START (XIP_BASE + (2048 * 1024) - 4096) // 2048kB Bootloader Size
+#define BOOTCONFIG_MAGIC 0x424F4F54
+
  #ifdef __cplusplus
  extern "C" {
  #endif
 
-typedef uint8_t Mode;
  struct BootConfig {
     uint32_t const magic = BOOTCONFIG_MAGIC;
     uint32_t const flash_app_start = FLASH_APP_START;
-    Mode mode;
-    char version[8];
-    char padding[4074];        // Padding to align memory + SOME flash usage
+    char mode[5];
+    char version[9];
+    char padding[4074];
 };
 
 extern const BootConfig boot_config_flash;

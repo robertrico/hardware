@@ -1,4 +1,5 @@
 #include "ota_manager.hpp"
+#include "flash_manager.hpp"
 #include "../include/bootloader.h"
 
 static constexpr const char *OTA_SERVER_IP = "3.128.180.81"; // Change to your Mac IP
@@ -15,10 +16,31 @@ bool OTAManager::checkForUpdate()
     printf("Bootloader mode: %d\n", boot_config.mode);
     printf("Bootloader magic: 0x%08X\n", boot_config.magic);
 
-    // Simple check: is the version field erased (all 0xFF)?
-    bool flash_uninitialized = true;
+    char version[8] = "1.0.2";
+
+    OTAManager::downloadAndWrite(version);
 
     return false;
+}
+
+bool OTAManager::downloadAndWrite(char *version)
+{
+    char version_buf[9] = {0};
+    memcpy(version_buf, version, 8);
+
+    printf("Starting firmware download...\n");
+    printf("Firmware Slot: %08X\n", BOOT_CONFIG_START);
+
+    BootConfig new_config = boot_config_flash; // Start with current config as a template
+
+    // Update version field
+    memset(new_config.version, 0, sizeof(new_config.version));
+    memcpy(new_config.version, version_buf, sizeof(new_config.version));
+
+    printf("New version: %s\n", new_config.version);
+    bool ret = FlashManager::flash(BOOT_CONFIG_START, (const uint8_t*)&new_config, FLASH_SECTOR_SIZE);
+    
+    return ret;
 }
 
 /*

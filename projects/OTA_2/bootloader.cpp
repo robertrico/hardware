@@ -10,7 +10,7 @@
 __attribute__((section(".boot_config")))
 __attribute__((used))
 const BootConfig boot_config_flash = {
-        .mode = 0,
+        .mode = "BOOT",
         .version = "1.0.0",
         .padding = {0},
     };
