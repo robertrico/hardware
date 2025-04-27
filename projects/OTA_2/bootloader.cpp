@@ -53,7 +53,19 @@ int main() {
         return 1;
     }
 
-    OTAManager::checkForUpdate(); // Check for OTA update
+    const char* bootMode = OTAManager::checkBootFlag();
+
+    if (memcmp(bootMode, "BOOT", 4) == 0) {
+        printf("Bootloader mode\n");
+        gpio_put(LED_GRN, 1); // Turn off green LED
+        gpio_put(LED_RED, 1); // Turn on red LED to indicate bootloader mode
+        OTAManager::checkForUpdate(); // Check for OTA update
+    } else {
+        printf("Firmware mode\n");
+        gpio_put(LED_GRN, 1); // Turn on green LED to indicate firmware mode
+        gpio_put(LED_YLW, 1); // Turn off red LED
+        OTAManager::jumpToB(); // Check for OTA update
+    }
 
     while (true) {
         // Fun LED "dance" with two LEDs

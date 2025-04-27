@@ -279,4 +279,5 @@ SECTIONS
     ASSERT((__logical_binary_start & 0x3) == 0, "ERROR: .text section is not 4-byte aligned")
     ASSERT((__data_start__ & 0x3) == 0, "ERROR: .data section is not 4-byte aligned")
     ASSERT((__bss_start__ & 0x3) == 0, "ERROR: .bss section is not 4-byte aligned")
+
 }

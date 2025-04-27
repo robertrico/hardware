@@ -1,13 +1,15 @@
 #include "ota_manager.hpp"
 #include "flash_manager.hpp"
 #include "../include/bootloader.h"
+#include "hardware/watchdog.h"
+#include <RP2040.h>
 
 static constexpr const char *OTA_SERVER_IP = "3.128.180.81"; // Change to your Mac IP
 static constexpr uint16_t OTA_SERVER_PORT = 8081;
 static constexpr const char *OTA_META_PATH = "/";
 static constexpr const char *OTA_FIRMWARE_PATH = "/ota/firmware_*version*.php";
 
-bool OTAManager::checkForUpdate()
+void OTAManager::checkForUpdate()
 {
     BootConfig boot_config = boot_config_flash;
 
@@ -17,11 +19,13 @@ bool OTAManager::checkForUpdate()
     printf("Bootloader magic: 0x%08X\n", boot_config.magic);
 
     char version[8] = "1.0.2";
-
     OTAManager::updateBootConfig(version);
     OTAManager::downloadAndWrite();
 
-    return false;
+    // Watchdog reset
+    watchdog_enable(1, 1);
+    while (1)
+        ;
 }
 
 bool OTAManager::updateBootConfig(const char *version)
@@ -42,6 +46,7 @@ bool OTAManager::updateBootConfig(const char *version)
     
     return ret;
 }
+
 static err_t on_tcp_connected(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
     OTASession* ctx = static_cast<OTASession*>(arg);
@@ -108,6 +113,42 @@ bool OTAManager::downloadAndWrite()
     printf("Firmware written to offset 0x%06X\n", FLASH_APP_START);
     return true;
 }
+static void _disable_interrupts(void) {
+    SysTick->CTRL &= ~1;
+
+    NVIC->ICER[0] = 0xFFFFFFFF;
+    NVIC->ICPR[0] = 0xFFFFFFFF;
+}
+
+static void reset_peripherals(void) {
+    reset_block(~(RESETS_RESET_IO_QSPI_BITS | RESETS_RESET_PADS_QSPI_BITS
+                  | RESETS_RESET_SYSCFG_BITS | RESETS_RESET_PLL_SYS_BITS));
+}
+
+void OTAManager::jumpToB() {
+    // Derived from the Leaf Labs Cortex-M3 bootloader.
+    // Copyright (c) 2010 LeafLabs LLC.
+    // Modified 2021 Brian Starkey <stark3y@gmail.com>
+    // Originally under The MIT License
+
+    uint32_t reset_vector = *(volatile uint32_t *) (FLASH_APP_START + 0x04);
+    SCB->VTOR = (volatile uint32_t)(FLASH_APP_START);
+
+    asm volatile("cpsid i");
+
+    asm volatile("msr msp, %0" ::"g"(*(volatile uint32_t *) (FLASH_APP_START)));
+
+    asm volatile("bx %0" ::"r"(reset_vector));
+}
+
+char* OTAManager::checkBootFlag()
+{
+    const uint8_t *flag_ptr = (const uint8_t *)(BOOT_CONFIG_START);
+
+    BootConfig *boot_config = (BootConfig *)flag_ptr;
+
+    return boot_config->mode;
+}
 
 /*
 bool OTAManager::switchToB(const char *version)
@@ -128,25 +169,6 @@ bool OTAManager::switchToB(const char *version)
     return true;
 }
 
-bool OTAManager::checkBootFlag(char *out_version)
-{
-    const uint8_t *flag_ptr = (const uint8_t *)(OTA_FLAG_OFFSET);
-
-    BootFlag *flag = (BootFlag *)flag_ptr;
-
-    if (memcmp(flag->magic, "BOOT", 4) != 0)
-    {
-        return false;
-    }
-
-    if (out_version)
-    {
-        memcpy(out_version, flag->version, sizeof(flag->version));
-        out_version[sizeof(flag->version)] = '\0'; // Ensure null termination
-    }
-
-    return true;
-}
 
 bool OTAManager::clearBootFlag()
 {
@@ -156,27 +178,4 @@ bool OTAManager::clearBootFlag()
     return true;
 }
 
-void __attribute__((noreturn)) OTAManager::jumpToB() {
-    __asm volatile ("cpsid i");  // Disable interrupts
-
-    // Set stack pointer to value at OTA vector table
-    __asm volatile ("msr msp, %0" :: "r" (*(uint32_t*)OTA_WRITE_OFFSET) : );
-
-    // Set LR to trap if returned
-    __asm volatile ("mov lr, %0" :: "r" (0xFFFFFFFF));
-
-    // Set VTOR to new firmware region
-    *(volatile uint32_t*)0xE000ED08 = OTA_WRITE_OFFSET;
-
-    // Read reset vector
-    uint32_t reset_handler = *((uint32_t*)(OTA_WRITE_OFFSET + 4));
-    reset_handler |= 0x1;  // Thumb mode
-
-    __asm volatile ("bkpt #43");
-
-    // Jump
-    ((void (*)(void))reset_handler)();
-
-    __builtin_unreachable();
-}
 */

@@ -5,7 +5,6 @@ INCLUDE "../linkers/memory_map.ld"
 MEMORY
 {
     FLASH(rx) : ORIGIN = __FLASH_SLOT, LENGTH = __FLASH_APPLICATION_LENGTH
-    BOOT_CONFIG(rx) : ORIGIN = __BOOT_SLOT, LENGTH = __BOOT_CONFIG_LENGTH
     RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k
     SCRATCH_X(rwx) : ORIGIN = 0x20040000, LENGTH = 4k
     SCRATCH_Y(rwx) : ORIGIN = 0x20041000, LENGTH = 4k
@@ -55,10 +54,6 @@ SECTIONS
         . = ALIGN(4);
     } > FLASH
     
-    .flash_info : {
-        KEEP(*(.boot_config*))
-    } > BOOT_CONFIG
-
     .rodata : {
         *(EXCLUDE_FILE(*libgcc.a: *libc.a:*lib_a-mem*.o *libm.a:) .rodata*)
         . = ALIGN(4);
@@ -234,8 +229,7 @@ SECTIONS
     __StackOneBottom = __StackOneTop - SIZEOF(.stack1_dummy);
     __StackBottom = __StackTop - SIZEOF(.stack_dummy);
     
-    PROVIDE(__stack = __StackTop - 0x1000);
-
+    PROVIDE(__stack = __StackTop);
     /* picolibc and LLVM */
     PROVIDE (__heap_start = __end__);
     PROVIDE (__heap_end = __HeapLimit);
