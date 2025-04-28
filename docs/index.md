@@ -6,7 +6,8 @@ Welcome to my collection of embedded projects. Each project highlights specific 
 
 ## 📁 Projects
 
-- [PicoBook](projects/picobook.md): A Wi-Fi-connected, book-shaped display device powered by a Raspberry Pi Pico W.
+- [PicoBook](PicoBook.md): A Wi-Fi-connected, book-shaped display device powered by a Raspberry Pi Pico W.
+- [[PicoW Over-The-Air Firmware System]]: An attempt to build a dual partition bootloader/firmware OTA system for the PicoW
 
 ---
 

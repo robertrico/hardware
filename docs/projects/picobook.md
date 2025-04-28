@@ -1,5 +1,3 @@
-# PicoBook
-
 PicoBook is a compact, self-contained embedded device that fetches book titles and authors over Wi-Fi and displays them on an OLED screen. The device is shaped like a small book and serves as both a practical message board and a demonstration of embedded capabilities.
 
 ---

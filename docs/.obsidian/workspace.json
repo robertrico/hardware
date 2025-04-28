@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "OTA/a lesson in memory management.md",
+                "file": "projects/PicoW Over-The-Air Firmware System.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "a lesson in memory management"
+              "title": "PicoW Over-The-Air Firmware System"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "OTA/a lesson in memory management.md",
+                "file": "projects/PicoW Over-The-Air Firmware System.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for a lesson in memory management"
+              "title": "Backlinks for PicoW Over-The-Air Firmware System"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "OTA/a lesson in memory management.md",
+                "file": "projects/PicoW Over-The-Air Firmware System.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from a lesson in memory management"
+              "title": "Outgoing links from PicoW Over-The-Air Firmware System"
             }
           },
           {
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "OTA/a lesson in memory management.md",
+                "file": "projects/PicoW Over-The-Air Firmware System.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of a lesson in memory management"
+              "title": "Outline of PicoW Over-The-Air Firmware System"
             }
           }
         ]
@@ -170,10 +170,12 @@
   },
   "active": "7ac3ff66a2c0235d",
   "lastOpenFiles": [
-    "pico-sdk.md",
+    "index.md",
     "projects/PicoW Over-The-Air Firmware System.md",
-    "OTA/256.md",
+    "projects/PicoBook.md",
+    "pico-sdk.md",
     "OTA/a lesson in memory management.md",
+    "OTA/256.md",
     "OTA/aeabi.md",
     "OTA/assembly.md",
     "OTA/Linker.md",
@@ -186,9 +188,7 @@
     "OTA/OTA Bootloader to Firmware Jump - Debugging, Root Cause, and System Design.md",
     "OTA/OTA Firmware Jump Debugging Session Summary.md",
     "ESP-NOW Remote Control Project (TX -> RX).md",
-    "index.md",
     "🛠️ Embedded Systems Project List.md",
-    "projects/picobook.md",
     "Data Sheets/pico-w-datasheet.pdf",
     "Data 1.md",
     "Data.md",
