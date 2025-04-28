@@ -1,5 +1,3 @@
-# OTA Firmware Jump Debugging and Root Cause Analysis
-
 ## Context
 This project implements an OTA (Over-the-Air) firmware update system for the Raspberry Pi Pico W, with a bootloader (Slot A) and an updateable application firmware (Slot B). The bootloader downloads the new firmware over Wi-Fi, writes it to flash, sets a boot flag, and then attempts to jump to the new firmware in Slot B.
 

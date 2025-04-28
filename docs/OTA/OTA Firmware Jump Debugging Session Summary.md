@@ -1,7 +1,6 @@
-# OTA Firmware Jump Debugging Session Summary
 
 ## Context
-Rob is building a dual-partition OTA update system for the Raspberry Pi Pico W using C++. A minimal bootloader downloads a new firmware binary from an EC2-hosted manifest and writes it to a known flash address (e.g., `0x10080000`). The bootloader is then responsible for jumping into the newly flashed firmware.
+I am building a dual-partition OTA update system for the Raspberry Pi Pico W using C++. A minimal bootloader downloads a new firmware binary from an EC2-hosted manifest and writes it to a known flash address (e.g., `0x10080000`). The bootloader is then responsible for jumping into the newly flashed firmware.
 
 The primary issue faced during this session was that although the new firmware was being compiled and written correctly to flash, it failed to execute upon jumping. Instead, the system entered a hard fault or stalled silently.
 

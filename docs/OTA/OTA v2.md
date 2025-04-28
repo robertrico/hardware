@@ -1,5 +1,3 @@
-# The Pivot
-
 ## Summary
 
 This marks a deliberate transition from the exploratory OTA_1 project into a focused, structured, and minimal OTA firmware system known as OTA_2. The goal is no longer to simply "get it working" — it is to build a **reusable, foundational OTA framework** that can be applied to any future embedded project from day one.
@@ -12,7 +10,7 @@ We are choosing not to clone or extend Jakob's repo directly, even though it is 
    - The bootloader must set the MSP (Main Stack Pointer) and jump to the vector table entry of the new firmware.
    - Jumping to `main()` or beyond the reset handler in firmware B caused failures due to skipped runtime init (e.g., `__aeabi`, BSS, `.data`).
 
-2. **The 256-byte boot block is untouched if we don't touch it.**
+2. **The [[256]]-byte boot block is untouched if we don't touch it.**
    - SRAM at `0x20040000` can be used for transient staging or boot flags, as long as it's respected by both linker and runtime.
 
 3. **Flash layout must be explicitly defined and enforced.**

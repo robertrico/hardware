@@ -1,9 +1,5 @@
-**OTA Jump Debugging Breakdown - Pico W Bootloader to Firmware B**
-
----
-
-**Background**
-Rob is implementing an OTA (Over-The-Air) firmware update system on the Raspberry Pi Pico W using CMake, custom linker scripts, and a manually controlled bootloader. The bootloader resides in flash from 0x10000000 to 0x10064000 (400KB), with a 4KB OTA flag region following it. Firmware B is written at the offset 0x10065000.
+## Background
+I am implementing an OTA (Over-The-Air) firmware update system on the Raspberry Pi Pico W using CMake, custom linker scripts, and a manually controlled bootloader. The bootloader resides in flash from 0x10000000 to 0x10064000 (400KB), with a 4KB OTA flag region following it. Firmware B is written at the offset 0x10065000.
 
 The goal is to have the bootloader detect that a new OTA firmware image has been written and then jump to it cleanly, mimicking a hardware reset by setting the appropriate stack pointer (SP), program counter (PC), and Vector Table Offset Register (VTOR).
 
@@ -42,7 +38,7 @@ The Reset vector pointed to `_reset_handler`, which began with `movs r0, r5`, a 
 ---
 
 **Jump Code Implementation**
-Rob then implemented an inline assembly block to perform the jump from bootloader to firmware B. It attempted to:
+I then implemented an inline assembly block to perform the jump from bootloader to firmware B. It attempted to:
 - Load OTA vector table address
 - Load initial stack pointer and reset handler from the table
 - Set MSP

@@ -1,4 +1,4 @@
-## The 256 Bytes: A Journey into SRAM5 and Truth
+## The [[256]] Bytes: A Journey into SRAM5 and Truth
 
 This document chronicles our deep dive into the mysterious 256-byte region that the RP2040 loads into SRAM5 at boot. Through live inspection, disassembly, and calculated corruption, we’ve uncovered not only what this memory region represents — but how to responsibly and powerfully use it.
 
