@@ -50,11 +50,11 @@ function (target_compile_link_options Name Option)
     target_compile_options(${Name} PRIVATE ${Option})
     target_link_options(${Name} PRIVATE ${Option})
 endfunction ()
-# Optimize for size
 
-target_compile_link_options(firmware "-Os")
-target_compile_link_options(firmware "-ffunction-sections")
-target_compile_link_options(firmware "-fdata-sections")
+# Optimize for size
+#target_compile_link_options(firmware "-Os")
+#target_compile_link_options(firmware "-ffunction-sections")
+#target_compile_link_options(firmware "-fdata-sections")
 
 
 # create map/bin/hex file etc.

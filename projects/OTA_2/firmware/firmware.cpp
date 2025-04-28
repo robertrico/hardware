@@ -1,5 +1,7 @@
 #include "pico/stdlib.h"
 #include "firmware.h"
+#include "pico/stdlib.h"
+#include "hardware/clocks.h"
 
 #define LED_PIN 18
 #define LED_PIN2 19

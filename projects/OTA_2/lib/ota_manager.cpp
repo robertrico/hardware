@@ -2,6 +2,7 @@
 #include "flash_manager.hpp"
 #include "../include/bootloader.h"
 #include "hardware/watchdog.h"
+#include "hardware/watchdog.h"
 #include <RP2040.h>
 
 static constexpr const char *OTA_SERVER_IP = "3.128.180.81"; // Change to your Mac IP
@@ -42,14 +43,14 @@ bool OTAManager::updateBootConfig(const char *version)
     memcpy(new_config.mode, "_RUN", 5);
 
     printf("Dowloaded version: %s\n", new_config.version);
-    bool ret = FlashManager::flash(BOOT_CONFIG_START, (const uint8_t*)&new_config, FLASH_SECTOR_SIZE);
-    
+    bool ret = FlashManager::flash(BOOT_CONFIG_START, (const uint8_t *)&new_config, FLASH_SECTOR_SIZE);
+
     return ret;
 }
 
 static err_t on_tcp_connected(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
-    OTASession* ctx = static_cast<OTASession*>(arg);
+    OTASession *ctx = static_cast<OTASession *>(arg);
 
     std::string req = "GET ";
     req += ctx->path;
@@ -69,7 +70,8 @@ bool OTAManager::downloadAndWrite()
     std::string firmware_path = OTA_FIRMWARE_PATH;
     size_t version_pos = firmware_path.find("*version*");
 
-    if (version_pos != std::string::npos) {
+    if (version_pos != std::string::npos)
+    {
         firmware_path.replace(version_pos, 9, "v1_01");
     }
 
@@ -87,7 +89,8 @@ bool OTAManager::downloadAndWrite()
         .skipping_headers = true,
     };
 
-    if (!pcb) {
+    if (!pcb)
+    {
         printf("Failed to create TCP PCB\n");
         return false;
     }
@@ -99,12 +102,13 @@ bool OTAManager::downloadAndWrite()
 
     printf("Starting firmware writes...\n");
     tcp_recv(pcb, &FlashManager::tcp_trampoline);
-        
+
     tcp_arg(pcb, &ota_session);
 
     tcp_connect(pcb, &server_ip, 8081, on_tcp_connected);
 
-    for (int i = 0; i < 200; ++i) {
+    for (int i = 0; i < 200; ++i)
+    {
         cyw43_arch_poll();
         gpio_put(LED_YLW, 1);
         sleep_ms(50);
@@ -113,35 +117,36 @@ bool OTAManager::downloadAndWrite()
     printf("Firmware written to offset 0x%06X\n", FLASH_APP_START);
     return true;
 }
-static void _disable_interrupts(void) {
+static void _disable_interrupts(void)
+{
     SysTick->CTRL &= ~1;
 
     NVIC->ICER[0] = 0xFFFFFFFF;
     NVIC->ICPR[0] = 0xFFFFFFFF;
 }
 
-static void reset_peripherals(void) {
-    reset_block(~(RESETS_RESET_IO_QSPI_BITS | RESETS_RESET_PADS_QSPI_BITS
-                  | RESETS_RESET_SYSCFG_BITS | RESETS_RESET_PLL_SYS_BITS));
+static void reset_peripherals(void)
+{
+    reset_block(~(RESETS_RESET_IO_QSPI_BITS | RESETS_RESET_PADS_QSPI_BITS | RESETS_RESET_SYSCFG_BITS | RESETS_RESET_PLL_SYS_BITS));
 }
 
-void OTAManager::jumpToB() {
-    // Derived from the Leaf Labs Cortex-M3 bootloader.
-    // Copyright (c) 2010 LeafLabs LLC.
-    // Modified 2021 Brian Starkey <stark3y@gmail.com>
-    // Originally under The MIT License
+extern uint32_t __bss_start__;
+extern uint32_t __bss_end__;
+extern uint32_t __etext;        // Start of data in Flash
+extern uint32_t __data_start__; // Start of data in RAM
+extern uint32_t __data_end__;   // End of data in RAM
 
-    uint32_t reset_vector = *(volatile uint32_t *) (FLASH_APP_START + 0x04);
-    SCB->VTOR = (volatile uint32_t)(FLASH_APP_START);
-
+void OTAManager::jumpToB()
+{
     asm volatile("cpsid i");
-
-    asm volatile("msr msp, %0" ::"g"(*(volatile uint32_t *) (FLASH_APP_START)));
+    uint32_t reset_vector = *(volatile uint32_t *)(FLASH_APP_START + 0x04);
+    SCB->VTOR = (volatile uint32_t)(FLASH_APP_START);
+    asm volatile("msr msp, %0" ::"g"(*(volatile uint32_t *)(FLASH_APP_START)));
 
     asm volatile("bx %0" ::"r"(reset_vector));
 }
 
-char* OTAManager::checkBootFlag()
+char *OTAManager::checkBootFlag()
 {
     const uint8_t *flag_ptr = (const uint8_t *)(BOOT_CONFIG_START);
 
