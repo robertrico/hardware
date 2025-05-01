@@ -38,3 +38,5 @@ projects/OTA_1/firmware/cmake_install.cmake
 *.o
 
 *.out
+
+qemu/kernel-qemu-4.4.34-jessie

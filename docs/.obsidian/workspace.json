@@ -13,15 +13,44 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "projects/PicoW Over-The-Air Firmware System.md",
+                "file": "index.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "PicoW Over-The-Air Firmware System"
+              "title": "index"
+            }
+          },
+          {
+            "id": "7cf2f9ff98b78d44",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "projects/PWM Motor Control Project Using Zephyr RTOS.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "PWM Motor Control Project Using Zephyr RTOS"
+            }
+          },
+          {
+            "id": "34a080c46bd01fb6",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "projects/pwm.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "pwm"
             }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -94,7 +123,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "projects/PicoW Over-The-Air Firmware System.md",
+                "file": "index.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +133,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for PicoW Over-The-Air Firmware System"
+              "title": "Backlinks for index"
             }
           },
           {
@@ -113,12 +142,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "projects/PicoW Over-The-Air Firmware System.md",
+                "file": "index.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from PicoW Over-The-Air Firmware System"
+              "title": "Outgoing links from index"
             }
           },
           {
@@ -142,13 +171,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "projects/PicoW Over-The-Air Firmware System.md",
+                "file": "index.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of PicoW Over-The-Air Firmware System"
+              "title": "Outline of index"
             }
           }
         ]
@@ -168,12 +197,19 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "7ac3ff66a2c0235d",
+  "active": "5ae299746f0b5790",
   "lastOpenFiles": [
-    "index.md",
+    "projects/PWM Motor Control Project Using Zephyr RTOS.md",
+    "projects/pwm.md",
+    "Embedded System Infrastructure - Pi 5 Supervisor + Autonomous MCUs.md",
+    "projects/LED Blinky Project on Zephyr RTOS with Raspberry Pi Pico.md",
+    "projects/FreeRTOS LED Blinky Project for Raspberry Pi Pico W - Pico W2 - ESP32.md",
+    "projects/Project - BusyBox Linux on QEMU and Raspberry Pi 3.md",
+    "projects/Zephyr Project Startup for Raspberry Pi Pico (RP2040).md",
     "projects/PicoW Over-The-Air Firmware System.md",
-    "projects/PicoBook.md",
     "pico-sdk.md",
+    "index.md",
+    "projects/PicoBook.md",
     "OTA/a lesson in memory management.md",
     "OTA/256.md",
     "OTA/aeabi.md",
@@ -190,18 +226,11 @@
     "ESP-NOW Remote Control Project (TX -> RX).md",
     "🛠️ Embedded Systems Project List.md",
     "Data Sheets/pico-w-datasheet.pdf",
-    "Data 1.md",
-    "Data.md",
-    "Data Sheets/xiao_seeed_esp32c3.md",
     "Data Sheets/wm8192eu_datasheet.pdf",
     "OTA",
     "xiao_seeed_esp32c3.txt",
     "wm8192eu_datasheet.pdf",
     "pico-w-datasheet.pdf",
-    "Data Sheets/pico-sdk/the_pivot.md",
-    "Data Sheets/pico-sdk/start.md",
-    "Data Sheets/pico-sdk/ota_bootstrap.md",
-    "Data Sheets/pico-sdk/linker.md",
     "Data Sheets/pico-sdk",
     "Data Sheets",
     "untitled folder"
