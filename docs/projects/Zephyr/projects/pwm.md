@@ -1,38 +1,6 @@
 ## Zephyr PWM Example: main.c Breakdown
 
-### 1. File Header
-
-```c
-/*
- * Copyright (c) 2016 Intel Corporation
- * Copyright (c) 2020 Nordic Semiconductor ASA
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-```
-
-- License header declaring code ownership and Apache-2.0 licensing.
-    
-
-### 2. Includes
-
-```c
-#include <zephyr/kernel.h>
-#include <zephyr/sys/printk.h>
-#include <zephyr/device.h>
-#include <zephyr/drivers/pwm.h>
-```
-
-- `<zephyr/kernel.h>`: Core Zephyr APIs (threads, scheduling, `k_*` functions).
-    
-- `<zephyr/sys/printk.h>`: Lightweight console output via `printk()`.
-    
-- `<zephyr/device.h>`: Device model abstractions, `struct device` helpers.
-    
-- `<zephyr/drivers/pwm.h>`: PWM driver API declarations.
-    
-
-### 3. PWM Device Spec from DeviceTree
+### 1. PWM Device Spec from DeviceTree
 
 ```c
 static const struct pwm_dt_spec pwm_led0 = PWM_DT_SPEC_GET(DT_ALIAS(pwmled0));
@@ -49,7 +17,7 @@ static const struct pwm_dt_spec pwm_led0 = PWM_DT_SPEC_GET(DT_ALIAS(pwmled0));
     - `.flags`: PWM polarity/settings.
         
 
-### 4. Period Constants
+### 2. Period Constants
 
 ```c
 #define MIN_PERIOD PWM_SEC(1U) / 128U
@@ -61,44 +29,7 @@ static const struct pwm_dt_spec pwm_led0 = PWM_DT_SPEC_GET(DT_ALIAS(pwmled0));
 - `MAX_PERIOD`: Starting max period = 1 s.
     
 
-### 5. main() Entry Point
-
-```c
-int main(void)
-{
-```
-
-- Standard Zephyr application entry. Returns `0` on termination (unused here).
-    
-
-### 6. Variable Declarations
-
-```c
-    uint32_t max_period;
-    uint32_t period;
-    uint8_t dir = 0U;
-    int ret;
-```
-
-- `max_period`: Holds calibrated maximum supported period.
-    
-- `period`: Current period for PWM updates.
-    
-- `dir`: Direction flag (0 = halve, 1 = double).
-    
-- `ret`: Return value from PWM API calls.
-    
-
-### 7. Initial Log
-
-```c
-    printk("PWM-based blinky\n");
-```
-
-- Logs start-up message over the console.
-    
-
-### 8. Device Readiness Check
+### 3. Device Readiness Check
 
 ```c
     if (!pwm_is_ready_dt(&pwm_led0)) {
@@ -113,7 +44,7 @@ int main(void)
 - On failure, prints device name and exits.
     
 
-### 9. Calibration Loop
+### 4. Calibration Loop
 
 ```c
     printk("Calibrating for channel %d...\n", pwm_led0.channel);
@@ -135,17 +66,7 @@ int main(void)
 - Ensures at least `4 * MIN_PERIOD` remains to allow period variation.
     
 
-### 10. Calibration Complete
-
-```c
-    printk("Done calibrating; maximum/minimum periods %u/%lu nsec\n",
-           max_period, MIN_PERIOD);
-```
-
-- Reports calibrated limits in nanoseconds.
-    
-
-### 11. Initial PWM Setup
+### 5. Initial PWM Setup
 
 ```c
     period = max_period;
@@ -155,7 +76,7 @@ int main(void)
 - Sets a quick 1 ms period and 0.5 ms pulse (50% duty) before entering the loop.
     
 
-### 12. Main Control Loop
+### 6. Main Control Loop
 
 ```c
     while (1) {
