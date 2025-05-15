@@ -17,7 +17,7 @@ int main(void)
     // Main loop
     while (1)
     {
-        printf("Hello World\n"); // Print message to console
+        //printf("Hello World\n"); // Print message to console
         led_toggle(); // Toggle LED
         while((TIM2->SR & SR_UIF) == 0); // Wait for update interrupt flag
         TIM2->SR &= ~SR_UIF; // Clear the update interrupt flag
