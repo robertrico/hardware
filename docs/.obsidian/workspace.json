@@ -11,14 +11,12 @@
             "id": "7ac3ff66a2c0235d",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "pdf",
               "state": {
-                "file": "projects/Zephyr/Zephyr RTOS - Exploration, Findings, and Reflections.md",
-                "mode": "source",
-                "source": false
+                "file": "Data Sheets/um1727-getting-started-with-stm32-nucleo-board-software-development-tools-stmicroelectronics.pdf"
               },
-              "icon": "lucide-file",
-              "title": "Zephyr RTOS - Exploration, Findings, and Reflections"
+              "icon": "lucide-file-text",
+              "title": "um1727-getting-started-with-stm32-nucleo-board-software-development-tools-stmicroelectronics"
             }
           }
         ]
@@ -170,19 +168,25 @@
   },
   "active": "7ac3ff66a2c0235d",
   "lastOpenFiles": [
-    "projects/FreeRTOS",
-    "projects/Zephyr/projects",
-    "projects/FreeRTOS/FreeRTOS LED Blinky Project for Raspberry Pi Pico W - Pico W2 - ESP32.md",
+    "Data Sheets/um1724-stm32-nucleo64-boards-mb1136-stmicroelectronics.pdf",
+    "Data Sheets/rm0383-stm32f411xce-advanced-arm-based-32-bit-mcus-stmicroelectronics-zh.pdf",
+    "Data Sheets/um3461-stm32f4-series-ulcsaiec-60730-160335-1-self-test-library-user-guide-stmicroelectronics-en.pdf",
+    "Data Sheets/ds10314-arm-cortex-m4-32b-mcufpu-125-dmips-512kb-flash-128kb-ram-usb-otg-fs-11-tims-1-adc-13-comm-interfaces-stmicroelectronics-en.pdf",
+    "Data Sheets/um1956-stm32-nucleo32-boards-mb1180-stmicroelectronics.pdf",
+    "Data Sheets/wm8192eu_datasheet.pdf",
     "projects/Zephyr/Zephyr RTOS - Exploration, Findings, and Reflections.md",
+    "Data Sheets/Arm Cortex-M4 Processor Datasheet.pdf",
+    "Data Sheets/stm32l432kb.pdf",
+    "Data Sheets/um1727-getting-started-with-stm32-nucleo-board-software-development-tools-stmicroelectronics.pdf",
+    "Data Sheets/nucleo-l432kc.pdf",
+    "projects/FreeRTOS",
+    "projects/FreeRTOS/FreeRTOS LED Blinky Project for Raspberry Pi Pico W - Pico W2 - ESP32.md",
     "projects/PicoBook.md",
     "projects/PicoW Over-The-Air Firmware System.md",
     "projects/Project - BusyBox Linux on QEMU and Raspberry Pi 3.md",
     "projects/Zephyr/projects/pwm.md",
     "index.md",
-    "projects/Zephyr",
     "projects/Zephyr/projects/PWM Motor Control Project Using Zephyr RTOS.md",
-    "Data Sheets/rp2040-datasheet.pdf",
-    "Data Sheets/wm8192eu_datasheet.pdf",
     "Embedded System Infrastructure - Pi 5 Supervisor + Autonomous MCUs.md",
     "projects/Zephyr/projects/LED Blinky Project on Zephyr RTOS with Raspberry Pi Pico.md",
     "projects/Zephyr/projects/Zephyr Project Startup for Raspberry Pi Pico (RP2040).md",
@@ -199,12 +203,6 @@
     "OTA/OTA Jump Debugging Breakdown - Pico W Bootloader to Firmware B.md",
     "OTA/ota_bootstrap.md",
     "OTA/OTA Bootloader to Firmware Jump - Debugging, Root Cause, and System Design.md",
-    "OTA/OTA Firmware Jump Debugging Session Summary.md",
-    "Data Sheets/pico-w-datasheet.pdf",
-    "OTA",
-    "xiao_seeed_esp32c3.txt",
-    "wm8192eu_datasheet.pdf",
-    "pico-w-datasheet.pdf",
-    "Data Sheets/pico-sdk"
+    "OTA/OTA Firmware Jump Debugging Session Summary.md"
   ]
 }
