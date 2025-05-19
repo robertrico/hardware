@@ -108,7 +108,7 @@ typedef enum
   SPI1_IRQn                   = 35,     /*!< SPI1 global Interrupt                                             */
   SPI2_IRQn                   = 36,     /*!< SPI2 global Interrupt                                             */
   USART1_IRQn                 = 37,     /*!< USART1 global Interrupt                                           */
-  USART2_IRQn                 = 38,     /*!< USART2 global Interrupt                                           */
+  usart1_IRQn                 = 38,     /*!< usart1 global Interrupt                                           */
   EXTI15_10_IRQn              = 40,     /*!< External Line[15:10] Interrupts                                   */
   RTC_Alarm_IRQn              = 41,     /*!< RTC Alarm (A and B) through EXTI Line Interrupt                   */
   OTG_FS_WKUP_IRQn            = 42,     /*!< USB OTG FS Wakeup through EXTI line interrupt                     */
@@ -665,7 +665,7 @@ typedef struct
 #define SPI2_BASE             (APB1PERIPH_BASE + 0x3800UL)
 #define SPI3_BASE             (APB1PERIPH_BASE + 0x3C00UL)
 #define I2S3ext_BASE          (APB1PERIPH_BASE + 0x4000UL)
-#define USART2_BASE           (APB1PERIPH_BASE + 0x4400UL)
+#define usart1_BASE           (APB1PERIPH_BASE + 0x4400UL)
 #define I2C1_BASE             (APB1PERIPH_BASE + 0x5400UL)
 #define I2C2_BASE             (APB1PERIPH_BASE + 0x5800UL)
 #define I2C3_BASE             (APB1PERIPH_BASE + 0x5C00UL)
@@ -758,7 +758,7 @@ typedef struct
 #define SPI2                ((SPI_TypeDef *) SPI2_BASE)
 #define SPI3                ((SPI_TypeDef *) SPI3_BASE)
 #define I2S3ext             ((SPI_TypeDef *) I2S3ext_BASE)
-#define USART2              ((USART_TypeDef *) USART2_BASE)
+#define usart1              ((USART_TypeDef *) usart1_BASE)
 #define I2C1                ((I2C_TypeDef *) I2C1_BASE)
 #define I2C2                ((I2C_TypeDef *) I2C2_BASE)
 #define I2C3                ((I2C_TypeDef *) I2C3_BASE)
@@ -4216,9 +4216,9 @@ typedef struct
 #define RCC_APB1RSTR_SPI3RST_Pos           (15U)
 #define RCC_APB1RSTR_SPI3RST_Msk           (0x1UL << RCC_APB1RSTR_SPI3RST_Pos)  /*!< 0x00008000 */
 #define RCC_APB1RSTR_SPI3RST               RCC_APB1RSTR_SPI3RST_Msk
-#define RCC_APB1RSTR_USART2RST_Pos         (17U)
-#define RCC_APB1RSTR_USART2RST_Msk         (0x1UL << RCC_APB1RSTR_USART2RST_Pos) /*!< 0x00020000 */
-#define RCC_APB1RSTR_USART2RST             RCC_APB1RSTR_USART2RST_Msk
+#define RCC_APB1RSTR_usart1RST_Pos         (17U)
+#define RCC_APB1RSTR_usart1RST_Msk         (0x1UL << RCC_APB1RSTR_usart1RST_Pos) /*!< 0x00020000 */
+#define RCC_APB1RSTR_usart1RST             RCC_APB1RSTR_usart1RST_Msk
 #define RCC_APB1RSTR_I2C1RST_Pos           (21U)
 #define RCC_APB1RSTR_I2C1RST_Msk           (0x1UL << RCC_APB1RSTR_I2C1RST_Pos)  /*!< 0x00200000 */
 #define RCC_APB1RSTR_I2C1RST               RCC_APB1RSTR_I2C1RST_Msk
@@ -4333,9 +4333,9 @@ typedef struct
 #define RCC_APB1ENR_SPI3EN_Pos             (15U)
 #define RCC_APB1ENR_SPI3EN_Msk             (0x1UL << RCC_APB1ENR_SPI3EN_Pos)    /*!< 0x00008000 */
 #define RCC_APB1ENR_SPI3EN                 RCC_APB1ENR_SPI3EN_Msk
-#define RCC_APB1ENR_USART2EN_Pos           (17U)
-#define RCC_APB1ENR_USART2EN_Msk           (0x1UL << RCC_APB1ENR_USART2EN_Pos)  /*!< 0x00020000 */
-#define RCC_APB1ENR_USART2EN               RCC_APB1ENR_USART2EN_Msk
+#define RCC_APB1ENR_usart1EN_Pos           (17U)
+#define RCC_APB1ENR_usart1EN_Msk           (0x1UL << RCC_APB1ENR_usart1EN_Pos)  /*!< 0x00020000 */
+#define RCC_APB1ENR_usart1EN               RCC_APB1ENR_usart1EN_Msk
 #define RCC_APB1ENR_I2C1EN_Pos             (21U)
 #define RCC_APB1ENR_I2C1EN_Msk             (0x1UL << RCC_APB1ENR_I2C1EN_Pos)    /*!< 0x00200000 */
 #define RCC_APB1ENR_I2C1EN                 RCC_APB1ENR_I2C1EN_Msk
@@ -4452,9 +4452,9 @@ typedef struct
 #define RCC_APB1LPENR_SPI3LPEN_Pos         (15U)
 #define RCC_APB1LPENR_SPI3LPEN_Msk         (0x1UL << RCC_APB1LPENR_SPI3LPEN_Pos) /*!< 0x00008000 */
 #define RCC_APB1LPENR_SPI3LPEN             RCC_APB1LPENR_SPI3LPEN_Msk
-#define RCC_APB1LPENR_USART2LPEN_Pos       (17U)
-#define RCC_APB1LPENR_USART2LPEN_Msk       (0x1UL << RCC_APB1LPENR_USART2LPEN_Pos) /*!< 0x00020000 */
-#define RCC_APB1LPENR_USART2LPEN           RCC_APB1LPENR_USART2LPEN_Msk
+#define RCC_APB1LPENR_usart1LPEN_Pos       (17U)
+#define RCC_APB1LPENR_usart1LPEN_Msk       (0x1UL << RCC_APB1LPENR_usart1LPEN_Pos) /*!< 0x00020000 */
+#define RCC_APB1LPENR_usart1LPEN           RCC_APB1LPENR_usart1LPEN_Msk
 #define RCC_APB1LPENR_I2C1LPEN_Pos         (21U)
 #define RCC_APB1LPENR_I2C1LPEN_Msk         (0x1UL << RCC_APB1LPENR_I2C1LPEN_Pos) /*!< 0x00200000 */
 #define RCC_APB1LPENR_I2C1LPEN             RCC_APB1LPENR_I2C1LPEN_Msk
@@ -8583,12 +8583,12 @@ typedef struct
 
 /******************** USART Instances : Synchronous mode **********************/
 #define IS_USART_INSTANCE(INSTANCE) (((INSTANCE) == USART1) || \
-                                     ((INSTANCE) == USART2) || \
+                                     ((INSTANCE) == usart1) || \
                                      ((INSTANCE) == USART6))
 
 /******************** UART Instances : Half-Duplex mode **********************/
 #define IS_UART_HALFDUPLEX_INSTANCE(INSTANCE) (((INSTANCE) == USART1) || \
-                                               ((INSTANCE) == USART2) || \
+                                               ((INSTANCE) == usart1) || \
                                                ((INSTANCE) == USART6))
 
 /* Legacy defines */
@@ -8596,19 +8596,19 @@ typedef struct
 
 /****************** UART Instances : Hardware Flow control ********************/
 #define IS_UART_HWFLOW_INSTANCE(INSTANCE) (((INSTANCE) == USART1) || \
-                                           ((INSTANCE) == USART2) || \
+                                           ((INSTANCE) == usart1) || \
                                            ((INSTANCE) == USART6))
 /******************** UART Instances : LIN mode **********************/
 #define IS_UART_LIN_INSTANCE          IS_UART_HALFDUPLEX_INSTANCE
 
 /********************* UART Instances : Smart card mode ***********************/
 #define IS_SMARTCARD_INSTANCE(INSTANCE) (((INSTANCE) == USART1) || \
-                                         ((INSTANCE) == USART2) || \
+                                         ((INSTANCE) == usart1) || \
                                          ((INSTANCE) == USART6))
 
 /*********************** UART Instances : IRDA mode ***************************/
 #define IS_IRDA_INSTANCE(INSTANCE) (((INSTANCE) == USART1) || \
-                                    ((INSTANCE) == USART2) || \
+                                    ((INSTANCE) == usart1) || \
                                     ((INSTANCE) == USART6))
 
 /*********************** PCD Instances ****************************************/

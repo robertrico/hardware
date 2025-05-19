@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 project(arm_test LANGUAGES C)
+enable_language(ASM)
 
-file(GLOB SOURCES "${CMAKE_SOURCE_DIR}/*.c")
+file(GLOB SOURCES
+    "${CMAKE_SOURCE_DIR}/*.c"
+    "${CMAKE_SOURCE_DIR}/*.S"
+)
 
 add_executable(arm_test.elf
     ${SOURCES} 

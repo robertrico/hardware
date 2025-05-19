@@ -1,0 +1,209 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake/Modules/CMakeDetermineSystem.cmake:200 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The target system is: Generic -  - arm
+      The host system is: Darwin - 24.4.0 - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+      Compiler: /Applications/ARM/bin/arm-none-eabi-gcc 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      1
+      /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/ld: /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/libc.a(lib_a-exit.o): in function `exit':
+      exit.c:(.text.exit+0x2c): undefined reference to `_exit'
+      collect2: error: ld returned 1 exit status
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: /Applications/ARM/bin/arm-none-eabi-gcc 
+      Build flags: 
+      Id flags: -c 
+      
+      The output was:
+      0
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.o"
+      
+      The C compiler identification is GNU, found in:
+        /Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/4.0.1/CompilerIdC/CMakeCCompilerId.o
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
+      - "/usr/local/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/CMakeScratch/TryCompile-C34XpR"
+      binary: "/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/CMakeScratch/TryCompile-C34XpR"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/CMakeScratch/TryCompile-C34XpR'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.make.macos64_2.2.0.202409170845/tools/bin/make -f Makefile cmTC_e3a5f/fast
+        /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.make.macos64_2.2.0.202409170845/tools/bin/make  -f CMakeFiles/cmTC_e3a5f.dir/build.make CMakeFiles/cmTC_e3a5f.dir/build
+        make[1]: Entering directory '/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/CMakeScratch/TryCompile-C34XpR'
+        Building C object CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj
+        /Applications/ARM/bin/arm-none-eabi-gcc   -v -o CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj -c /usr/local/share/cmake/Modules/CMakeCCompilerABI.c
+        Using built-in specs.
+        COLLECT_GCC=/Applications/ARM/bin/arm-none-eabi-gcc
+        Target: arm-none-eabi
+        Configured with: /tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/src/gcc/configure --target=arm-none-eabi --prefix=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native --libexecdir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/lib --infodir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/share/doc/gcc-arm-none-eabi/info --mandir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/share/doc/gcc-arm-none-eabi/man --htmldir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/share/doc/gcc-arm-none-eabi/html --pdfdir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/share/doc/gcc-arm-none-eabi/pdf --enable-languages=c,c++ --enable-plugins --disable-decimal-float --disable-libffi --disable-libgomp --disable-libmudflap --disable-libquadmath --disable-libssp --disable-libstdcxx-pch --disable-nls --disable-shared --disable-threads --disable-tls --with-gnu-as --with-gnu-ld --with-newlib --with-headers=yes --with-python-dir=share/gcc-arm-none-eabi --with-sysroot=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/arm-none-eabi --build=x86_64-apple-darwin10 --host=x86_64-apple-darwin10 --with-gmp=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-mpfr=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-mpc=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-isl=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-libelf=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-host-libstdcxx='-static-libgcc -Wl,-lstdc++ -lm' --with-pkgversion='GNU Arm Embedded Toolchain 10.3-2021.10' --with-multilib-list=rmprofile,aprofile
+        Thread model: single
+        Supported LTO compression algorithms: zlib
+        gcc version 10.3.1 20210824 (release) (GNU Arm Embedded Toolchain 10.3-2021.10) 
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj' '-c' '-mcpu=arm7tdmi' '-mfloat-abi=soft' '-marm' '-mlibarch=armv4t' '-march=armv4t'
+         /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/cc1 -quiet -v -iprefix /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/ -isysroot /Applications/ARM/bin/../arm-none-eabi -D__USES_INITFINI__ /usr/local/share/cmake/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -mcpu=arm7tdmi -mfloat-abi=soft -marm -mlibarch=armv4t -march=armv4t -auxbase-strip CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj -version -o /var/folders/cm/8q4stz3d2238qsqtz2jyd0s40000gn/T//ccHi9YT7.s
+        GNU C17 (GNU Arm Embedded Toolchain 10.3-2021.10) version 10.3.1 20210824 (release) (arm-none-eabi)
+        	compiled by GNU C version 4.2.1 Compatible Apple LLVM 11.0.0 (clang-1100.0.33.17), GMP version 6.1.0, MPFR version 3.1.4, MPC version 1.0.3, isl version isl-0.18-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring duplicate directory "/Applications/ARM/bin/../lib/gcc/../../lib/gcc/arm-none-eabi/10.3.1/include"
+        ignoring nonexistent directory "/Applications/ARM/bin/../arm-none-eabi/usr/local/include"
+        ignoring duplicate directory "/Applications/ARM/bin/../lib/gcc/../../lib/gcc/arm-none-eabi/10.3.1/include-fixed"
+        ignoring duplicate directory "/Applications/ARM/bin/../lib/gcc/../../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include"
+        ignoring nonexistent directory "/Applications/ARM/bin/../arm-none-eabi/usr/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/include
+         /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/include-fixed
+         /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include
+        End of search list.
+        GNU C17 (GNU Arm Embedded Toolchain 10.3-2021.10) version 10.3.1 20210824 (release) (arm-none-eabi)
+        	compiled by GNU C version 4.2.1 Compatible Apple LLVM 11.0.0 (clang-1100.0.33.17), GMP version 6.1.0, MPFR version 3.1.4, MPC version 1.0.3, isl version isl-0.18-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        Compiler executable checksum: 733728c033f099ebc66962b91852e3eb
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj' '-c' '-mcpu=arm7tdmi' '-mfloat-abi=soft' '-marm' '-mlibarch=armv4t' '-march=armv4t'
+         /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/as -v -march=armv4t -mfloat-abi=soft -meabi=5 -o CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj /var/folders/cm/8q4stz3d2238qsqtz2jyd0s40000gn/T//ccHi9YT7.s
+        GNU assembler version 2.36.1 (arm-none-eabi) using BFD version (GNU Arm Embedded Toolchain 10.3-2021.10) 2.36.1.20210621
+        COMPILER_PATH=/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/:/Applications/ARM/bin/../lib/gcc/:/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/
+        LIBRARY_PATH=/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/:/Applications/ARM/bin/../lib/gcc/:/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/:/Applications/ARM/bin/../arm-none-eabi/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj' '-c' '-mcpu=arm7tdmi' '-mfloat-abi=soft' '-marm' '-mlibarch=armv4t' '-march=armv4t'
+        Linking C static library libcmTC_e3a5f.a
+        /usr/local/bin/cmake -P CMakeFiles/cmTC_e3a5f.dir/cmake_clean_target.cmake
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e3a5f.dir/link.txt --verbose=1
+        /Applications/ARM/bin/arm-none-eabi-ar qc libcmTC_e3a5f.a CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj
+        /Applications/ARM/bin/arm-none-eabi-ranlib libcmTC_e3a5f.a
+        make[1]: Leaving directory '/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/CMakeScratch/TryCompile-C34XpR'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:191 (message)"
+      - "/usr/local/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed C implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/include]
+          add: [/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/include-fixed]
+          add: [/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include]
+        end of search list found
+        collapse include dir [/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/include] ==> [/Applications/ARM/lib/gcc/arm-none-eabi/10.3.1/include]
+        collapse include dir [/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/include-fixed] ==> [/Applications/ARM/lib/gcc/arm-none-eabi/10.3.1/include-fixed]
+        collapse include dir [/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include] ==> [/Applications/ARM/arm-none-eabi/include]
+        implicit include dirs: [/Applications/ARM/lib/gcc/arm-none-eabi/10.3.1/include;/Applications/ARM/lib/gcc/arm-none-eabi/10.3.1/include-fixed;/Applications/ARM/arm-none-eabi/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:227 (message)"
+      - "/usr/local/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed C implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
+        ignore line: [Change Dir: '/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/CMakeScratch/TryCompile-C34XpR']
+        ignore line: []
+        ignore line: [Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.make.macos64_2.2.0.202409170845/tools/bin/make -f Makefile cmTC_e3a5f/fast]
+        ignore line: [/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.make.macos64_2.2.0.202409170845/tools/bin/make  -f CMakeFiles/cmTC_e3a5f.dir/build.make CMakeFiles/cmTC_e3a5f.dir/build]
+        ignore line: [make[1]: Entering directory '/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/CMakeScratch/TryCompile-C34XpR']
+        ignore line: [Building C object CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj]
+        ignore line: [/Applications/ARM/bin/arm-none-eabi-gcc   -v -o CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj -c /usr/local/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/Applications/ARM/bin/arm-none-eabi-gcc]
+        ignore line: [Target: arm-none-eabi]
+        ignore line: [Configured with: /tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/src/gcc/configure --target=arm-none-eabi --prefix=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native --libexecdir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/lib --infodir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/share/doc/gcc-arm-none-eabi/info --mandir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/share/doc/gcc-arm-none-eabi/man --htmldir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/share/doc/gcc-arm-none-eabi/html --pdfdir=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/share/doc/gcc-arm-none-eabi/pdf --enable-languages=c,c++ --enable-plugins --disable-decimal-float --disable-libffi --disable-libgomp --disable-libmudflap --disable-libquadmath --disable-libssp --disable-libstdcxx-pch --disable-nls --disable-shared --disable-threads --disable-tls --with-gnu-as --with-gnu-ld --with-newlib --with-headers=yes --with-python-dir=share/gcc-arm-none-eabi --with-sysroot=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/install-native/arm-none-eabi --build=x86_64-apple-darwin10 --host=x86_64-apple-darwin10 --with-gmp=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-mpfr=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-mpc=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-isl=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-libelf=/tmp/jenkins-GCC-10-pipeline-338_20211018_1634516195/build-native/host-libs/usr --with-host-libstdcxx='-static-libgcc -Wl,-lstdc++ -lm' --with-pkgversion='GNU Arm Embedded Toolchain 10.3-2021.10' --with-multilib-list=rmprofile,aprofile]
+        ignore line: [Thread model: single]
+        ignore line: [Supported LTO compression algorithms: zlib]
+        ignore line: [gcc version 10.3.1 20210824 (release) (GNU Arm Embedded Toolchain 10.3-2021.10) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj' '-c' '-mcpu=arm7tdmi' '-mfloat-abi=soft' '-marm' '-mlibarch=armv4t' '-march=armv4t']
+        ignore line: [ /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/cc1 -quiet -v -iprefix /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/ -isysroot /Applications/ARM/bin/../arm-none-eabi -D__USES_INITFINI__ /usr/local/share/cmake/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -mcpu=arm7tdmi -mfloat-abi=soft -marm -mlibarch=armv4t -march=armv4t -auxbase-strip CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj -version -o /var/folders/cm/8q4stz3d2238qsqtz2jyd0s40000gn/T//ccHi9YT7.s]
+        ignore line: [GNU C17 (GNU Arm Embedded Toolchain 10.3-2021.10) version 10.3.1 20210824 (release) (arm-none-eabi)]
+        ignore line: [	compiled by GNU C version 4.2.1 Compatible Apple LLVM 11.0.0 (clang-1100.0.33.17)  GMP version 6.1.0  MPFR version 3.1.4  MPC version 1.0.3  isl version isl-0.18-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring duplicate directory "/Applications/ARM/bin/../lib/gcc/../../lib/gcc/arm-none-eabi/10.3.1/include"]
+        ignore line: [ignoring nonexistent directory "/Applications/ARM/bin/../arm-none-eabi/usr/local/include"]
+        ignore line: [ignoring duplicate directory "/Applications/ARM/bin/../lib/gcc/../../lib/gcc/arm-none-eabi/10.3.1/include-fixed"]
+        ignore line: [ignoring duplicate directory "/Applications/ARM/bin/../lib/gcc/../../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include"]
+        ignore line: [ignoring nonexistent directory "/Applications/ARM/bin/../arm-none-eabi/usr/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/include]
+        ignore line: [ /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/include-fixed]
+        ignore line: [ /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include]
+        ignore line: [End of search list.]
+        ignore line: [GNU C17 (GNU Arm Embedded Toolchain 10.3-2021.10) version 10.3.1 20210824 (release) (arm-none-eabi)]
+        ignore line: [	compiled by GNU C version 4.2.1 Compatible Apple LLVM 11.0.0 (clang-1100.0.33.17)  GMP version 6.1.0  MPFR version 3.1.4  MPC version 1.0.3  isl version isl-0.18-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [Compiler executable checksum: 733728c033f099ebc66962b91852e3eb]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj' '-c' '-mcpu=arm7tdmi' '-mfloat-abi=soft' '-marm' '-mlibarch=armv4t' '-march=armv4t']
+        ignore line: [ /Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/as -v -march=armv4t -mfloat-abi=soft -meabi=5 -o CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj /var/folders/cm/8q4stz3d2238qsqtz2jyd0s40000gn/T//ccHi9YT7.s]
+        ignore line: [GNU assembler version 2.36.1 (arm-none-eabi) using BFD version (GNU Arm Embedded Toolchain 10.3-2021.10) 2.36.1.20210621]
+        ignore line: [COMPILER_PATH=/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/:/Applications/ARM/bin/../lib/gcc/:/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/bin/]
+        ignore line: [LIBRARY_PATH=/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/:/Applications/ARM/bin/../lib/gcc/:/Applications/ARM/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/:/Applications/ARM/bin/../arm-none-eabi/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj' '-c' '-mcpu=arm7tdmi' '-mfloat-abi=soft' '-marm' '-mlibarch=armv4t' '-march=armv4t']
+        ignore line: [Linking C static library libcmTC_e3a5f.a]
+        ignore line: [/usr/local/bin/cmake -P CMakeFiles/cmTC_e3a5f.dir/cmake_clean_target.cmake]
+        ignore line: [/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e3a5f.dir/link.txt --verbose=1]
+        ignore line: [/Applications/ARM/bin/arm-none-eabi-ar qc libcmTC_e3a5f.a CMakeFiles/cmTC_e3a5f.dir/CMakeCCompilerABI.c.obj]
+        ignore line: [/Applications/ARM/bin/arm-none-eabi-ranlib libcmTC_e3a5f.a]
+        ignore line: [make[1]: Leaving directory '/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/CMakeScratch/TryCompile-C34XpR']
+        ignore line: []
+        ignore line: []
+        implicit libs: []
+        implicit objs: []
+        implicit dirs: []
+        implicit fwks: []
+      
+      
+...

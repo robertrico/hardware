@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

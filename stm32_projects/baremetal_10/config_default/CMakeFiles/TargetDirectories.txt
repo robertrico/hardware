@@ -1,0 +1,3 @@
+/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/arm_test.elf.dir
+/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/edit_cache.dir
+/Users/garagebox/Development/hardware/stm32_projects/baremetal_10/config_default/CMakeFiles/rebuild_cache.dir
