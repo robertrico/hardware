@@ -16,17 +16,38 @@
  ******************************************************************************
  */
 
+#include "stm32l4xx.h"
 #include <stdint.h>
 #include <stdio.h>
+#include "FreeRTOS.h"
+#include "task.h"
 
-#if !defined(__SOFT_FP__) && defined(__ARM_FP)
-  #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
-#endif
+/* Global variables to manipulate in the task */
+volatile uint32_t debug_marker = 0;
+volatile uint32_t gpioenreg = 0;
+void TestTask(void *params)
+
+{
+  while (1)
+  {
+    debug_marker = 0xDEADBEEF;
+    gpioenreg = 0xCAFEBABE;
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Delay 1 second
+  }
+}
 
 int main(void)
 {
-  /* Loop forever */
-  volatile uint32_t debug_marker = 0xDEADBEEF;
-  (void)debug_marker; // Silence compiler
-	for(;;);
+  BaseType_t result = xTaskCreate(TestTask, "Test", 128, NULL, 1, NULL);
+  if (result != pdPASS)
+  {
+    debug_marker = 0xBAADF00D; // failed to create task
+  }
+
+  vTaskStartScheduler();
+
+  // fallback trap if scheduler fails
+  debug_marker = 0xDEADC0DE;
+  while (1)
+    ; // scheduler never returned? bad.
 }

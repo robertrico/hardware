@@ -49,7 +49,7 @@ set (PROJECT_TYPE             "exe")
 set (LINKER_SCRIPT            "${CMAKE_CURRENT_LIST_DIR}/STM32L432KCUX_FLASH.ld")
 set (MCPU                     "-mcpu=Cortex-M4")
 set (MFPU                 "-mfpu=fpv4-sp-d16")
-set (MFLOAT_ABI               "")
+set (MFLOAT_ABI               "${MFLOAT_ABI_HARDWARE}")
 set (RUNTIME_LIBRARY          "--specs=nano.specs")
 set (RUNTIME_LIBRARY_SYSCALLS "--specs=nosys.specs")
 
@@ -61,18 +61,28 @@ set (PROJECT_SOURCES
 	Sources/syscalls.c
 	Sources/sysmem.c
 
-
-	)
+  lib/FreeRTOS/event_groups.c
+  lib/FreeRTOS/list.c
+  lib/FreeRTOS/queue.c
+  lib/FreeRTOS/stream_buffer.c
+  lib/FreeRTOS/tasks.c
+  lib/FreeRTOS/timers.c
+  lib/FreeRTOS/portable/GCC/ARM_CM4F/port.c
+  lib/FreeRTOS/portable/MemMang/heap_1.c
+)
 
 set (PROJECT_DEFINES
 	# LIST COMPILER DEFINITIONS HERE
-
-    )
+)
 
 set (PROJECT_INCLUDES
 	# LIST INCLUDE DIRECTORIES HERE
-
-    )
+    Include
+    Include/CMSIS/Include
+    Include/Device/Include
+    lib/FreeRTOS/include
+    lib/FreeRTOS/portable/GCC/ARM_CM4F
+)
 
 ############ MODIFY ACCORDING TO REQUIREMENTS) ########################
 
@@ -102,4 +112,9 @@ set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${CMAKE_PROJECT_NAME}.hex
     COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${CMAKE_PROJECT_NAME}.bin
+)
+
+add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_SIZE} --format=berkeley $<TARGET_FILE:${CMAKE_PROJECT_NAME}> > size.txt
+  COMMENT "Writing size information to size.txt"
 )

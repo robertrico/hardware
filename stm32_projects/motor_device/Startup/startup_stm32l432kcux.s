@@ -93,6 +93,10 @@ LoopFillZerobss:
 
 /* Call static constructors */
   bl __libc_init_array
+
+  ldr     R0, =0xE000ED88     /*  SCB->CPACR */
+  ldr     R1, =0x00F00000     /*  enable CP10 and CP11 */
+  str     R1, [R0]
 /* Call the application's entry point.*/
   bl main
 
@@ -100,6 +104,14 @@ LoopForever:
   b LoopForever
 
   .size Reset_Handler, .-Reset_Handler
+
+/**
+	FreeRTOS Handlers
+*/
+.extern vPortSVCHandler
+.extern xPortPendSVHandler
+.extern xPortSysTickHandler
+.extern vApplicationStackOverflowHook
 
 /**
  * @brief  This is the code that gets called when the processor receives an
@@ -253,16 +265,16 @@ g_pfnVectors:
 	.thumb_set UsageFault_Handler,Default_Handler
 
 	.weak	SVC_Handler
-	.thumb_set SVC_Handler,Default_Handler
+	.thumb_set SVC_Handler,vPortSVCHandler
 
 	.weak	DebugMon_Handler
 	.thumb_set DebugMon_Handler,Default_Handler
 
 	.weak	PendSV_Handler
-	.thumb_set PendSV_Handler,Default_Handler
+	.thumb_set PendSV_Handler,xPortPendSVHandler
 
 	.weak	SysTick_Handler
-	.thumb_set SysTick_Handler,Default_Handler
+	.thumb_set SysTick_Handler,xPortSysTickHandler
 
 	.weak	WWDG_IRQHandler
 	.thumb_set WWDG_IRQHandler,Default_Handler
@@ -488,6 +500,9 @@ g_pfnVectors:
 
 	.weak	I2C4_ER_IRQHandler
 	.thumb_set I2C4_ER_IRQHandler,Default_Handler
+
+	.weak vApplicationStackOverflowHook
+	.thumb_set vApplicationStackOverflowHook,Default_Handler
 
 	.weak	SystemInit
 
