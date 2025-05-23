@@ -6,26 +6,8 @@
 #include "nvs_flash.h"
 #include <string>
 #include <cstring>
-
-#define LED_GPIO GPIO_NUM_20  // D7
-#define ESPNOW_CHANNEL 1
-
-static const char* TAG = "RX";
-
-void rx_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
-
-    std::string payload(reinterpret_cast<const char*>(data), strnlen((const char*)data, len));
-    ESP_LOGI(TAG, "Payload: %s", payload.c_str());
-    if (payload == "LIGHT_ON") {
-        gpio_set_level(LED_GPIO, 1);
-        ESP_LOGI(TAG, "LED turned ON");
-        vTaskDelay(pdMS_TO_TICKS(120));
-        gpio_set_level(LED_GPIO, 0);
-        ESP_LOGI(TAG, "LED turned OFF");
-    } else {
-        ESP_LOGI(TAG, "Unknown Payload: %s", payload.c_str());
-    }
-}
+#include "include.h"
+#include "interrupts.h"
 
 extern "C" void app_main() {
     ESP_ERROR_CHECK(nvs_flash_init());

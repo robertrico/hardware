@@ -1,0 +1,2 @@
+#define LED_GPIO GPIO_NUM_20  // D7
+#define ESPNOW_CHANNEL 1
