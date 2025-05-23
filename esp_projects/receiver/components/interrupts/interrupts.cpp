@@ -2,7 +2,7 @@
 #include "interrupts.h"
 #include <string>
 
-void rx_cb(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
+void vButtonReceive(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
 
     std::string payload(reinterpret_cast<const char*>(data), strnlen((const char*)data, len));
     ESP_LOGI("RX", "Payload: %s", payload.c_str());

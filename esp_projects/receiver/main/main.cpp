@@ -21,7 +21,7 @@ extern "C" void app_main() {
     ESP_ERROR_CHECK(esp_wifi_set_channel(ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE));
 
     ESP_ERROR_CHECK(esp_now_init());
-    ESP_ERROR_CHECK(esp_now_register_recv_cb(rx_cb));
+    ESP_ERROR_CHECK(esp_now_register_recv_cb(vButtonReceive));
 
     uint8_t mac[6];
     esp_wifi_get_mac(WIFI_IF_STA, mac);
