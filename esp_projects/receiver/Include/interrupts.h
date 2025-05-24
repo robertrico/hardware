@@ -17,4 +17,6 @@
  */
 void vButtonReceive(const esp_now_recv_info_t* info, const uint8_t* data, int len);
 
+void IRAM_ATTR vHandshakeHandler(void* arg);
+
 #endif // INTERRUPTS_H
