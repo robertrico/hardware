@@ -6,10 +6,7 @@
  * @brief Declarations for ESP-NOW receive callback and related includes.
  */
 
-#include "driver/gpio.h"
-#include "esp_wifi.h"
-#include "esp_now.h"
-#include "esp_log.h"
+#include "include.h"
 
 /**
  * @brief Callback function for receiving ESP-NOW data.
