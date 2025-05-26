@@ -4,4 +4,4 @@ include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 include_directories(Include)
 
-project(espnow)
+project(receiver)

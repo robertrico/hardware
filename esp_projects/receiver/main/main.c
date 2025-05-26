@@ -42,7 +42,14 @@ static void vESPNowInit(void) {
     ESP_ERROR_CHECK(esp_now_register_recv_cb(vButtonReceive));
 }
 
+#define EVENT_QUEUE_LENGTH 15
+#define EVENT_ITEM_SIZE    10
+
+QueueHandle_t rdySem = NULL; // This is the only definition
+spi_device_handle_t spiDeviceHandle = NULL;
+
 void app_main(void) {
+    rdySem = xQueueCreate(EVENT_QUEUE_LENGTH, EVENT_ITEM_SIZE);
 
     vWifiInit();
     vESPNowInit();
@@ -77,7 +84,7 @@ void app_main(void) {
         .command_bits = 0,
         .address_bits = 0,
         .dummy_bits = 0,
-        .clock_speed_hz = 50000000U,
+        .clock_speed_hz = 1000000,
         .duty_cycle_pos = 128, // 50%
         .mode = 0,
         .spics_io_num = GPIO_CS,
@@ -85,26 +92,38 @@ void app_main(void) {
         .queue_size = 3
     };
 
-    gpio_config_t handshakeConfig = {
-        .intr_type = GPIO_INTR_POSEDGE,
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = 1,
-        .pin_bit_mask = BIT64(GPIO_HANDSHAKE)
-    };
-
-    rdySem = xSemaphoreCreateBinary();
-
-    gpio_config(&handshakeConfig);
-    gpio_install_isr_service(0);
-    gpio_set_intr_type(GPIO_HANDSHAKE, GPIO_INTR_POSEDGE);
-    gpio_isr_handler_add(GPIO_HANDSHAKE, vHandshakeHandler, NULL);
-
     errorStatus = spi_bus_initialize(SENDER_HOST, &busConfig, SPI_DMA_CH_AUTO);
     assert(errorStatus == ESP_OK);
     errorStatus = spi_bus_add_device(SENDER_HOST, &deviceConfig, &spiDeviceHandle);
     assert(errorStatus == ESP_OK);
 
-    xSemaphoreGive(rdySem);
+    // Configure BLU LED (GPIO_NUM_7)
+    gpio_config_t blu_conf;
+    memset(&blu_conf, 0, sizeof(blu_conf));
+    blu_conf.intr_type = GPIO_INTR_DISABLE;
+    blu_conf.mode = GPIO_MODE_OUTPUT;
+    blu_conf.pin_bit_mask = (1ULL << GPIO_NUM_7);
+    blu_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    blu_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&blu_conf);
+
+    gpio_config_t ylw_conf;
+    memset(&ylw_conf, 0, sizeof(ylw_conf));
+    ylw_conf.intr_type = GPIO_INTR_DISABLE;
+    ylw_conf.mode = GPIO_MODE_OUTPUT;
+    ylw_conf.pin_bit_mask = (1ULL << GPIO_NUM_6);
+    ylw_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    ylw_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&ylw_conf);
+
+    while(1) {
+        char payload[10]; // Adjust size as needed
+        if (xQueueReceive(rdySem, payload, portMAX_DELAY)) {
+            ESP_LOGI("PAYLOAD", "Received payload: %s", payload);
+            vToggleLED(payload);
+            vSendSPI(payload);
+        }
+    }
 
     // SPI */ 
 }

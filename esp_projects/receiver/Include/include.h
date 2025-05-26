@@ -45,8 +45,10 @@
 #define SENDER_HOST SPI2_HOST
 
 // Receiver Ready to Receive
-static QueueHandle_t rdySem;
-static spi_device_handle_t spiDeviceHandle;
+extern QueueHandle_t rdySem;
+extern spi_device_handle_t spiDeviceHandle;
 
+void vSendSPI(char* payload);
+void vToggleLED(char* payload);
 
 #endif // INCLUDE_H
