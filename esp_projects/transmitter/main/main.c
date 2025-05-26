@@ -5,14 +5,18 @@
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
-#include <cstring>
+#include <string.h>
 
 #define BUTTON_GPIO GPIO_NUM_3  // D1
 #define ESPNOW_CHANNEL 1
 
 static const char* TAG = "RX";
 
-extern "C" void app_main() {
+static void send_cb(const wifi_tx_info_t* /*info*/, esp_now_send_status_t status) {
+    ESP_LOGI(TAG, "Send callback. Status: %s", status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
+}
+
+void app_main(void) {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -25,17 +29,17 @@ extern "C" void app_main() {
 
     ESP_ERROR_CHECK(esp_now_init());
 
-    ESP_ERROR_CHECK(esp_now_register_send_cb([](const wifi_tx_info_t* /*info*/, esp_now_send_status_t status) {
-        ESP_LOGI(TAG, "Send callback. Status: %s", status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
-    }));
-
+    ESP_ERROR_CHECK(esp_now_register_send_cb(send_cb));
+    
     uint8_t mac[6];
     esp_wifi_get_mac(WIFI_IF_STA, mac);
     ESP_LOGI("TX", "My MAC: %02X:%02X:%02X:%02X:%02X:%02X",
             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    esp_now_peer_info_t peerInfo = {};
-    memcpy(peerInfo.peer_addr, (uint8_t[]){0xA0, 0x85, 0xE3, 0x0D, 0x72, 0x68}, 6);  // Replace with actual MAC
+    esp_now_peer_info_t peerInfo;
+    memset(&peerInfo, 0, sizeof(peerInfo));
+    uint8_t peer_addr[6] = {0xA0, 0x85, 0xE3, 0x0D, 0x72, 0x68};  // Replace with actual MAC
+    memcpy(peerInfo.peer_addr, peer_addr, 6);
 
     peerInfo.channel = ESPNOW_CHANNEL;
     peerInfo.ifidx = WIFI_IF_STA;
@@ -43,7 +47,8 @@ extern "C" void app_main() {
 
     ESP_ERROR_CHECK(esp_now_add_peer(&peerInfo));
 
-    gpio_config_t io_conf = {};
+    gpio_config_t io_conf;
+    memset(&io_conf, 0, sizeof(io_conf));
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = 1ULL << BUTTON_GPIO;
@@ -52,7 +57,7 @@ extern "C" void app_main() {
 
     uint8_t data[] = "LIGHT_ON";
 
-    while (true) {
+    while (1) {
         if (gpio_get_level(BUTTON_GPIO) == 0) {
             ESP_LOGI(TAG, "Button pressed. Sending...");
             esp_err_t result = esp_now_send(peerInfo.peer_addr, data, sizeof(data));
@@ -63,9 +68,8 @@ extern "C" void app_main() {
             }
 
             // debounce
-            vTaskDelay(pdMS_TO_TICKS(500));
+            vTaskDelay(pdMS_TO_TICKS(20));
         }
-
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
