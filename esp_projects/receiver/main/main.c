@@ -42,8 +42,8 @@ static void vESPNowInit(void) {
     ESP_ERROR_CHECK(esp_now_register_recv_cb(vButtonReceive));
 }
 
-#define EVENT_QUEUE_LENGTH 15
-#define EVENT_ITEM_SIZE    10
+#define EVENT_QUEUE_LENGTH 16
+#define EVENT_ITEM_SIZE    16
 
 QueueHandle_t rdySem = NULL; // This is the only definition
 spi_device_handle_t spiDeviceHandle = NULL;
