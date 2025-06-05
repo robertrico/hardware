@@ -117,7 +117,7 @@ void app_main(void) {
     gpio_config(&ylw_conf);
 
     while(1) {
-        char payload[10]; // Adjust size as needed
+        char payload[16]; // Adjust size as needed
         if (xQueueReceive(rdySem, payload, portMAX_DELAY)) {
             ESP_LOGI("PAYLOAD", "Received payload: %s", payload);
             vToggleLED(payload);

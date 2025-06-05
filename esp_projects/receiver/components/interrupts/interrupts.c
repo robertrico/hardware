@@ -6,7 +6,7 @@ void vToggleLED(char* payload) {
     if (strcmp(payload, "LIGHT_ON") == 0) {
         gpio_set_level(LED_GPIO, 1);
         ESP_LOGI("RX", "LED turned ON");
-        vTaskDelay(pdMS_TO_TICKS(50));
+        //vTaskDelay(pdMS_TO_TICKS(50));
         gpio_set_level(LED_GPIO, 0);
         ESP_LOGI("RX", "LED turned OFF");
     } else {
@@ -17,8 +17,8 @@ void vToggleLED(char* payload) {
 void vSendSPI(char* payload) {
     esp_err_t errorStatus;
     static int interruptCount = 0;
-    char sendBuffer[128] = {0};
-    char receiveBuffer[128] = {0};
+    char sendBuffer[16] = {0};
+    char receiveBuffer[16] = {0};
     spi_transaction_t spiTransaction;
     memset(&spiTransaction,0,sizeof(spiTransaction));
 
@@ -47,13 +47,12 @@ void vSendSPI(char* payload) {
     } else {
         gpio_set_level(GPIO_NUM_6, 1); // YLW ON
     }
-    vTaskDelay(pdMS_TO_TICKS(25));
     gpio_set_level(GPIO_NUM_7, 0);
     gpio_set_level(GPIO_NUM_6, 0);
 }
 
 void IRAM_ATTR vButtonReceive(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
-    char payload[10]; // Adjust size as needed
+    char payload[16]; // Adjust size as needed
     int copy_len = (len < (int)sizeof(payload) - 1) ? len : (int)sizeof(payload) - 1;
     memcpy(payload, data, copy_len);
     payload[copy_len] = '\0';
