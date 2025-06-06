@@ -7,6 +7,7 @@
 #include "esp_wifi.h"
 #include <string.h>
 #include "esp_adc/adc_oneshot.h"
+#include "esp_adc/adc_cali_scheme.h"
 
 #define ESPNOW_CHANNEL 1
 
@@ -62,13 +63,13 @@ void app_main(void) {
     esp_now_peer_info_t peerInfo;
     vPeerInit(&peerInfo);
 
-    gpio_config_t c_select_gpio_conf;
-    memset(&c_select_gpio_conf, 0, sizeof(c_select_gpio_conf));
-    c_select_gpio_conf.intr_type = GPIO_INTR_DISABLE;
-    c_select_gpio_conf.mode = GPIO_MODE_OUTPUT;
-    c_select_gpio_conf.pin_bit_mask = 1ULL << C_SELECT_GPIO;
-    c_select_gpio_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-    gpio_config(&c_select_gpio_conf);
+    gpio_config_t b_select_gpio_conf;
+    memset(&b_select_gpio_conf, 0, sizeof(b_select_gpio_conf));
+    b_select_gpio_conf.intr_type = GPIO_INTR_DISABLE;
+    b_select_gpio_conf.mode = GPIO_MODE_OUTPUT;
+    b_select_gpio_conf.pin_bit_mask = 1ULL << B_SELECT_GPIO;
+    b_select_gpio_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&b_select_gpio_conf);
 
     // Setup ADC oneshot driver
     adc_oneshot_unit_handle_t adc_handle;
@@ -81,14 +82,37 @@ void app_main(void) {
         .bitwidth = ADC_BITWIDTH_DEFAULT,   // Default 12-bit
         .atten = ADC_ATTEN_DB_12           // for 0-3.3V input
     };
-    adc_oneshot_config_channel(adc_handle, ADC_A, &chan_cfg);
+    adc_oneshot_config_channel(adc_handle, ADC_B, &chan_cfg);
 
+    int readCount = 0;
     while (1) {
         int val = 0;
-        printf("Reading ADC value...\n");
-        adc_oneshot_read(adc_handle, ADC_C, &val);
-        printf("ADC value: %d\n", val);
+        readCount++;
 
+        if (readCount % 2 == 0) {
+            printf("Reading ADC values...\n");
+        }
+
+        adc_oneshot_read(adc_handle, ADC_B, &val);
+        if (readCount % 2 == 0) {
+            printf("ADC value B: %d\n", val);
+        }
+
+        gpio_set_level(B_SELECT_GPIO, 0);
         vTaskDelay(pdMS_TO_TICKS(10));
+
+        adc_oneshot_read(adc_handle, ADC_B, &val);
+        if (readCount % 2 == 0) {
+            printf("ADC value C: %d\n", val);
+        }
+
+        // Set back
+        vTaskDelay(pdMS_TO_TICKS(10));
+        gpio_set_level(B_SELECT_GPIO, 1);
+
+        vTaskDelay(pdMS_TO_TICKS(250));
+        if (readCount > 250000) {
+            readCount = 0;
+        }
     }
 }
