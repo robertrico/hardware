@@ -119,9 +119,10 @@ void app_main(void) {
     while(1) {
         char payload[16]; // Adjust size as needed
         if (xQueueReceive(rdySem, payload, portMAX_DELAY)) {
-            ESP_LOGI("PAYLOAD", "Received payload: %s", payload);
-            vToggleLED(payload);
-            vSendSPI(payload);
+            ESP_LOGI("PAYLOAD", "Received payload: %d", payload);
+            vToggleLED(payload[0]);
+            vToggleLED(payload[1]);
+            //vSendSPI(payload);
         }
     }
 

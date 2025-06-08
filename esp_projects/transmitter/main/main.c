@@ -1,11 +1,11 @@
 #include "driver/gpio.h"
 #include "esp_now.h"
+#include "esp_rom_sys.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
-#include <string.h>
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali_scheme.h"
 
@@ -18,7 +18,7 @@
 #define C_SELECT_GPIO GPIO_NUM_6 
 #define B_SELECT_GPIO GPIO_NUM_7 
 
-static const char* TAG = "RX";
+static const char* TAG = "TX";
 
 static void send_cb(const wifi_tx_info_t* /*info*/, esp_now_send_status_t status) {
     ESP_LOGI(TAG, "Send callback. Status: %s", status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
@@ -84,35 +84,29 @@ void app_main(void) {
     };
     adc_oneshot_config_channel(adc_handle, ADC_B, &chan_cfg);
 
-    int readCount = 0;
     while (1) {
         int val = 0;
-        readCount++;
-
-        if (readCount % 2 == 0) {
-            printf("Reading ADC values...\n");
-        }
+        esp_err_t result;
 
         adc_oneshot_read(adc_handle, ADC_B, &val);
-        if (readCount % 2 == 0) {
-            printf("ADC value B: %d\n", val);
-        }
-
+        esp_rom_delay_us(10);
         gpio_set_level(B_SELECT_GPIO, 0);
-        vTaskDelay(pdMS_TO_TICKS(10));
+
+        uint8_t adcval = (val * 255) / 4095;
 
         adc_oneshot_read(adc_handle, ADC_B, &val);
-        if (readCount % 2 == 0) {
-            printf("ADC value C: %d\n", val);
-        }
-
-        // Set back
-        vTaskDelay(pdMS_TO_TICKS(10));
+        esp_rom_delay_us(10);
         gpio_set_level(B_SELECT_GPIO, 1);
 
-        vTaskDelay(pdMS_TO_TICKS(250));
-        if (readCount > 250000) {
-            readCount = 0;
+        uint8_t adcval2 = (val * 255) / 4095;
+        uint8_t payload[16] = {adcval, adcval2};
+
+        result = esp_now_send(peerInfo.peer_addr, payload, sizeof(payload));
+        if (result == ESP_OK) {
+            ESP_LOGI(TAG, "Sent successfully");
+        } else {
+            ESP_LOGE(TAG, "Send failed: %s", esp_err_to_name(result));
         }
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }

@@ -49,6 +49,6 @@ extern QueueHandle_t rdySem;
 extern spi_device_handle_t spiDeviceHandle;
 
 void vSendSPI(char* payload);
-void vToggleLED(char* payload);
+void vToggleLED(uint8_t payload);
 
 #endif // INCLUDE_H

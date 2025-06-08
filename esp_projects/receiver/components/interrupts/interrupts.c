@@ -1,17 +1,8 @@
 #include "include.h"
 #include "interrupts.h"
 
-void vToggleLED(char* payload) {
-    ESP_LOGI("RX", "Payload: %s", payload);
-    if (strcmp(payload, "LIGHT_ON") == 0) {
-        gpio_set_level(LED_GPIO, 1);
-        ESP_LOGI("RX", "LED turned ON");
-        //vTaskDelay(pdMS_TO_TICKS(50));
-        gpio_set_level(LED_GPIO, 0);
-        ESP_LOGI("RX", "LED turned OFF");
-    } else {
-        ESP_LOGI("RX", "Unknown Payload: %s", payload);
-    }
+void vToggleLED(uint8_t payload) {
+    ESP_LOGI("RX", "Payload: %d", payload);
 }
 
 void vSendSPI(char* payload) {
@@ -41,7 +32,7 @@ void vSendSPI(char* payload) {
 
     ESP_LOGI("RX", "After Semaphore");
     errorStatus = spi_device_transmit(spiDeviceHandle, &spiTransaction);
-    ESP_LOGI("RX", "Received: %d %s", interruptCount, receiveBuffer);
+    ESP_LOGI("RX", "Received: %d %d", interruptCount, receiveBuffer);
     if (interruptCount % 2 == 0) {
         gpio_set_level(GPIO_NUM_7, 1); // BLU OFF
     } else {
@@ -52,12 +43,12 @@ void vSendSPI(char* payload) {
 }
 
 void IRAM_ATTR vButtonReceive(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
-    char payload[16]; // Adjust size as needed
+    uint8_t payload[16]; // Adjust size as needed
     int copy_len = (len < (int)sizeof(payload) - 1) ? len : (int)sizeof(payload) - 1;
     memcpy(payload, data, copy_len);
     payload[copy_len] = '\0';
 
-    ESP_LOGI("RX", "Received payload: %s", payload);
+    ESP_LOGI("RX", "Received payload: %d", payload);
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xQueueSendFromISR(rdySem, &payload, &xHigherPriorityTaskWoken);
 }
