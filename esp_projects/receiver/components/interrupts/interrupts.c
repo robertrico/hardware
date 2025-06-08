@@ -1,38 +1,24 @@
 #include "include.h"
 #include "interrupts.h"
 
-void vToggleLED(uint8_t payload) {
-    ESP_LOGI("RX", "Payload: %d", payload);
-}
-
-void vSendSPI(char* payload) {
+void vSendSPI(uint16_t bx, uint16_t by) {
     esp_err_t errorStatus;
     static int interruptCount = 0;
-    char sendBuffer[16] = {0};
-    char receiveBuffer[16] = {0};
+
+    uint16_t sendBuffer[2] = { bx, by };
+    uint16_t receiveBuffer[2] = {0,0};
+
     spi_transaction_t spiTransaction;
     memset(&spiTransaction,0,sizeof(spiTransaction));
 
-    int res = snprintf(
-        sendBuffer,
-        sizeof(sendBuffer),
-        payload,
-        interruptCount,
-        receiveBuffer
-    );
-    ESP_LOGI("RX", "Sending: %d %s", ++interruptCount, sendBuffer);
-
-    if (res >= sizeof(sendBuffer)) {
-        ESP_LOGI("RX", "Data truncated");
-    }
 
     spiTransaction.length = sizeof(sendBuffer) * 8;
     spiTransaction.tx_buffer = sendBuffer;
     spiTransaction.rx_buffer = receiveBuffer;
 
-    ESP_LOGI("RX", "After Semaphore");
+    ESP_LOGI("RX", "Sending: %d by %d, bx %d", ++interruptCount, sendBuffer[0], sendBuffer[1]);
     errorStatus = spi_device_transmit(spiDeviceHandle, &spiTransaction);
-    ESP_LOGI("RX", "Received: %d %d", interruptCount, receiveBuffer);
+
     if (interruptCount % 2 == 0) {
         gpio_set_level(GPIO_NUM_7, 1); // BLU OFF
     } else {

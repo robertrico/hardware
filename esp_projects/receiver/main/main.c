@@ -123,9 +123,7 @@ void app_main(void) {
             uint16_t bx = ((uint16_t)payload[2] << 8) | payload[3];
             ESP_LOGI("Payload - BY", "Received payload: %d", by);
             ESP_LOGI("Payload - BX", "Received payload: %d", bx);
-            //vToggleLED(by);
-            //vToggleLED(bx);
-            //vSendSPI(payload);
+            vSendSPI(bx, by);
         }
     }
 
