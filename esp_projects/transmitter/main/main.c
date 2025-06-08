@@ -84,22 +84,28 @@ void app_main(void) {
     };
     adc_oneshot_config_channel(adc_handle, ADC_B, &chan_cfg);
 
+    // Set High for First Read
+    gpio_set_level(B_SELECT_GPIO, 1);
+
     while (1) {
         int val = 0;
         esp_err_t result;
 
         adc_oneshot_read(adc_handle, ADC_B, &val);
-        esp_rom_delay_us(10);
         gpio_set_level(B_SELECT_GPIO, 0);
+        esp_rom_delay_us(10);
 
-        uint8_t adcval = (val * 255) / 4095;
+        uint8_t adc_by_high = (val >> 8) & 0x0F;
+        uint8_t adc_by_low = val & 0xFF;
 
         adc_oneshot_read(adc_handle, ADC_B, &val);
-        esp_rom_delay_us(10);
         gpio_set_level(B_SELECT_GPIO, 1);
+        esp_rom_delay_us(10);
 
-        uint8_t adcval2 = (val * 255) / 4095;
-        uint8_t payload[16] = {adcval, adcval2};
+        uint8_t adc_bx_high = (val >> 8) & 0x0F;
+        uint8_t adc_bx_low = val & 0xFF;
+
+        uint8_t payload[16] = {adc_by_high, adc_by_low, adc_bx_high, adc_bx_low};
 
         result = esp_now_send(peerInfo.peer_addr, payload, sizeof(payload));
         if (result == ESP_OK) {
