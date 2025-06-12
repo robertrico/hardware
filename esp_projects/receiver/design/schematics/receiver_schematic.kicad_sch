@@ -2328,7 +2328,7 @@
 		)
 		(uuid "c9a5a282-8948-4d97-a876-136be6e1b617")
 	)
-	(text "[A4]\n"
+	(text "[A1]"
 		(exclude_from_sim no)
 		(at 139.7 55.372 0)
 		(effects
