@@ -80,49 +80,33 @@ void app_main(void) {
         .quadhd_io_num = -1
     };
 
-    spi_device_interface_config_t deviceConfig = {
-        .command_bits = 0,
-        .address_bits = 0,
-        .dummy_bits = 0,
-        .clock_speed_hz = 1000000,
-        .duty_cycle_pos = 128, // 50%
-        .mode = 0,
-        .spics_io_num = GPIO_CS,
-        .cs_ena_posttrans = 3, // @see https://github.com/espressif/esp-idf/blob/27d68f57e6bdd3842cd263585c2c352698a9eda2/examples/peripherals/spi_slave/sender/main/app_main.c#L95
-        .queue_size = 3
-    };
+    spi_device_interface_config_t deviceConfig;
+
+    memset(&deviceConfig, 0, sizeof(deviceConfig));
+    deviceConfig.command_bits = 0;
+    deviceConfig.address_bits = 0;
+    deviceConfig.dummy_bits = 0;
+    deviceConfig.clock_speed_hz = 1000000;
+    deviceConfig.duty_cycle_pos = 128; // 50%
+    deviceConfig.mode = 0;
+    deviceConfig.spics_io_num = GPIO_CS;
+    deviceConfig.cs_ena_posttrans = 3;
+    deviceConfig.queue_size = 16;
 
     errorStatus = spi_bus_initialize(SENDER_HOST, &busConfig, SPI_DMA_CH_AUTO);
     assert(errorStatus == ESP_OK);
     errorStatus = spi_bus_add_device(SENDER_HOST, &deviceConfig, &spiDeviceHandle);
     assert(errorStatus == ESP_OK);
 
-    // Configure BLU LED (GPIO_NUM_7)
-    gpio_config_t blu_conf;
-    memset(&blu_conf, 0, sizeof(blu_conf));
-    blu_conf.intr_type = GPIO_INTR_DISABLE;
-    blu_conf.mode = GPIO_MODE_OUTPUT;
-    blu_conf.pin_bit_mask = (1ULL << GPIO_NUM_7);
-    blu_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    blu_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-    gpio_config(&blu_conf);
-
-    gpio_config_t ylw_conf;
-    memset(&ylw_conf, 0, sizeof(ylw_conf));
-    ylw_conf.intr_type = GPIO_INTR_DISABLE;
-    ylw_conf.mode = GPIO_MODE_OUTPUT;
-    ylw_conf.pin_bit_mask = (1ULL << GPIO_NUM_6);
-    ylw_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    ylw_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-    gpio_config(&ylw_conf);
-
     while(1) {
         char payload[16]; // Adjust size as needed
         if (xQueueReceive(rdySem, payload, portMAX_DELAY)) {
-            uint16_t by = ((uint16_t)payload[0] << 8) | payload[1];
-            uint16_t bx = ((uint16_t)payload[2] << 8) | payload[3];
-            ESP_LOGI("Payload - BY", "Received payload: %d", by);
-            ESP_LOGI("Payload - BX", "Received payload: %d", bx);
+            uint16_t bx = payload[0] | (payload[1] << 8);
+            uint16_t by = payload[2] | (payload[3] << 8);
+            uint16_t bx_be = (bx >> 8) | ((bx & 0xFF) << 8);
+            uint16_t by_be = (by >> 8) | ((by & 0xFF) << 8);
+            ESP_LOGI("Payload - BY", "Received payload (big-endian): %d", by_be);
+            ESP_LOGI("Payload - BX", "Received payload (big-endian): %d", bx_be);
             vSendSPI(bx, by);
         }
     }

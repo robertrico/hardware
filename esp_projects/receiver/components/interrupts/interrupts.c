@@ -18,14 +18,9 @@ void vSendSPI(uint16_t bx, uint16_t by) {
 
     ESP_LOGI("RX", "Sending: %d by %d, bx %d", ++interruptCount, sendBuffer[0], sendBuffer[1]);
     errorStatus = spi_device_transmit(spiDeviceHandle, &spiTransaction);
-
-    if (interruptCount % 2 == 0) {
-        gpio_set_level(GPIO_NUM_7, 1); // BLU OFF
-    } else {
-        gpio_set_level(GPIO_NUM_6, 1); // YLW ON
+    if (errorStatus != ESP_OK) {
+        ESP_LOGE("SPI", "spi_device_transmit failed: %d", errorStatus);
     }
-    gpio_set_level(GPIO_NUM_7, 0);
-    gpio_set_level(GPIO_NUM_6, 0);
 }
 
 void IRAM_ATTR vButtonReceive(const esp_now_recv_info_t* info, const uint8_t* data, int len) {
