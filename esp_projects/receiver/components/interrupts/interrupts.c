@@ -12,7 +12,7 @@ void vSendSPI(uint16_t bx, uint16_t by) {
     memset(&spiTransaction,0,sizeof(spiTransaction));
 
 
-    spiTransaction.length = sizeof(sendBuffer) * 8;
+    spiTransaction.length = 16 * 2;
     spiTransaction.tx_buffer = sendBuffer;
     spiTransaction.rx_buffer = receiveBuffer;
 
