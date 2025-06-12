@@ -3,15 +3,199 @@
 	(generator "eeschema")
 	(generator_version "9.0")
 	(uuid "340d3dba-ba7e-431b-8cbe-44d116c7c9ee")
-	(paper "A4")
+	(paper "USLetter")
 	(title_block
 		(title "Receiver Schematic")
-		(date "2025-06-02")
-		(rev "1.0.0")
+		(date "2025-06-11")
+		(rev "1.0.1")
+		(comment 2 "Note: TB6612FNGs disconnected in v1.0.*")
 		(comment 3 "connected to an STM32L432KC via SPI")
 		(comment 4 "A schematic for an STM32C3 Receiver")
 	)
 	(lib_symbols
+		(symbol "Device:LED"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "LED"
+				(at 0 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Light emitting diode"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Sim.Pins" "1=K 2=A"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "LED diode"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "LED* LED_SMD:* LED_THT:*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "LED_0_1"
+				(polyline
+					(pts
+						(xy -3.048 -0.762) (xy -4.572 -2.286) (xy -3.81 -2.286) (xy -4.572 -2.286) (xy -4.572 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.778 -0.762) (xy -3.302 -2.286) (xy -2.54 -2.286) (xy -3.302 -2.286) (xy -3.302 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 0) (xy 1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -1.27) (xy -1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "LED_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Driver_Motor:TB6612FNG"
 			(pin_names
 				(offset 1.016)
@@ -538,6 +722,9 @@
 			(embedded_fonts no)
 		)
 		(symbol "MCU_ST_STM32L4:STM32L432KCUx"
+			(pin_numbers
+				(hide yes)
+			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -2009,35 +2196,483 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "power:GND"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "GND"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "GND_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 -1.27) (xy 1.27 -1.27) (xy 0 -2.54) (xy -1.27 -1.27) (xy 0 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "GND_1_1"
+				(pin power_in line
+					(at 0 0 270)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(text "[A5]\n"
+		(exclude_from_sim no)
+		(at 139.7 68.072 0)
+		(effects
+			(font
+				(size 0.8128 0.8128)
+			)
+		)
+		(uuid "75607abb-480c-47b1-ad8f-7a26fafb8b2b")
+	)
+	(text "[D6]\n"
+		(exclude_from_sim no)
+		(at 116.84 73.152 0)
+		(effects
+			(font
+				(size 0.8128 0.8128)
+			)
+		)
+		(uuid "b2a11d9e-05ad-4b62-9a86-73e9d3a98e69")
+	)
+	(text "[A6]\n"
+		(exclude_from_sim no)
+		(at 139.7 70.612 0)
+		(effects
+			(font
+				(size 0.8128 0.8128)
+			)
+		)
+		(uuid "c9a5a282-8948-4d97-a876-136be6e1b617")
+	)
+	(text "[A4]\n"
+		(exclude_from_sim no)
+		(at 139.7 55.372 0)
+		(effects
+			(font
+				(size 0.8128 0.8128)
+			)
+		)
+		(uuid "d3a41754-07e3-4abc-9ade-adfe7c3d87ea")
+	)
+	(text "[A3]\n"
+		(exclude_from_sim no)
+		(at 139.7 62.992 0)
+		(effects
+			(font
+				(size 0.8128 0.8128)
+			)
+		)
+		(uuid "ec851b81-44bf-4f94-88ae-82c8e4903c77")
+	)
+	(junction
+		(at 93.98 82.55)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "3414ddb8-6362-44aa-9be4-c62a4461c6a1")
+	)
+	(wire
+		(pts
+			(xy 76.2 57.15) (xy 82.55 57.15)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "06d87286-a31f-4ed4-9cb7-82b4c7e2d0be")
+	)
+	(wire
+		(pts
+			(xy 27.94 64.77) (xy 38.1 64.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1ffa84f4-2c4a-4a89-b4a0-b63e272f5fc7")
+	)
+	(wire
+		(pts
+			(xy 110.49 73.66) (xy 110.49 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "228e27aa-b14a-4047-991c-27e20d6390e8")
+	)
+	(wire
+		(pts
+			(xy 77.47 82.55) (xy 81.28 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "331cbfcb-e7b3-4205-88b8-2e9a84893807")
+	)
+	(wire
+		(pts
+			(xy 93.98 82.55) (xy 93.98 85.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "38a85779-2486-44a9-abd4-40c073988835")
+	)
+	(wire
+		(pts
+			(xy 88.9 82.55) (xy 93.98 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "38b3f65d-8604-4863-9b60-d8c8a69f7918")
+	)
+	(wire
+		(pts
+			(xy 76.2 76.2) (xy 77.47 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "515cca4c-2bdc-4688-b1a0-fc89807f08a3")
+	)
+	(wire
+		(pts
+			(xy 140.97 63.5) (xy 153.67 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "57b74d56-7182-47e5-bdc1-c204ae5ea394")
+	)
+	(wire
+		(pts
+			(xy 76.2 72.39) (xy 82.55 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "58d40b1c-2939-4e0b-a30c-4e6d89ba0d5d")
+	)
+	(wire
+		(pts
+			(xy 128.27 99.06) (xy 128.27 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e00c837-0e72-4ced-a2c9-3fc856620851")
+	)
+	(wire
+		(pts
+			(xy 76.2 64.77) (xy 90.17 64.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "88230266-73b4-43d0-a151-3b608183c9fd")
+	)
+	(wire
+		(pts
+			(xy 140.97 71.12) (xy 153.67 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "941242d7-b550-459d-9804-61bb66c52ab3")
+	)
+	(wire
+		(pts
+			(xy 140.97 55.88) (xy 146.05 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9867ad30-30a1-41d2-82cb-679ae560b97c")
+	)
+	(wire
+		(pts
+			(xy 76.2 68.58) (xy 86.36 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b6883e3c-0896-4b64-9b29-bd3a2e3a3002")
+	)
+	(wire
+		(pts
+			(xy 140.97 68.58) (xy 149.86 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c61e22ca-8d34-4812-b805-3c19286e8db7")
+	)
+	(wire
+		(pts
+			(xy 93.98 82.55) (xy 99.06 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cb54f819-2f32-4640-a182-078e6205a538")
+	)
+	(wire
+		(pts
+			(xy 110.49 82.55) (xy 106.68 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cf820c53-0fd7-46dc-9ecb-8581515c1e70")
+	)
+	(wire
+		(pts
+			(xy 115.57 73.66) (xy 110.49 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f75bc828-b334-4eff-9217-20527c9e3b33")
+	)
+	(wire
+		(pts
+			(xy 77.47 76.2) (xy 77.47 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ffb82513-5334-46ec-9a50-aa21908e4025")
+	)
+	(label "MISO"
+		(at 149.86 68.58 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3785881f-1a11-4631-b066-42ec2f4d752b")
+	)
+	(label "SCLK"
+		(at 146.05 55.88 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "51a5fecf-2c26-4427-9150-bd054e953faa")
+	)
+	(label "Chip_Select"
+		(at 27.94 64.77 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7361ba5c-f501-450b-a844-1456a50e040c")
+	)
+	(label "Chip_Select"
+		(at 153.67 63.5 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "746637a0-eb09-4bb6-9b84-6589d4cfbb61")
+	)
+	(label "Shared_GND"
+		(at 128.27 115.57 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "92457a08-8628-44b5-b73b-c5d3a115cd66")
+	)
+	(label "MOSI"
+		(at 153.67 71.12 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9c0af155-8ae8-400d-964f-dc1fd75d7362")
+	)
+	(label "SCLK"
+		(at 82.55 72.39 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ba8f13c6-dcef-4352-92aa-af04b421062c")
+	)
+	(label "Shared_GND"
+		(at 82.55 57.15 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "df55a93d-d35f-4e0b-a2fc-aad0e480e478")
+	)
+	(label "MOSI"
+		(at 90.17 64.77 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e4ac6dd6-8759-49e6-b2f6-dee0c384325d")
+	)
+	(label "MISO"
+		(at 86.36 68.58 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f647fcb3-ebb6-429a-aad6-ff676971fbf1")
 	)
 	(symbol
-		(lib_id "Seeed_Studio_XIAO_Series:XIAO-ESP32-C3-DIP")
-		(at 41.91 54.61 0)
+		(lib_id "power:GND")
+		(at 128.27 115.57 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "3df7ff49-7946-4d0a-9c43-35609d0ab9d8")
-		(property "Reference" "U5"
-			(at 58.42 49.53 0)
+		(uuid "0f1e6d4f-1772-4b80-97be-727305f8595f")
+		(property "Reference" "#PWR01"
+			(at 128.27 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 128.27 120.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "XIAO-ESP32-C3-DIP"
-			(at 58.42 52.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Module:MOUDLE14P-XIAO-DIP-SMD"
-			(at 58.674 84.074 0)
+		(property "Footprint" ""
+			(at 128.27 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2046,7 +2681,71 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 43.18 53.34 0)
+			(at 128.27 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 128.27 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e1ed74ef-a07a-45f0-a94e-8eb3dc69e470")
+		)
+		(instances
+			(project ""
+				(path "/340d3dba-ba7e-431b-8cbe-44d116c7c9ee"
+					(reference "#PWR01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Seeed_Studio_XIAO_Series:XIAO-ESP32-C3-DIP")
+		(at 40.64 50.8 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3df7ff49-7946-4d0a-9c43-35609d0ab9d8")
+		(property "Reference" "U5"
+			(at 42.672 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "XIAO-ESP32-C3"
+			(at 66.04 49.784 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Module:MOUDLE14P-XIAO-DIP-SMD"
+			(at 57.404 80.264 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 41.91 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2055,7 +2754,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 43.18 53.34 0)
+			(at 41.91 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2109,6 +2808,82 @@
 			(project ""
 				(path "/340d3dba-ba7e-431b-8cbe-44d116c7c9ee"
 					(reference "U5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 85.09 82.55 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6d0d1c0d-d284-4ac7-b9af-b18cc2830d4f")
+		(property "Reference" "D1"
+			(at 82.804 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED"
+			(at 84.836 85.852 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 85.09 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 85.09 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 85.09 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 85.09 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "46a553e5-af81-4cef-a622-d7d50e57d0be")
+		)
+		(pin "2"
+			(uuid "e4254c32-8768-48f0-aa8b-676aeb9f7601")
+		)
+		(instances
+			(project ""
+				(path "/340d3dba-ba7e-431b-8cbe-44d116c7c9ee"
+					(reference "D1")
 					(unit 1)
 				)
 			)
@@ -2251,17 +3026,92 @@
 		)
 	)
 	(symbol
-		(lib_id "MCU_ST_STM32L4:STM32L432KCUx")
-		(at 130.81 90.17 0)
+		(lib_id "Device:LED")
+		(at 102.87 82.55 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
+		(uuid "c6f0ca1b-7334-4ecf-8a21-a2366f23795c")
+		(property "Reference" "D2"
+			(at 105.156 80.264 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED"
+			(at 103.124 85.344 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 102.87 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 102.87 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 102.87 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 102.87 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f52ab8ee-602d-4b39-b5d7-9c3e8bfa1879")
+		)
+		(pin "2"
+			(uuid "3ebf5054-d4ba-4922-860b-d81d8c79444f")
+		)
+		(instances
+			(project "receiver_schematic"
+				(path "/340d3dba-ba7e-431b-8cbe-44d116c7c9ee"
+					(reference "D2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "MCU_ST_STM32L4:STM32L432KCUx")
+		(at 128.27 73.66 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
 		(uuid "c762701a-a1ac-4320-aa92-2c5ef3e852b1")
 		(property "Reference" "U2"
-			(at 132.9533 115.57 0)
+			(at 118.11 46.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2270,7 +3120,7 @@
 			)
 		)
 		(property "Value" "STM32L432KCUx"
-			(at 132.9533 118.11 0)
+			(at 132.842 46.736 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2279,7 +3129,7 @@
 			)
 		)
 		(property "Footprint" "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm"
-			(at 120.65 113.03 0)
+			(at 118.11 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2289,7 +3139,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.st.com/resource/en/datasheet/stm32l432kc.pdf"
-			(at 130.81 90.17 0)
+			(at 128.27 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2298,7 +3148,7 @@
 			)
 		)
 		(property "Description" "STMicroelectronics Arm Cortex-M4 MCU, 256KB flash, 64KB RAM, 80 MHz, 1.71-3.6V, 26 GPIO, UFQFPN32"
-			(at 130.81 90.17 0)
+			(at 128.27 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2323,6 +3173,7 @@
 		)
 		(pin "12"
 			(uuid "327c86c0-3a63-4e37-b142-9b08a0c8ced9")
+			(alternate "SPI1_MISO")
 		)
 		(pin "15"
 			(uuid "e818bb9f-91aa-4d58-bd01-c06ead845476")
@@ -2341,6 +3192,7 @@
 		)
 		(pin "10"
 			(uuid "d3ad237f-0058-4c18-980c-235af1f3c20d")
+			(alternate "SPI1_NSS")
 		)
 		(pin "2"
 			(uuid "23115306-1d0a-40b7-88af-eac9747168cc")
@@ -2362,6 +3214,7 @@
 		)
 		(pin "7"
 			(uuid "9b097821-678d-4ec3-8e5c-12d92be3cee3")
+			(alternate "SPI1_SCK")
 		)
 		(pin "11"
 			(uuid "0ceff684-8316-4259-8daf-e840a79a24a5")
@@ -2371,6 +3224,7 @@
 		)
 		(pin "13"
 			(uuid "499edc8b-3292-499f-9b1d-4380e3fd181e")
+			(alternate "SPI1_MOSI")
 		)
 		(pin "3"
 			(uuid "81a7eb50-ba87-45d8-a65d-6ce8ad17d1f5")
@@ -2409,6 +3263,72 @@
 			(project ""
 				(path "/340d3dba-ba7e-431b-8cbe-44d116c7c9ee"
 					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 93.98 85.09 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f4c7f20e-0160-4925-a2e9-1fb6c6fcf45b")
+		(property "Reference" "#PWR02"
+			(at 93.98 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 93.98 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 93.98 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 93.98 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 93.98 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8701c8b9-7064-4525-a66e-62b96ef9f63a")
+		)
+		(instances
+			(project ""
+				(path "/340d3dba-ba7e-431b-8cbe-44d116c7c9ee"
+					(reference "#PWR02")
 					(unit 1)
 				)
 			)
