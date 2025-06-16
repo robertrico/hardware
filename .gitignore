@@ -40,3 +40,5 @@ projects/OTA_1/firmware/cmake_install.cmake
 *.out
 
 qemu/kernel-qemu-4.4.34-jessie
+
+dino/*/*-backups/
