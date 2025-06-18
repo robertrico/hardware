@@ -11,7 +11,6 @@ void vSendSPI(uint16_t bx, uint16_t by) {
     spi_transaction_t spiTransaction;
     memset(&spiTransaction,0,sizeof(spiTransaction));
 
-
     spiTransaction.length = 16 * 2;
     spiTransaction.tx_buffer = sendBuffer;
     spiTransaction.rx_buffer = receiveBuffer;
@@ -29,7 +28,7 @@ void IRAM_ATTR vButtonReceive(const esp_now_recv_info_t* info, const uint8_t* da
     memcpy(payload, data, copy_len);
     payload[copy_len] = '\0';
 
-    ESP_LOGI("RX", "Received payload: %d", payload);
+    // ESP_LOGI("RX", "Received payload: %d", payload);
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xQueueSendFromISR(rdySem, &payload, &xHigherPriorityTaskWoken);
 }

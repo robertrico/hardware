@@ -105,8 +105,8 @@ void app_main(void) {
             uint16_t by = payload[2] | (payload[3] << 8);
             uint16_t bx_be = (bx >> 8) | ((bx & 0xFF) << 8);
             uint16_t by_be = (by >> 8) | ((by & 0xFF) << 8);
-            ESP_LOGI("Payload - BY", "Received payload (big-endian): %d", by_be);
-            ESP_LOGI("Payload - BX", "Received payload (big-endian): %d", bx_be);
+            //ESP_LOGI("Payload - BY", "Received payload (big-endian): %d", by_be);
+            //ESP_LOGI("Payload - BX", "Received payload (big-endian): %d", bx_be);
             vSendSPI(bx, by);
         }
     }
