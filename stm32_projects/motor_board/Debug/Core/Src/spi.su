@@ -1,0 +1,6 @@
+../Core/Src/spi.c:34:6:MX_SPI1_Init	8	static
+../Core/Src/spi.c:67:6:HAL_SPI_MspInit	48	static
+../Core/Src/spi.c:137:6:HAL_SPI_MspDeInit	16	static
+../Core/Src/spi.c:176:6:HAL_SPI_TxRxCpltCallback	24	static,ignoring_inline_asm
+../Core/Src/spi.c:182:6:short_delay	16	static,ignoring_inline_asm
+../Core/Src/spi.c:194:6:HAL_DMA_ErrorCallback	24	static
