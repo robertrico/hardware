@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32l432xx.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,8 +118,8 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
-    HAL_Delay(500);
-    osDelay(1);
+    HAL_Delay(250);
+    //osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
 }

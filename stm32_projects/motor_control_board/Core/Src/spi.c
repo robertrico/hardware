@@ -21,7 +21,8 @@
 #include "spi.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "stm32l432xx.h"
+#include "stm32l4xx_hal_spi.h"
 /* USER CODE END 0 */
 
 SPI_HandleTypeDef hspi1;
