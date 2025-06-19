@@ -25,7 +25,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32l432xx.h"
+#include "stm32l4xx_hal_pwr_ex.h"
+#include "stm32l4xx_hal_rcc.h"
+#include "stm32l4xx_hal_flash.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
