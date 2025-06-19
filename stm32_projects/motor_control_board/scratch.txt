@@ -1,0 +1,5 @@
+OpenOCD
+openocd -f interface/stlink.cfg -f target/stm32l4x.cfg
+
+GDB
+arm-none-eabi-gdb motor_control_board.elf
