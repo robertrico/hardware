@@ -107,7 +107,11 @@ void app_main(void) {
             uint16_t by_be = (by >> 8) | ((by & 0xFF) << 8);
             //ESP_LOGI("Payload - BY", "Received payload (big-endian): %d", by_be);
             //ESP_LOGI("Payload - BX", "Received payload (big-endian): %d", bx_be);
-            vSendSPI(bx, by);
+            
+            // Deadband: Only send if bx or by is outside [2100, 2300]
+            if ((bx_be > 2400|| bx_be < 2000) || (by_be > 2300 || by_be < 2000)) {
+                vSendSPI(bx, by);
+            }
         }
     }
 
