@@ -42,3 +42,5 @@ projects/OTA_1/firmware/cmake_install.cmake
 qemu/kernel-qemu-4.4.34-jessie
 
 dino/*/*-backups/
+
+stm32_projects/.metadata/
