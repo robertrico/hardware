@@ -47,11 +47,3 @@ This document captures working toolchains, environment notes, and setup quirks e
 ### OLED I2C (SSD1306 / SSD1309)
 - Libraries used: `ssd1306.py`, sometimes `pico-ssd1306` for C
 - I2C Pins are flexible (RP2040 is fully muxed)
-
----
-
-## 📎 Next Up
-- Add toolchain setup for bare-metal RP2040 (no Pico board)
-- Log `idf.py` quirks once ESP work begins
-- Potential STM32CubeMX integration notes (future)
-
