@@ -615,7 +615,7 @@
     },
     "net_format_name": "",
     "page_layout_descr_file": "",
-    "plot_directory": "",
+    "plot_directory": "/Users/hackbook/Development/hardware/dino/",
     "space_save_all_events": true,
     "spice_current_sheet_as_root": false,
     "spice_external_command": "spice \"%I\"",
@@ -630,6 +630,10 @@
     [
       "e43166a5-d972-471d-b3cf-9f4f12c7f541",
       "Root"
+    ],
+    [
+      "746aad78-e591-4d08-b628-4d67d677e6d4",
+      "Input-Output Sheet"
     ]
   ],
   "text_variables": {}
