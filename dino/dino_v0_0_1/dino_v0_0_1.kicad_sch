@@ -7,7 +7,7 @@
 	(title_block
 		(title "Dino v0.0.1")
 		(date "2025-06-15")
-		(rev "v1.0.0")
+		(rev "v1.0.1")
 		(comment 1 "Core Components")
 		(comment 3 "Utilizes a 555 timer and binary counter to increment addressing.")
 		(comment 4 "An 8-bit logic sequencer connected to an LED bus.")
@@ -3662,7 +3662,7 @@
 	)
 	(text "Timer Output"
 		(exclude_from_sim no)
-		(at 92.964 61.468 0)
+		(at 93.218 61.214 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3703,6 +3703,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "17127cfc-54f4-4bca-9e5d-65676bdab012")
+	)
+	(junction
+		(at 87.63 62.23)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "1ad2ecd1-db85-45e7-bc65-99b00d5a8517")
 	)
 	(junction
 		(at 222.25 82.55)
@@ -4120,24 +4126,6 @@
 		(uuid "5806ae3c-5465-452e-8891-70f78f30f4b5")
 	)
 	(bus_entry
-		(at 100.33 54.61)
-		(size 2.54 2.54)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5b03b7ab-f3ae-4782-a33b-72cd677e033c")
-	)
-	(bus_entry
-		(at 100.33 105.41)
-		(size 2.54 2.54)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5f976373-a5c5-4711-bb87-22cf8401a7d2")
-	)
-	(bus_entry
 		(at 48.26 129.54)
 		(size -2.54 2.54)
 		(stroke
@@ -4453,15 +4441,6 @@
 		(uuid "b8cad7d0-788b-4c09-8209-d886e851a681")
 	)
 	(bus_entry
-		(at 100.33 97.79)
-		(size 2.54 2.54)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b93de357-5ae2-4a18-81c0-df6526b2a50e")
-	)
-	(bus_entry
 		(at 127 59.69)
 		(size 2.54 -2.54)
 		(stroke
@@ -4595,6 +4574,15 @@
 			(type default)
 		)
 		(uuid "f236bbf5-af1a-4f19-89ac-4fcf47f1463f")
+	)
+	(bus_entry
+		(at 100.33 93.98)
+		(size 2.54 2.54)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f813e4de-9487-4d41-88c3-8d42576793d2")
 	)
 	(bus
 		(pts
@@ -4821,7 +4809,7 @@
 	)
 	(bus
 		(pts
-			(xy 100.33 97.79) (xy 100.33 105.41)
+			(xy 100.33 91.44) (xy 100.33 93.98)
 		)
 		(stroke
 			(width 0)
@@ -5061,6 +5049,16 @@
 			(type default)
 		)
 		(uuid "2641a227-fef5-4754-8765-4f082e62c51a")
+	)
+	(wire
+		(pts
+			(xy 102.87 50.8) (xy 104.14 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "270a48d4-ccc9-4e5a-9031-cac7c8cbacf9")
 	)
 	(wire
 		(pts
@@ -5324,16 +5322,6 @@
 			(type default)
 		)
 		(uuid "473be09b-6271-4e46-b586-2bdc537e4ab6")
-	)
-	(wire
-		(pts
-			(xy 104.14 90.17) (xy 104.14 105.41)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "49d38592-9c32-436e-bfc8-bd9bdc152245")
 	)
 	(wire
 		(pts
@@ -5712,6 +5700,16 @@
 	)
 	(wire
 		(pts
+			(xy 104.14 90.17) (xy 104.14 100.33)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "64827c69-ed74-4fb5-9db1-4befb60b1e39")
+	)
+	(wire
+		(pts
 			(xy 199.39 86.36) (xy 201.93 86.36)
 		)
 		(stroke
@@ -5792,6 +5790,16 @@
 	)
 	(wire
 		(pts
+			(xy 104.14 100.33) (xy 105.41 100.33)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6dfdfe13-4fb0-4109-b648-65f845b952f8")
+	)
+	(wire
+		(pts
 			(xy 125.73 107.95) (xy 127 107.95)
 		)
 		(stroke
@@ -5839,6 +5847,16 @@
 			(type default)
 		)
 		(uuid "72d589c5-ec59-4f12-a721-db5b7c767374")
+	)
+	(wire
+		(pts
+			(xy 87.63 105.41) (xy 105.41 105.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7355b637-d7ab-47a3-8b28-042ba55ee23c")
 	)
 	(bus
 		(pts
@@ -5982,17 +6000,6 @@
 			(type default)
 		)
 		(uuid "7fef6d5a-bd73-4e68-84fe-3298940fdeff")
-	)
-	(bus
-		(pts
-			(xy 100.33 91.44) (xy 100.33 97.79)
-		)
-		(stroke
-			(width 0)
-			(type default)
-			(color 194 0 0 1)
-		)
-		(uuid "80511147-53d9-43fc-80c0-66a4d84321f1")
 	)
 	(wire
 		(pts
@@ -6337,6 +6344,16 @@
 		)
 		(uuid "9f55678c-b4fc-4092-b2ec-04497ee1ea19")
 	)
+	(wire
+		(pts
+			(xy 87.63 62.23) (xy 87.63 105.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a138ad1f-f686-49f5-b941-8971fd7b24fa")
+	)
 	(bus
 		(pts
 			(xy 147.32 62.23) (xy 147.32 66.04)
@@ -6396,16 +6413,6 @@
 			(type default)
 		)
 		(uuid "a6f508e7-eaf9-475f-a508-7da970f67563")
-	)
-	(wire
-		(pts
-			(xy 104.14 105.41) (xy 105.41 105.41)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a8cb3aef-6fb6-4ef5-81d8-e8950590bacf")
 	)
 	(wire
 		(pts
@@ -6701,7 +6708,7 @@
 	)
 	(wire
 		(pts
-			(xy 85.09 62.23) (xy 105.41 62.23)
+			(xy 85.09 62.23) (xy 87.63 62.23)
 		)
 		(stroke
 			(width 0)
@@ -6728,16 +6735,6 @@
 			(type default)
 		)
 		(uuid "c06163a3-235c-47da-8014-96499fdefd8b")
-	)
-	(wire
-		(pts
-			(xy 102.87 100.33) (xy 105.41 100.33)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c1015f7e-de73-476a-8842-8419c4abd1d2")
 	)
 	(wire
 		(pts
@@ -6829,17 +6826,6 @@
 			(type default)
 		)
 		(uuid "c8d2ebe2-b64a-429b-96df-5d8d1cdad56a")
-	)
-	(bus
-		(pts
-			(xy 100.33 17.78) (xy 100.33 54.61)
-		)
-		(stroke
-			(width 0)
-			(type default)
-			(color 194 0 0 1)
-		)
-		(uuid "c8f5be83-4c62-421d-8146-8cd72ecfc008")
 	)
 	(wire
 		(pts
@@ -6952,6 +6938,16 @@
 		)
 		(uuid "d0ee0a51-7769-4ef5-ad42-8e0de5ec10f5")
 	)
+	(wire
+		(pts
+			(xy 102.87 57.15) (xy 102.87 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d317f63d-28d0-4767-9874-9e618f358f70")
+	)
 	(bus
 		(pts
 			(xy 240.03 44.45) (xy 240.03 43.18)
@@ -7041,6 +7037,16 @@
 			(type default)
 		)
 		(uuid "da5003cb-e0c6-466e-9768-64a293553e2c")
+	)
+	(wire
+		(pts
+			(xy 87.63 62.23) (xy 105.41 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "db66185f-8b74-4351-b816-2ceb6999af54")
 	)
 	(wire
 		(pts
@@ -7265,7 +7271,7 @@
 	)
 	(bus
 		(pts
-			(xy 100.33 54.61) (xy 100.33 67.31)
+			(xy 100.33 17.78) (xy 100.33 67.31)
 		)
 		(stroke
 			(width 0)
@@ -7386,6 +7392,16 @@
 	)
 	(wire
 		(pts
+			(xy 102.87 96.52) (xy 102.87 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f53b9518-b4f7-4e83-9ed8-1403b2e5009d")
+	)
+	(wire
+		(pts
 			(xy 185.42 72.39) (xy 209.55 72.39)
 		)
 		(stroke
@@ -7495,6 +7511,19 @@
 			(justify left bottom)
 		)
 		(uuid "5770d1e6-8af2-493f-bebd-c9e792419c70")
+	)
+	(label "GND"
+		(at 104.14 50.8 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+				(color 0 0 0 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "613e2b4c-5903-427a-b7b7-9d8304f2ac0f")
 	)
 	(label "GND"
 		(at 226.06 82.55 0)
