@@ -7497,19 +7497,6 @@
 		(uuid "5770d1e6-8af2-493f-bebd-c9e792419c70")
 	)
 	(label "GND"
-		(at 49.53 -6.35 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-				(color 0 0 0 1)
-			)
-			(justify right bottom)
-		)
-		(uuid "58f9c1fe-cd18-4639-b420-773e89992db8")
-	)
-	(label "GND"
 		(at 226.06 82.55 0)
 		(effects
 			(font
@@ -8682,37 +8669,37 @@
 			(uuid "8f1b598e-22be-4da0-8e7f-52c8eb91b50e")
 		)
 		(pin "9"
-			(uuid "47ad3a9a-f74a-4aab-bd19-421486edb4dd")
+			(uuid "47ad3a9a-f74a-4aab-bd19-421486edb4de")
 		)
 		(pin "10"
-			(uuid "bc678b23-91f8-4c25-ad43-98b7b1351948")
+			(uuid "bc678b23-91f8-4c25-ad43-98b7b1351949")
 		)
 		(pin "8"
-			(uuid "aa393680-0f99-4f16-ade0-a317da24a04a")
+			(uuid "aa393680-0f99-4f16-ade0-a317da24a04b")
 		)
 		(pin "12"
-			(uuid "0c9dba72-4bbf-4676-a3b5-f0a1d8b1a731")
+			(uuid "0c9dba72-4bbf-4676-a3b5-f0a1d8b1a732")
 		)
 		(pin "13"
-			(uuid "c596f84a-a029-4066-9e6c-e7a3d6265c71")
+			(uuid "c596f84a-a029-4066-9e6c-e7a3d6265c72")
 		)
 		(pin "11"
-			(uuid "0f6db21d-634a-471a-bc2a-7cc342dbec48")
+			(uuid "0f6db21d-634a-471a-bc2a-7cc342dbec49")
 		)
 		(pin "1"
-			(uuid "be6bf08a-2da4-4a3b-87a3-3502cb7fd8fc")
+			(uuid "be6bf08a-2da4-4a3b-87a3-3502cb7fd8fd")
 		)
 		(pin "2"
-			(uuid "88867f9d-b320-426b-a8fd-f93e81d5d8d0")
+			(uuid "88867f9d-b320-426b-a8fd-f93e81d5d8d1")
 		)
 		(pin "3"
-			(uuid "9bf846a7-8db4-4b29-b6d8-10ad6f300df1")
+			(uuid "9bf846a7-8db4-4b29-b6d8-10ad6f300df2")
 		)
 		(pin "14"
-			(uuid "c78f80bb-2615-429b-9395-18b1fb1c2f62")
+			(uuid "c78f80bb-2615-429b-9395-18b1fb1c2f63")
 		)
 		(pin "7"
-			(uuid "43468693-a677-4d4e-a20c-e07abb5566d5")
+			(uuid "43468693-a677-4d4e-a20c-e07abb5566d6")
 		)
 		(instances
 			(project "dino_v0_0_1"
@@ -9053,22 +9040,22 @@
 			)
 		)
 		(pin "4"
-			(uuid "c22a1111-4155-4468-8303-3ee3213ab4f6")
+			(uuid "c22a1111-4155-4468-8303-3ee3213ab4f7")
 		)
 		(pin "5"
-			(uuid "cb4261f9-f352-48fd-be91-0282a659e3ba")
+			(uuid "cb4261f9-f352-48fd-be91-0282a659e3bb")
 		)
 		(pin "6"
-			(uuid "8f1b598e-22be-4da0-8e7f-52c8eb91b50e")
+			(uuid "8f1b598e-22be-4da0-8e7f-52c8eb91b50f")
 		)
 		(pin "9"
-			(uuid "47ad3a9a-f74a-4aab-bd19-421486edb4dd")
+			(uuid "47ad3a9a-f74a-4aab-bd19-421486edb4df")
 		)
 		(pin "10"
-			(uuid "bc678b23-91f8-4c25-ad43-98b7b1351948")
+			(uuid "bc678b23-91f8-4c25-ad43-98b7b135194a")
 		)
 		(pin "8"
-			(uuid "aa393680-0f99-4f16-ade0-a317da24a04a")
+			(uuid "aa393680-0f99-4f16-ade0-a317da24a04c")
 		)
 		(pin "12"
 			(uuid "2ebe9fcb-b20c-4cbe-b92a-9e0208bbc7ed")
@@ -9080,19 +9067,19 @@
 			(uuid "0091c468-d328-462e-a446-fa5328b259f6")
 		)
 		(pin "1"
-			(uuid "be6bf08a-2da4-4a3b-87a3-3502cb7fd8fc")
+			(uuid "be6bf08a-2da4-4a3b-87a3-3502cb7fd8fe")
 		)
 		(pin "2"
-			(uuid "88867f9d-b320-426b-a8fd-f93e81d5d8d0")
+			(uuid "88867f9d-b320-426b-a8fd-f93e81d5d8d2")
 		)
 		(pin "3"
-			(uuid "9bf846a7-8db4-4b29-b6d8-10ad6f300df1")
+			(uuid "9bf846a7-8db4-4b29-b6d8-10ad6f300df3")
 		)
 		(pin "14"
-			(uuid "c78f80bb-2615-429b-9395-18b1fb1c2f62")
+			(uuid "c78f80bb-2615-429b-9395-18b1fb1c2f64")
 		)
 		(pin "7"
-			(uuid "43468693-a677-4d4e-a20c-e07abb5566d5")
+			(uuid "43468693-a677-4d4e-a20c-e07abb5566d7")
 		)
 		(instances
 			(project "dino_v0_0_1"
@@ -9439,37 +9426,37 @@
 			(uuid "e72554fb-01e7-4145-a7ab-21b66c8afe19")
 		)
 		(pin "9"
-			(uuid "47ad3a9a-f74a-4aab-bd19-421486edb4dd")
+			(uuid "47ad3a9a-f74a-4aab-bd19-421486edb4e0")
 		)
 		(pin "10"
-			(uuid "bc678b23-91f8-4c25-ad43-98b7b1351948")
+			(uuid "bc678b23-91f8-4c25-ad43-98b7b135194b")
 		)
 		(pin "8"
-			(uuid "aa393680-0f99-4f16-ade0-a317da24a04a")
+			(uuid "aa393680-0f99-4f16-ade0-a317da24a04d")
 		)
 		(pin "12"
-			(uuid "0c9dba72-4bbf-4676-a3b5-f0a1d8b1a731")
+			(uuid "0c9dba72-4bbf-4676-a3b5-f0a1d8b1a733")
 		)
 		(pin "13"
-			(uuid "c596f84a-a029-4066-9e6c-e7a3d6265c71")
+			(uuid "c596f84a-a029-4066-9e6c-e7a3d6265c73")
 		)
 		(pin "11"
-			(uuid "0f6db21d-634a-471a-bc2a-7cc342dbec48")
+			(uuid "0f6db21d-634a-471a-bc2a-7cc342dbec4a")
 		)
 		(pin "1"
-			(uuid "be6bf08a-2da4-4a3b-87a3-3502cb7fd8fc")
+			(uuid "be6bf08a-2da4-4a3b-87a3-3502cb7fd8ff")
 		)
 		(pin "2"
-			(uuid "88867f9d-b320-426b-a8fd-f93e81d5d8d0")
+			(uuid "88867f9d-b320-426b-a8fd-f93e81d5d8d3")
 		)
 		(pin "3"
-			(uuid "9bf846a7-8db4-4b29-b6d8-10ad6f300df1")
+			(uuid "9bf846a7-8db4-4b29-b6d8-10ad6f300df4")
 		)
 		(pin "14"
-			(uuid "c78f80bb-2615-429b-9395-18b1fb1c2f62")
+			(uuid "c78f80bb-2615-429b-9395-18b1fb1c2f65")
 		)
 		(pin "7"
-			(uuid "43468693-a677-4d4e-a20c-e07abb5566d5")
+			(uuid "43468693-a677-4d4e-a20c-e07abb5566d8")
 		)
 		(instances
 			(project "dino_v0_0_1"
@@ -10369,31 +10356,31 @@
 			)
 		)
 		(pin "4"
-			(uuid "332667e5-5e0c-4dbc-9924-eff096cdaf6b")
+			(uuid "332667e5-5e0c-4dbc-9924-eff096cdaf6c")
 		)
 		(pin "5"
-			(uuid "09c587e9-ec6d-4569-b8d9-340d8325d894")
+			(uuid "09c587e9-ec6d-4569-b8d9-340d8325d895")
 		)
 		(pin "6"
-			(uuid "08add8a6-a206-4036-b9c3-ec4fd279e437")
+			(uuid "08add8a6-a206-4036-b9c3-ec4fd279e438")
 		)
 		(pin "9"
-			(uuid "47ad3a9a-f74a-4aab-bd19-421486edb4dd")
+			(uuid "47ad3a9a-f74a-4aab-bd19-421486edb4e1")
 		)
 		(pin "10"
-			(uuid "bc678b23-91f8-4c25-ad43-98b7b1351948")
+			(uuid "bc678b23-91f8-4c25-ad43-98b7b135194c")
 		)
 		(pin "8"
-			(uuid "aa393680-0f99-4f16-ade0-a317da24a04a")
+			(uuid "aa393680-0f99-4f16-ade0-a317da24a04e")
 		)
 		(pin "12"
-			(uuid "0c9dba72-4bbf-4676-a3b5-f0a1d8b1a731")
+			(uuid "0c9dba72-4bbf-4676-a3b5-f0a1d8b1a734")
 		)
 		(pin "13"
-			(uuid "c596f84a-a029-4066-9e6c-e7a3d6265c71")
+			(uuid "c596f84a-a029-4066-9e6c-e7a3d6265c74")
 		)
 		(pin "11"
-			(uuid "0f6db21d-634a-471a-bc2a-7cc342dbec48")
+			(uuid "0f6db21d-634a-471a-bc2a-7cc342dbec4b")
 		)
 		(pin "1"
 			(uuid "8a08b17e-a603-4292-8d20-717381e533a6")
@@ -10405,10 +10392,10 @@
 			(uuid "1b60d163-db0b-41ba-9e67-8218bfafeae3")
 		)
 		(pin "14"
-			(uuid "c78f80bb-2615-429b-9395-18b1fb1c2f62")
+			(uuid "c78f80bb-2615-429b-9395-18b1fb1c2f66")
 		)
 		(pin "7"
-			(uuid "43468693-a677-4d4e-a20c-e07abb5566d5")
+			(uuid "43468693-a677-4d4e-a20c-e07abb5566d9")
 		)
 		(instances
 			(project ""
