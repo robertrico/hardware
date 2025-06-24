@@ -1,5 +1,5 @@
 **DINO v0.0.1 Wiring and Debug Summary**
-
+June, 22 2025
 ---
 
 **Power & Ground Discipline**
@@ -54,8 +54,3 @@
 - Complete schematic corrections (~CE wiring).
 - Validate full 16-bit PC operation.
 - Proceed to SRAM address decoding and wiring from PC bus.
-
----
-
-DINO is alive. Power is disciplined. Timers are stable. Counter chain is operational.
-
