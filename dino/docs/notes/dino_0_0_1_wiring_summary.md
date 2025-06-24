@@ -23,16 +23,37 @@ June, 22 2025
 - Shared pull-up resistor is acceptable across multiple MRC pins.
 
 **Program Counter (PC) with 74LS590**
-- Stage A:
-  - ~CE pulled LOW (enabled at all times).
+
+- **Stage A**
+  - ~CE pulled LOW (always enabled).
   - CPC clocked from 555 timer.
-- Stage B:
+- **Stage B**
   - ~CE driven by RCO of Stage A (ripple carry).
-  - CPC also clocked from 555.
+  - CPC also clocked from 555 timer.
   - CPR tied HIGH for real-time output.
-- ~OE on both chips tied LOW to enable output.
-- B counts 256x slower than A.
+- ~OE on both chips tied LOW to enable outputs.
+- B counts 256× slower than A.
 - RCO is a brief pulse, not a latched HIGH.
+
+**Debug Findings**
+- Both CCK (Pin 11) and RCK (Pin 13) require a rising edge to update output registers.
+- Resolved issue where outputs were frozen due to RCK being held HIGH—tied directly to CCK for real-time updates.
+
+**LED Output Test**
+- Verified correct LED behavior using current-sinking configuration:  
+  VCC → 330Ω → anode → cathode → Qx (output).
+
+**Measured Results**
+- 555 timer output frequency: ~48 Hz (R1 = 10kΩ, R2 = 10kΩ, C = 1 µF).
+- Q0 blinks at 48 Hz.
+- Q7 toggles every ~2.7 seconds.
+- Q15 toggles every ~6 minutes.
+
+**Chaining Validation**
+- RCO (Pin 9 of A) routed to CCK (Pin 11 of B), allowing upper byte to increment every 256 counts.
+
+**Subsystem Status**
+- Stable and confirmed using both visual LED test and multimeter voltage sampling on key Q outputs.
 
 **Debug Findings**
 - Confirmed that both ~CE pulled HIGH disables counting.
