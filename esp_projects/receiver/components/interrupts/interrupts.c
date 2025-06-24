@@ -1,5 +1,6 @@
 #include "include.h"
 #include "interrupts.h"
+#include <rom/ets_sys.h>
 
 void vSendSPI(uint16_t bx, uint16_t by) {
     esp_err_t errorStatus;
@@ -16,7 +17,11 @@ void vSendSPI(uint16_t bx, uint16_t by) {
     spiTransaction.rx_buffer = receiveBuffer;
 
     ESP_LOGI("RX", "Sending: %d by %d, bx %d", ++interruptCount, sendBuffer[0], sendBuffer[1]);
+    gpio_set_level(GPIO_CS, 0);
+    ets_delay_us(3);
     errorStatus = spi_device_transmit(spiDeviceHandle, &spiTransaction);
+    ets_delay_us(3);
+    gpio_set_level(GPIO_CS, 1);
     if (errorStatus != ESP_OK) {
         ESP_LOGE("SPI", "spi_device_transmit failed: %d", errorStatus);
     }

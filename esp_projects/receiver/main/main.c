@@ -89,7 +89,7 @@ void app_main(void) {
     deviceConfig.clock_speed_hz = 1000000;
     deviceConfig.duty_cycle_pos = 128; // 50%
     deviceConfig.mode = 0;
-    deviceConfig.spics_io_num = GPIO_CS;
+    deviceConfig.spics_io_num = -1;
     deviceConfig.cs_ena_posttrans = 3;
     deviceConfig.queue_size = 16;
 
