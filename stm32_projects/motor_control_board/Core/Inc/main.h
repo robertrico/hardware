@@ -59,6 +59,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define CS_EXTI_Pin GPIO_PIN_5
 #define CS_EXTI_GPIO_Port GPIOA
+#define CS_EXTI_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
 
