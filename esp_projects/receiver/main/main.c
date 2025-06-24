@@ -69,6 +69,15 @@ void app_main(void) {
     gpio_config(&io_conf);
     // Button Driven LED
 
+    gpio_config_t cs_io_conf;
+    cs_io_conf.pin_bit_mask = 1ULL << GPIO_CS;
+    cs_io_conf.mode = GPIO_MODE_OUTPUT;
+    cs_io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    cs_io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    cs_io_conf.intr_type = GPIO_INTR_DISABLE;
+
+    gpio_config(&cs_io_conf);
+
     // SPI /*
     esp_err_t errorStatus;
 
