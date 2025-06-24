@@ -49,7 +49,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t RX_Buffer[4];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,8 +95,6 @@ int main(void)
   MX_DMA_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  HAL_SPI_Receive_DMA(&hspi1, RX_Buffer, 4); // Receiving in DMA mode
-  HAL_Delay(100);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -167,17 +164,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
-{
-  uint16_t left_pwm = RX_Buffer[0] | (RX_Buffer[1] << 8);
-  uint16_t right_pwm = RX_Buffer[2] | (RX_Buffer[3] << 8);
-  if (hspi->Instance == SPI1)
-  {
-    // Indicate completion (e.g., toggle LED, set flag, etc.)
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 1);
-    HAL_SPI_Receive_DMA(&hspi1, RX_Buffer, 4); // Receiving in DMA mode
-  }
-}
 /* USER CODE END 4 */
 
 /**

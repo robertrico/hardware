@@ -18,9 +18,8 @@ void vSendSPI(uint16_t bx, uint16_t by) {
 
     ESP_LOGI("RX", "Sending: %d by %d, bx %d", ++interruptCount, sendBuffer[0], sendBuffer[1]);
     gpio_set_level(GPIO_CS, 0);
-    ets_delay_us(3);
+    ets_delay_us(20);
     errorStatus = spi_device_transmit(spiDeviceHandle, &spiTransaction);
-    ets_delay_us(3);
     gpio_set_level(GPIO_CS, 1);
     if (errorStatus != ESP_OK) {
         ESP_LOGE("SPI", "spi_device_transmit failed: %d", errorStatus);
@@ -35,5 +34,5 @@ void IRAM_ATTR vButtonReceive(const esp_now_recv_info_t* info, const uint8_t* da
 
     // ESP_LOGI("RX", "Received payload: %d", payload);
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(rdySem, &payload, &xHigherPriorityTaskWoken);
+    xQueueSendFromISR(rdySem, payload, &xHigherPriorityTaskWoken);
 }
