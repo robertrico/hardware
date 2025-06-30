@@ -615,7 +615,7 @@
     },
     "net_format_name": "",
     "page_layout_descr_file": "",
-    "plot_directory": "/Users/garagebox/Development/hardware/dino/dino_v0_0_1/",
+    "plot_directory": "/Users/hackbook/Development/hardware/dino/dino_v0_0_1/",
     "space_save_all_events": true,
     "spice_current_sheet_as_root": false,
     "spice_external_command": "spice \"%I\"",
