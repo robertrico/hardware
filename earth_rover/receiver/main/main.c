@@ -108,18 +108,14 @@ void app_main(void) {
     assert(errorStatus == ESP_OK);
 
     while(1) {
-        char payload[16]; // Adjust size as needed
+        uint8_t payload[16]; // Adjust size as needed
         if (xQueueReceive(rdySem, payload, portMAX_DELAY)) {
             uint16_t bx = payload[0] | (payload[1] << 8);
             uint16_t by = payload[2] | (payload[3] << 8);
-            uint16_t bx_be = (bx >> 8) | ((bx & 0xFF) << 8);
-            uint16_t by_be = (by >> 8) | ((by & 0xFF) << 8);
-            //ESP_LOGI("Payload - BY", "Received payload (big-endian): %d", by_be);
-            //ESP_LOGI("Payload - BX", "Received payload (big-endian): %d", bx_be);
             
             // Deadband: Only send if bx or by is outside [2100, 2300]
-            if ((bx_be > 2400|| bx_be < 2000) || (by_be > 2300 || by_be < 2000)) {
-                vSendSPI(bx, by);
+            if ((bx > 2400|| bx < 2000) || (by > 2300 || by < 2000)) {
+                vSendSPI(payload);
             }
         }
     }

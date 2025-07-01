@@ -48,6 +48,6 @@
 extern QueueHandle_t rdySem;
 extern spi_device_handle_t spiDeviceHandle;
 
-void vSendSPI(uint16_t bx, uint16_t by);
+void vSendSPI(uint8_t* payload);
 
 #endif // INCLUDE_H

@@ -2,21 +2,28 @@
 #include "interrupts.h"
 #include <rom/ets_sys.h>
 
-void vSendSPI(uint16_t bx, uint16_t by) {
+void vSendSPI(uint8_t* payload) {
     esp_err_t errorStatus;
     static int interruptCount = 0;
 
-    uint16_t sendBuffer[2] = { bx, by };
-    uint16_t receiveBuffer[2] = {0,0};
+    uint8_t sendBuffer[4];
+    sendBuffer[0] = payload[0]; // bx low byte
+    sendBuffer[1] = payload[1]; // bx high byte
+    sendBuffer[2] = payload[2]; // by low byte
+    sendBuffer[3] = payload[3]; // by high byte
+    uint8_t receiveBuffer[4] = {0,0,0,0};
 
     spi_transaction_t spiTransaction;
     memset(&spiTransaction,0,sizeof(spiTransaction));
 
-    spiTransaction.length = 16 * 2;
+    spiTransaction.length = 8 * 4;
     spiTransaction.tx_buffer = sendBuffer;
     spiTransaction.rx_buffer = receiveBuffer;
 
-    ESP_LOGI("RX", "Sending: %d by %d, bx %d", ++interruptCount, sendBuffer[0], sendBuffer[1]);
+    uint16_t bx = payload[0] | (payload[1] << 8);
+    uint16_t by = payload[2] | (payload[3] << 8);
+    ESP_LOGI("RX", "Sending: bx %d, by %d", bx, by);
+
     gpio_set_level(GPIO_CS, 0);
     ets_delay_us(20);
     errorStatus = spi_device_transmit(spiDeviceHandle, &spiTransaction);

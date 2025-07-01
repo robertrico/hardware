@@ -117,6 +117,7 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
+  (void) argument;
   for (;;)
   {
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 0);
@@ -132,6 +133,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   // Stub implementation
   if (GPIO_Pin == CS_EXTI_Pin)
   {
+    // Clear RX buffer
+    for (int i = 0; i < 5; i++)
+    {
+      RX_Buffer[i] = 0;
+    }
     // Handle CS falling edge: arm DMA, set flag, etc.
     HAL_SPI_Receive_DMA(&hspi1, RX_Buffer, 4); // Receiving in DMA mode
   }
@@ -140,6 +146,9 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
   uint16_t left_pwm = RX_Buffer[0] | (RX_Buffer[1] << 8);
   uint16_t right_pwm = RX_Buffer[2] | (RX_Buffer[3] << 8);
+
+  (void)left_pwm;
+  (void)right_pwm;
   if (hspi->Instance == SPI1)
   {
     // Indicate completion (e.g., toggle LED, set flag, etc.)

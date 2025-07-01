@@ -88,11 +88,11 @@ void app_main(void) {
     gpio_set_level(B_SELECT_GPIO, 1);
 
     while (1) {
-        int val = 0;
+        uint16_t val = 0x0000;
         int deadband = 0;
         esp_err_t result;
 
-        adc_oneshot_read(adc_handle, ADC_B, &val);
+        adc_oneshot_read(adc_handle, ADC_B, (int*)&val);
         gpio_set_level(B_SELECT_GPIO, 0);
         esp_rom_delay_us(10);
 
@@ -102,7 +102,7 @@ void app_main(void) {
         uint8_t adc_by_high = (val >> 8) & 0x0F;
         uint8_t adc_by_low = val & 0xFF;
 
-        adc_oneshot_read(adc_handle, ADC_B, &val);
+        adc_oneshot_read(adc_handle, ADC_B, (int*)&val);
         gpio_set_level(B_SELECT_GPIO, 1);
         esp_rom_delay_us(10);
 
@@ -113,12 +113,14 @@ void app_main(void) {
         uint8_t adc_bx_high = (val >> 8) & 0x0F;
         uint8_t adc_bx_low = val & 0xFF;
 
-        uint8_t payload[16] = {adc_by_high, adc_by_low, adc_bx_high, adc_bx_low};
+        uint8_t payload[16] = {adc_bx_low, adc_bx_high, adc_by_low, adc_by_high};
 
         if (deadband > 0) {
             result = esp_now_send(peerInfo.peer_addr, payload, sizeof(payload));
             if (result == ESP_OK) {
                 ESP_LOGI(TAG, "Sent successfully");
+                ESP_LOGI(TAG, "Payload: %02X %02X %02X %02X", 
+                         payload[0], payload[1], payload[2], payload[3]);
             } else {
                 ESP_LOGE(TAG, "Send failed: %s", esp_err_to_name(result));
             }
