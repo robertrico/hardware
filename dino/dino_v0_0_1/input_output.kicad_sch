@@ -6,8 +6,8 @@
 	(paper "USLetter")
 	(title_block
 		(title "Dino v0.0.1")
-		(date "2025-06-30")
-		(rev "v1.0.2")
+		(date "2025-07-02")
+		(rev "v1.0.3")
 		(comment 1 "Input Output Components")
 		(comment 3 "Utilizes a 555 timer and binary counter to increment addressing.")
 		(comment 4 "An 8-bit logic sequencer connected to an LED bus.")
