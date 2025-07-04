@@ -44,3 +44,5 @@ qemu/kernel-qemu-4.4.34-jessie
 dino/*/*-backups/
 
 stm32_projects/.metadata/
+
+earth_rover/receiver/design/schematics/receiver_schematic-backups/
