@@ -27,6 +27,8 @@
 /* USER CODE BEGIN Includes */
 #include "stm32l432xx.h"
 #include "spi.h"
+#include "tim.h"
+#include "motor_control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,10 +120,27 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   (void) argument;
+  uint16_t CH1_DC = 0;
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   for (;;)
   {
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 0);
     HAL_Delay(250);
+    while(CH1_DC < 4095)
+    {
+        TIM1->CCR1 = CH1_DC;
+        TIM1->CCR2 = CH1_DC;
+        CH1_DC += 20;
+        HAL_Delay(1);
+    }
+    while(CH1_DC > 0)
+    {
+        TIM1->CCR1 = CH1_DC;
+        TIM1->CCR2 = CH1_DC;
+        CH1_DC -= 20;
+        HAL_Delay(1);
+    }
   }
   /* USER CODE END StartDefaultTask */
 }
