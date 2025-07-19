@@ -634,6 +634,10 @@
     [
       "746aad78-e591-4d08-b628-4d67d677e6d4",
       "Input-Output Sheet"
+    ],
+    [
+      "1df43648-16f8-4d39-a852-e3d262fffb13",
+      "RingCounter"
     ]
   ],
   "text_variables": {}
