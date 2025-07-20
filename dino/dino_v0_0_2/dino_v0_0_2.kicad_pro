@@ -450,7 +450,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "dino_v0_0_1.kicad_pro",
+    "filename": "dino_v0_0_2.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -615,7 +615,7 @@
     },
     "net_format_name": "",
     "page_layout_descr_file": "",
-    "plot_directory": "/Users/hackbook/Development/hardware/dino/dino_v0_0_1/",
+    "plot_directory": "plots/",
     "space_save_all_events": true,
     "spice_current_sheet_as_root": false,
     "spice_external_command": "spice \"%I\"",
@@ -632,12 +632,12 @@
       "Root"
     ],
     [
-      "746aad78-e591-4d08-b628-4d67d677e6d4",
-      "Input-Output Sheet"
+      "1df43648-16f8-4d39-a852-e3d262fffb13",
+      "Data"
     ],
     [
-      "1df43648-16f8-4d39-a852-e3d262fffb13",
-      "RingCounter"
+      "57977dc0-ee09-4ff5-b2e8-b5fa69d8270d",
+      "Input-Output Sheet"
     ]
   ],
   "text_variables": {}
