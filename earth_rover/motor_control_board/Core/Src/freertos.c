@@ -50,6 +50,7 @@
 /* USER CODE BEGIN Variables */
 
 uint8_t RX_Buffer[4];
+motor_control_t rover_motors = {0}; // Initialize motor control structure
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -164,24 +165,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 }
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-  uint16_t left_pwm = RX_Buffer[0] | (RX_Buffer[1] << 8);
-  uint16_t right_pwm = RX_Buffer[2] | (RX_Buffer[3] << 8);
+  // Parse received data: forward/reverse and left/right potentiometer values
+  uint16_t forward_reverse = RX_Buffer[0] | (RX_Buffer[1] << 8);
+  uint16_t left_right = RX_Buffer[2] | (RX_Buffer[3] << 8);
+  
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 0);
 
-  (void)left_pwm;
-  (void)right_pwm;
   if (hspi->Instance == SPI1)
   {
-    // Indicate completion (e.g., toggle LED, set flag, etc.)
-    if ((left_pwm > 2400|| left_pwm < 2000)){
-      TIM1->CCR1 = left_pwm;
-      TIM1->CCR2 = left_pwm;
-    } else {
-      TIM1->CCR1 = 0;
-      TIM1->CCR2 = 0;
-    }
+    // Process arcade-style differential steering
+    arcade_drive(forward_reverse, left_right, &rover_motors);
+    
+    // Apply filtered PWM values to motor channels
+    // CH1 = Left motor, CH2 = Right motor
+    TIM1->CCR1 = rover_motors.left_filtered;
+    TIM1->CCR2 = rover_motors.right_filtered;
+    
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 1);
   }
 }
