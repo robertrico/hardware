@@ -632,12 +632,16 @@
       "Root"
     ],
     [
+      "87747e90-4432-4cdc-a8cb-1da85cd5b65a",
+      "Program Counter"
+    ],
+    [
       "1df43648-16f8-4d39-a852-e3d262fffb13",
-      "Data"
+      "T0_T1_Decoder"
     ],
     [
       "57977dc0-ee09-4ff5-b2e8-b5fa69d8270d",
-      "Input-Output Sheet"
+      "4"
     ]
   ],
   "text_variables": {}

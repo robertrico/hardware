@@ -6,8 +6,8 @@
 	(paper "USLetter")
 	(title_block
 		(title "Dino v0.0.2")
-		(date "2025-07-24")
-		(rev "v1.0.5")
+		(date "2025-07-28")
+		(rev "v1.0.7")
 		(comment 1 "Control Unit - 16 1-hot inverted timing stages")
 		(comment 3 "An 8-bit computer with 16-bit addressing and 16-bit control words")
 		(comment 4 "A Turing-Complete 8-bit \"Computer\"")
@@ -5612,7 +5612,7 @@
 		)
 	)
 	(sheet
-		(at 25.4 177.8)
+		(at 88.9 119.38)
 		(size 17.78 12.7)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5627,8 +5627,8 @@
 			(color 0 0 0 0.0000)
 		)
 		(uuid "1df43648-16f8-4d39-a852-e3d262fffb13")
-		(property "Sheetname" "Data"
-			(at 25.4 177.0884 0)
+		(property "Sheetname" "T0_T1_Decoder"
+			(at 88.9 118.6684 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5637,7 +5637,7 @@
 			)
 		)
 		(property "Sheetfile" "data.kicad_sch"
-			(at 25.4 191.0846 0)
+			(at 88.9 132.6646 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5648,14 +5648,14 @@
 		(instances
 			(project "dino_v0_0_2"
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541"
-					(page "2")
+					(page "3")
 				)
 			)
 		)
 	)
 	(sheet
-		(at 52.07 175.26)
-		(size 17.145 17.78)
+		(at 54.61 147.32)
+		(size 15.24 12.7)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -5668,8 +5668,8 @@
 			(color 0 0 0 0.0000)
 		)
 		(uuid "57977dc0-ee09-4ff5-b2e8-b5fa69d8270d")
-		(property "Sheetname" "Input-Output Sheet"
-			(at 51.054 195.072 0)
+		(property "Sheetname" "4"
+			(at 53.594 167.132 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5678,7 +5678,7 @@
 			)
 		)
 		(property "Sheetfile" "input_output.kicad_sch"
-			(at 48.006 195.834 0)
+			(at 50.546 167.894 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5691,6 +5691,48 @@
 			(project "dino_v0_0_2"
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541"
 					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 54.61 119.38)
+		(size 16.51 12.7)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "87747e90-4432-4cdc-a8cb-1da85cd5b65a")
+		(property "Sheetname" "Program Counter"
+			(at 54.61 118.6684 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "program_counter.kicad_sch"
+			(at 54.61 132.6646 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541"
+					(page "2")
 				)
 			)
 		)
