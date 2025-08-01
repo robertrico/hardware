@@ -125,7 +125,7 @@ void StartDefaultTask(void *argument)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   for (;;)
   {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 0);
+    /*
     HAL_Delay(250);
     while(CH1_DC < 4095)
     {
@@ -141,6 +141,7 @@ void StartDefaultTask(void *argument)
         CH1_DC -= 20;
         HAL_Delay(1);
     }
+    */
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -165,12 +166,22 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
   uint16_t left_pwm = RX_Buffer[0] | (RX_Buffer[1] << 8);
   uint16_t right_pwm = RX_Buffer[2] | (RX_Buffer[3] << 8);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 0);
 
   (void)left_pwm;
   (void)right_pwm;
   if (hspi->Instance == SPI1)
   {
     // Indicate completion (e.g., toggle LED, set flag, etc.)
+    if ((left_pwm > 2400|| left_pwm < 2000)){
+      TIM1->CCR1 = left_pwm;
+      TIM1->CCR2 = left_pwm;
+    } else {
+      TIM1->CCR1 = 0;
+      TIM1->CCR2 = 0;
+    }
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 1);
   }
 }
