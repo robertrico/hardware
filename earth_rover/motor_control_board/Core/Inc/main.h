@@ -62,7 +62,15 @@ void Error_Handler(void);
 #define CS_EXTI_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
-
+// TB6612FNG Motor Driver Control Pins
+#define MOTOR_AIN1_Pin GPIO_PIN_0
+#define MOTOR_AIN1_GPIO_Port GPIOB
+#define MOTOR_AIN2_Pin GPIO_PIN_1
+#define MOTOR_AIN2_GPIO_Port GPIOB
+#define MOTOR_BIN1_Pin GPIO_PIN_6
+#define MOTOR_BIN1_GPIO_Port GPIOB
+#define MOTOR_BIN2_Pin GPIO_PIN_7
+#define MOTOR_BIN2_GPIO_Port GPIOB
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

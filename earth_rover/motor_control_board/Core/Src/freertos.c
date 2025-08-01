@@ -178,10 +178,8 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
     // Process arcade-style differential steering
     arcade_drive(forward_reverse, left_right, &rover_motors);
     
-    // Apply filtered PWM values to motor channels
-    // CH1 = Left motor, CH2 = Right motor
-    TIM1->CCR1 = rover_motors.left_filtered;
-    TIM1->CCR2 = rover_motors.right_filtered;
+    // Apply complete motor control (direction + PWM) to TB6612FNG
+    apply_motor_control(&rover_motors);
     
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 1);
   }
