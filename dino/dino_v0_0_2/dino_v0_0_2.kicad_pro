@@ -637,11 +637,27 @@
     ],
     [
       "1df43648-16f8-4d39-a852-e3d262fffb13",
-      "T0_T1_Decoder"
+      "Microcode_Decoder"
+    ],
+    [
+      "3db0d995-c0d6-4118-8252-b4919b53dc7a",
+      "Control Word Module"
+    ],
+    [
+      "dfdf99e6-2845-4ba5-89ea-a5852382fb95",
+      "Memory Data Register"
+    ],
+    [
+      "b0594337-21bc-457d-8ae7-405a6ec1dde7",
+      "Memory"
+    ],
+    [
+      "de772b95-eca4-4f61-9f12-d1e28130490b",
+      "Register Modules"
     ],
     [
       "57977dc0-ee09-4ff5-b2e8-b5fa69d8270d",
-      "4"
+      "Output"
     ]
   ],
   "text_variables": {}
