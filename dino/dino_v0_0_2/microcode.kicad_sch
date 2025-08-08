@@ -3544,7 +3544,7 @@
 		)
 		(uuid "01fdc804-d4a3-4288-850e-85f563de4cb6")
 	)
-	(label "Instruction Register"
+	(label "Instruction Register Bus"
 		(at 69.85 52.07 180)
 		(effects
 			(font

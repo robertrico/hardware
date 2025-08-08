@@ -1936,14 +1936,6 @@
 		(uuid "237254f9-be11-4045-aba0-358fccf4ffdd")
 	)
 	(no_connect
-		(at 81.28 196.85)
-		(uuid "2cd1c1c0-5446-46c8-9ea4-48203e305c57")
-	)
-	(no_connect
-		(at 96.52 196.85)
-		(uuid "31f42a68-6edf-4d45-bcd9-bf918c56ecaa")
-	)
-	(no_connect
 		(at 161.29 128.27)
 		(uuid "3b6eb789-fb64-4b90-bfc9-93bce4bc528d")
 	)
@@ -1952,16 +1944,8 @@
 		(uuid "414ccd04-6ff8-4884-9c07-52878fffda7a")
 	)
 	(no_connect
-		(at 115.57 196.85)
-		(uuid "5b6d1f85-34b5-4388-b356-8e374d513675")
-	)
-	(no_connect
 		(at 119.38 196.85)
 		(uuid "5d590911-c8bc-4d63-911f-f74e050da145")
-	)
-	(no_connect
-		(at 100.33 196.85)
-		(uuid "5f8ffb70-aa0a-4023-9fea-81dcca7565c0")
 	)
 	(bus_entry
 		(at 260.35 44.45)
@@ -7460,109 +7444,6 @@
 		)
 	)
 	(symbol
-		(lib_id "74xx:74LS04")
-		(at 88.9 196.85 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "816f53fe-1b8d-493f-a70c-dbd8cd09a040")
-		(property "Reference" "U10"
-			(at 91.44 191.008 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "74LS04"
-			(at 91.44 193.548 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 88.9 196.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS04"
-			(at 88.9 196.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Hex Inverter"
-			(at 88.9 196.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "07bc384e-bb5c-4957-aaf4-70d1685cf087")
-		)
-		(pin "3"
-			(uuid "96e45ce2-02f4-4092-85a6-34ea100e3d75")
-		)
-		(pin "4"
-			(uuid "8096acfc-a71c-43da-9d2f-9fd8b77a3905")
-		)
-		(pin "5"
-			(uuid "e078d841-9e0c-4e88-9fcc-8d24127270d1")
-		)
-		(pin "6"
-			(uuid "4761652f-b29c-4467-800b-c1a188ef8732")
-		)
-		(pin "9"
-			(uuid "f9a8a377-58e1-4501-a497-546b2bd0324d")
-		)
-		(pin "8"
-			(uuid "1a70380b-5286-46df-bd16-284733db81d8")
-		)
-		(pin "11"
-			(uuid "7a646ca0-7586-4fca-a627-4f38034d79bc")
-		)
-		(pin "10"
-			(uuid "a24c023b-82bb-4223-846c-a79e530a8e04")
-		)
-		(pin "13"
-			(uuid "fed9b865-5ed6-4236-a147-b47b518b0c1b")
-		)
-		(pin "12"
-			(uuid "3ead989a-4446-4e03-9988-77eaa4fd1901")
-		)
-		(pin "14"
-			(uuid "dce0d04f-84f6-43dd-91fd-a914052a27eb")
-		)
-		(pin "7"
-			(uuid "0ff085dc-9bcb-43cc-a80f-4efda6b1de0b")
-		)
-		(pin "1"
-			(uuid "e972c194-c0ee-426d-b769-9b56a4e35cd8")
-		)
-		(instances
-			(project "dino_v0_0_2"
-				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/87747e90-4432-4cdc-a8cb-1da85cd5b65a"
-					(reference "U10")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C_Small")
 		(at 144.78 105.41 0)
 		(unit 1)
@@ -8290,109 +8171,6 @@
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/87747e90-4432-4cdc-a8cb-1da85cd5b65a"
 					(reference "U10")
 					(unit 5)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "74xx:74LS04")
-		(at 107.95 196.85 0)
-		(unit 2)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "ca4f8be2-067d-42b1-a341-571f2baf137f")
-		(property "Reference" "U10"
-			(at 110.49 191.008 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "74LS04"
-			(at 110.49 193.548 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 107.95 196.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS04"
-			(at 107.95 196.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Hex Inverter"
-			(at 107.95 196.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "07bc384e-bb5c-4957-aaf4-70d1685cf087")
-		)
-		(pin "3"
-			(uuid "96e45ce2-02f4-4092-85a6-34ea100e3d75")
-		)
-		(pin "4"
-			(uuid "8096acfc-a71c-43da-9d2f-9fd8b77a3905")
-		)
-		(pin "5"
-			(uuid "e078d841-9e0c-4e88-9fcc-8d24127270d1")
-		)
-		(pin "6"
-			(uuid "4761652f-b29c-4467-800b-c1a188ef8732")
-		)
-		(pin "9"
-			(uuid "f9a8a377-58e1-4501-a497-546b2bd0324d")
-		)
-		(pin "8"
-			(uuid "1a70380b-5286-46df-bd16-284733db81d8")
-		)
-		(pin "11"
-			(uuid "7a646ca0-7586-4fca-a627-4f38034d79bc")
-		)
-		(pin "10"
-			(uuid "a24c023b-82bb-4223-846c-a79e530a8e04")
-		)
-		(pin "13"
-			(uuid "fceee20d-6166-4cf4-8f16-c561c3137e89")
-		)
-		(pin "12"
-			(uuid "065182c4-4a04-4e5f-b670-936382373088")
-		)
-		(pin "14"
-			(uuid "dce0d04f-84f6-43dd-91fd-a914052a27eb")
-		)
-		(pin "7"
-			(uuid "0ff085dc-9bcb-43cc-a80f-4efda6b1de0b")
-		)
-		(pin "1"
-			(uuid "e972c194-c0ee-426d-b769-9b56a4e35cd8")
-		)
-		(instances
-			(project "dino_v0_0_2"
-				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/87747e90-4432-4cdc-a8cb-1da85cd5b65a"
-					(reference "U10")
-					(unit 2)
 				)
 			)
 		)

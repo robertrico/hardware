@@ -457,130 +457,6 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS373")
-		(at 181.61 102.87 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "033e7ce6-167e-412c-af14-8ec2884909cf")
-		(property "Reference" "U34"
-			(at 179.4667 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "74LS373"
-			(at 179.4667 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 181.61 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS373"
-			(at 181.61 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "8-bit Latch, 3-state outputs"
-			(at 181.61 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "13"
-			(uuid "6337cb45-16e1-4d34-8be7-7c5c1b81c88d")
-		)
-		(pin "14"
-			(uuid "020feaa0-327a-4a7c-b309-cf3b1b8ef875")
-		)
-		(pin "17"
-			(uuid "720322b7-3c9f-478e-983c-6502fd1d0374")
-		)
-		(pin "18"
-			(uuid "4702bdd0-b6fe-4717-b1b6-994ec6f5ee9c")
-		)
-		(pin "9"
-			(uuid "692891a2-1cb0-4125-9478-4c386485f4c1")
-		)
-		(pin "12"
-			(uuid "916e9599-c93d-46ea-8cfb-558d0ad0bba8")
-		)
-		(pin "15"
-			(uuid "04f27544-a907-49f9-ba8e-9630a2e270d9")
-		)
-		(pin "16"
-			(uuid "ba1a8416-8b2a-42e0-820e-305e2cb8750c")
-		)
-		(pin "19"
-			(uuid "19f788e0-a9a2-43b7-b2ea-c7ff2e7e87aa")
-		)
-		(pin "11"
-			(uuid "1fb863bb-6363-443f-9c59-c48c700a5e7e")
-		)
-		(pin "1"
-			(uuid "03c8dc0b-a500-4365-af2b-01fffc8fdf85")
-		)
-		(pin "20"
-			(uuid "533c4161-d1ff-4e29-868a-0efc4c54c678")
-		)
-		(pin "10"
-			(uuid "15752db8-0b15-472e-b4c5-c87e696868aa")
-		)
-		(pin "2"
-			(uuid "5063d9f0-8700-46c8-8ddf-e80cab37a322")
-		)
-		(pin "5"
-			(uuid "027590bb-8c1b-404d-a020-fb0091afaf72")
-		)
-		(pin "6"
-			(uuid "208ef81f-7594-4b96-9196-1f7636d5a715")
-		)
-		(pin "7"
-			(uuid "8705a6f1-b8fa-4c41-98da-2988d8419a05")
-		)
-		(pin "8"
-			(uuid "8a1bde87-3a9a-4fc6-aa81-4855ebfbe250")
-		)
-		(pin "3"
-			(uuid "e70ce4f4-6e91-4de4-8063-2153a4a4bf7f")
-		)
-		(pin "4"
-			(uuid "bf26ba3d-ac6e-4740-b094-a8356ea4c690")
-		)
-		(instances
-			(project "dino_v0_0_2"
-				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
-					(reference "U34")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "74xx:74LS373")
 		(at 113.03 102.87 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -829,16 +705,16 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS373")
-		(at 113.03 151.13 0)
+		(at 181.61 102.87 0)
+		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "a61dcb59-3a50-4564-8a95-01b08c645c63")
 		(property "Reference" "U35"
-			(at 115.1733 130.81 0)
+			(at 179.4667 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -847,7 +723,7 @@
 			)
 		)
 		(property "Value" "74LS373"
-			(at 115.1733 133.35 0)
+			(at 179.4667 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -856,7 +732,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 113.03 151.13 0)
+			(at 181.61 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -865,7 +741,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS373"
-			(at 113.03 151.13 0)
+			(at 181.61 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -874,7 +750,7 @@
 			)
 		)
 		(property "Description" "8-bit Latch, 3-state outputs"
-			(at 113.03 151.13 0)
+			(at 181.61 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)

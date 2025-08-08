@@ -2513,6 +2513,12 @@
 		(uuid "2112a9ee-74df-48c3-84a0-b823f110b99a")
 	)
 	(junction
+		(at 92.71 105.41)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "2d747559-e526-4672-9620-8944384404f0")
+	)
+	(junction
 		(at 101.6 101.6)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3164,16 +3170,6 @@
 		)
 		(uuid "16eac0ab-159f-4fb7-9968-b12917db2f50")
 	)
-	(wire
-		(pts
-			(xy 95.25 105.41) (xy 95.25 116.84)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "19ae6cd7-019e-44d0-bc9c-38d5d5714dc2")
-	)
 	(bus
 		(pts
 			(xy 215.9 129.54) (xy 215.9 132.08)
@@ -3646,6 +3642,16 @@
 	)
 	(wire
 		(pts
+			(xy 92.71 102.87) (xy 92.71 105.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "57dad0ee-0e59-4879-82f5-0d4467f9fa57")
+	)
+	(wire
+		(pts
 			(xy 199.39 121.92) (xy 213.36 121.92)
 		)
 		(stroke
@@ -3676,7 +3682,7 @@
 	)
 	(wire
 		(pts
-			(xy 57.15 105.41) (xy 95.25 105.41)
+			(xy 57.15 105.41) (xy 92.71 105.41)
 		)
 		(stroke
 			(width 0)
@@ -4216,6 +4222,16 @@
 	)
 	(wire
 		(pts
+			(xy 92.71 105.41) (xy 92.71 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "aff87617-42ab-4e6e-bb01-5c83e1ca2102")
+	)
+	(wire
+		(pts
 			(xy 168.91 116.84) (xy 172.72 116.84)
 		)
 		(stroke
@@ -4646,7 +4662,7 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 116.84) (xy 104.14 116.84)
+			(xy 92.71 116.84) (xy 104.14 116.84)
 		)
 		(stroke
 			(width 0)
@@ -4733,6 +4749,16 @@
 			(justify left bottom)
 		)
 		(uuid "7842edc2-eca9-497d-9b29-f802f4c7105f")
+	)
+	(label "CLK"
+		(at 92.71 102.87 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8353d491-db15-4ecc-ab65-ea5b7e2b9b65")
 	)
 	(label "Timer State"
 		(at 129.54 69.85 180)
