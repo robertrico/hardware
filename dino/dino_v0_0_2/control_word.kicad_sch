@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "9.0")
 	(uuid "c49c0e74-fd1d-4569-8090-e07797737bba")
-	(paper "A4")
+	(paper "USLetter")
 	(title_block
 		(title "Dino v0.0.2")
 		(date "2025-07-28")
