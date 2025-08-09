@@ -6097,13 +6097,13 @@
 			)
 		)
 		(pin "1"
-			(uuid "c1b0111e-dcac-4d67-96c2-b679089952cc")
+			(uuid "c1b0111e-dcac-4d67-96c2-b679089952cd")
 		)
 		(pin "2"
-			(uuid "e0a604d2-f9ff-40aa-91ab-f8e277a335ea")
+			(uuid "e0a604d2-f9ff-40aa-91ab-f8e277a335eb")
 		)
 		(pin "3"
-			(uuid "eecbf615-4e92-4c84-955e-15f80fd87cb2")
+			(uuid "eecbf615-4e92-4c84-955e-15f80fd87cb3")
 		)
 		(pin "4"
 			(uuid "48a8df48-1a82-482d-b532-e73753674da7")
@@ -6115,13 +6115,13 @@
 			(uuid "6ed7d8ea-8f15-44b7-b44c-c2312efa5064")
 		)
 		(pin "9"
-			(uuid "4536a571-933e-46e6-bac3-8b0e0ea2f85e")
+			(uuid "4536a571-933e-46e6-bac3-8b0e0ea2f85f")
 		)
 		(pin "10"
-			(uuid "37ae608e-8c0c-42bf-9fdd-0a0480e8ec92")
+			(uuid "37ae608e-8c0c-42bf-9fdd-0a0480e8ec93")
 		)
 		(pin "8"
-			(uuid "71e8195d-13d4-4b70-ba98-eec5cbd69072")
+			(uuid "71e8195d-13d4-4b70-ba98-eec5cbd69073")
 		)
 		(pin "12"
 			(uuid "cc719dc1-9243-48dd-8d0f-b6b0797ff631")
@@ -6133,10 +6133,10 @@
 			(uuid "5814fd6f-f9b9-40a1-bb5f-66d72d392b90")
 		)
 		(pin "14"
-			(uuid "f12b2e0a-2408-407f-a2ce-00558885eb8d")
+			(uuid "f12b2e0a-2408-407f-a2ce-00558885eb8e")
 		)
 		(pin "7"
-			(uuid "74ae94c8-7bf1-45a9-9059-1839d27b4e1b")
+			(uuid "74ae94c8-7bf1-45a9-9059-1839d27b4e1c")
 		)
 		(instances
 			(project "dino_v0_0_2"
