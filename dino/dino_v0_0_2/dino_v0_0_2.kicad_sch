@@ -4740,7 +4740,7 @@
 		)
 		(uuid "fdb62ca3-aa86-4fe5-935c-3187712abc05")
 	)
-	(label "Control Word"
+	(label "One-Hot Inverted State"
 		(at 215.9 91.44 0)
 		(effects
 			(font

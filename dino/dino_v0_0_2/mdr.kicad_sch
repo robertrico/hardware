@@ -8,6 +8,7 @@
 		(title "Dino v0.0.2")
 		(date "2025-07-28")
 		(rev "v1.0.7")
+		(comment 1 "Memory Data Register Module")
 		(comment 3 "An 8-bit computer with 16-bit addressing and 16-bit control words")
 		(comment 4 "A Turing-Complete 8-bit \"Computer\"")
 	)
