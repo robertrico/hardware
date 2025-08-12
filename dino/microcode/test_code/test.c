@@ -42,8 +42,14 @@ int main(void) {
         if (f2) fclose(f2);
         return 1;
     }
-    uint8_t eeprom1[0x1000] = {0};
-    uint8_t eeprom2[0x1000] = {0};
+    uint8_t eeprom1[0x2000] = {0};
+    uint8_t eeprom2[0x2000] = {0};
+
+    // Fill both EEPROMs with zeros
+    for (int i = 0; i < sizeof(eeprom1); i++) {
+        eeprom1[i] = 0x00;
+        eeprom2[i] = 0x00;
+    }
 
     // Write 0xDE at 0x0000 in eeprom1
     eeprom1[0x0000] = 0xDE;
@@ -55,11 +61,21 @@ int main(void) {
     // Write 0xEF at 0x0001 in eeprom2
     eeprom2[0x0001] = 0xEF;
 
-    // Write 0xBE at 0x0D in eeprom1
+    // Write 0xBA at 0x0002 in eeprom1
+    eeprom1[0x0002] = 0xBA;
+    // Write 0xBE at 0x0002 in eeprom2
+    eeprom2[0x0002] = 0xBE;
+
+    // Write 0xBE at 0x0DED in eeprom1
     eeprom1[0x0DED] = 0xBE;
 
-    // Write 0xEF at 0x0D in eeprom2
+    // Write 0xEF at 0x0DED in eeprom2
     eeprom2[0x0DED] = 0xEF;
+
+    // Write 0xCA at 0x0003 in eeprom1
+    eeprom1[0x0003] = 0xCA;
+    // Write 0xFE at 0x0003 in eeprom2
+    eeprom2[0x0003] = 0xFE;
 
     // Write 0xFE at 0x0FED in eeprom1
     eeprom1[0x0FED] = 0xFE;
