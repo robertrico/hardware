@@ -651,6 +651,16 @@
 		)
 		(uuid "1a76bc37-96b1-4dc2-8b04-70a43700b1ef")
 	)
+	(text "[15]"
+		(exclude_from_sim no)
+		(at 156.21 133.604 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "1f07761e-6260-48f1-b5e4-0c9634651e14")
+	)
 	(text "100"
 		(exclude_from_sim no)
 		(at 81.28 58.674 0)
@@ -660,6 +670,16 @@
 			)
 		)
 		(uuid "2144310e-6853-4101-ae9d-f90355f71ba8")
+	)
+	(text "[13]"
+		(exclude_from_sim no)
+		(at 157.988 125.984 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "2a178695-466a-4855-8f04-6683e03b2706")
 	)
 	(text "001"
 		(exclude_from_sim no)
@@ -731,6 +751,26 @@
 		)
 		(uuid "4e692a55-c325-4693-b71f-303a8a061c57")
 	)
+	(text "[14]"
+		(exclude_from_sim no)
+		(at 164.084 129.794 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "4ec0d9a0-9889-453c-92a6-8f1562a7d56c")
+	)
+	(text "[8:6]"
+		(exclude_from_sim no)
+		(at 163.83 38.354 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "50f6aeee-3dcb-4771-8ad3-272a408c0072")
+	)
 	(text "100"
 		(exclude_from_sim no)
 		(at 81.026 98.044 0)
@@ -791,6 +831,16 @@
 		)
 		(uuid "79676a75-85aa-40d2-9332-e7914f0adf81")
 	)
+	(text "[2:0]"
+		(exclude_from_sim no)
+		(at 163.83 78.74 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "7e995835-b8b1-404f-b512-a7999376cfc9")
+	)
 	(text "001"
 		(exclude_from_sim no)
 		(at 81.026 90.17 0)
@@ -820,6 +870,16 @@
 			)
 		)
 		(uuid "951e7b37-caf7-4526-8ebd-509144a94ed0")
+	)
+	(text "[12]"
+		(exclude_from_sim no)
+		(at 163.576 122.174 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "9abc2e8c-f5f3-485f-a417-9ab1195cf4c1")
 	)
 	(text "011"
 		(exclude_from_sim no)
@@ -901,6 +961,16 @@
 		)
 		(uuid "c6a9a2f2-dc21-4ec5-944a-0f8b3e1acb58")
 	)
+	(text "[11:9]"
+		(exclude_from_sim no)
+		(at 116.586 38.862 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "ceb79a90-1f24-4fd7-a900-527bbd461e07")
+	)
 	(text "010"
 		(exclude_from_sim no)
 		(at 81.026 92.964 0)
@@ -920,6 +990,16 @@
 			)
 		)
 		(uuid "db9611d1-6193-468c-95bf-aa998afab0b0")
+	)
+	(text "[5:3]"
+		(exclude_from_sim no)
+		(at 116.84 78.486 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "eb5a00b4-f8a4-4659-862d-03dec332a0cd")
 	)
 	(text "000"
 		(exclude_from_sim no)
