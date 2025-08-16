@@ -6,8 +6,8 @@
 	(paper "USLetter")
 	(title_block
 		(title "Dino v0.0.2")
-		(date "2025-07-28")
-		(rev "v1.0.7")
+		(date "2025-08-14")
+		(rev "v1.1.0")
 		(comment 1 "Control Word Module")
 		(comment 3 "An 8-bit computer with 16-bit addressing and 16-bit control words")
 		(comment 4 "A Turing-Complete 8-bit \"Computer\"")
