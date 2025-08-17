@@ -7,6 +7,7 @@
 // Test pattern: Write, then Read for DMM verification
 // PULSE_REQ and RAM_LOAD always together for writes
 // Never PULSE_REQ+RAM_LOAD on consecutive addresses (for ~WE edge)
+// gcc -o ram_test ram_test.c
 
 #include <stdio.h>
 #include <stdint.h>
