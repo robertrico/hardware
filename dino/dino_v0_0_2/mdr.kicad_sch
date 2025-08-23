@@ -1415,22 +1415,20 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "U22"
-				(at 2.1433 15.24 0)
+			(property "Reference" "U"
+				(at -7.62 11.43 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
 			(property "Value" "74LS121"
-				(at 2.1433 12.7 0)
+				(at -7.62 -11.43 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
 			(property "Footprint" ""
@@ -1544,7 +1542,7 @@
 				(pin input line
 					(at -15.24 -2.54 0)
 					(length 5.08)
-					(name "~{A1}"
+					(name "A1"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1562,7 +1560,7 @@
 				(pin input line
 					(at -15.24 -5.08 0)
 					(length 5.08)
-					(name "~{A2}"
+					(name "A2"
 						(effects
 							(font
 								(size 1.27 1.27)
