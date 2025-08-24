@@ -168,6 +168,95 @@ No inverter needed - wire PD5 directly to both pins.
 
 ---
 
+## Test 3: Instruction Register (74LS244 + 74LS373)
+
+Tests an instruction register module using a 244 buffer (for reset) and 373 latch.
+
+### Build & Flash
+```bash
+./build_test.sh ir
+make -C build flash
+```
+
+### Wiring
+
+#### Arduino Connections
+| Arduino Pin | Signal | Description |
+|-------------|---------|-------------|
+| D0 | Red LED | Test failed indicator |
+| D1 | RESET | Reset signal (active LOW - forces 0x00) |
+| D2 | Green LED | Test passed indicator |
+| D3 | Yellow LED | Test running indicator |
+| D4 | IR_LOAD | 373 ~LE (active LOW to latch) |
+| D5 | IR_OE | 373 ~OE (active LOW to read IR) |
+| D6-D13 | Data Bus D7-D0 | Bidirectional data bus |
+
+#### 74LS244 Connections (Reset Buffer)
+| 244 Pin | Connect To | Signal | Description |
+|---------|------------|---------|-------------|
+| Pin 1 | Arduino D1 | ~1OE | Output Enable (active LOW for reset) |
+| Pin 19 | Arduino D1 | ~2OE | Output Enable (tie both together) |
+| Pins 2,4,6,8,11,13,15,17 | GND | 1A/2A | All inputs tied to GND (output 0s) |
+| Pins 18,16,14,12,9,7,5,3 | Data Bus | 1Y/2Y | Outputs to data bus |
+| Pin 10 | GND | Ground | |
+| Pin 20 | 5V | VCC | |
+
+#### 74LS373 Connections (Instruction Register)
+| 373 Pin | Connect To | Signal | Description |
+|---------|------------|---------|-------------|
+| Pin 11 | Arduino D4 | ~LE | Latch Enable (active LOW) |
+| Pin 1 | Arduino D5 | ~OE | Output Enable (active LOW) |
+| Pins 3,4,7,8,13,14,17,18 | Data Bus | D0-D7 | Data inputs |
+| Pins 2,5,6,9,12,15,16,19 | Data Bus | Q0-Q7 | Data outputs (same nets) |
+| Pin 10 | GND | Ground | |
+| Pin 20 | 5V | VCC | |
+
+### Module Function
+
+The instruction register module:
+1. **Normal Operation**: Loads instructions from the data bus into the 373 latch
+2. **Reset Operation**: When RESET is LOW, the 244 drives all zeros onto the bus
+3. **Priority**: Reset overrides any other data on the bus
+
+### Test Sequence
+
+1. **Reset Test**:
+   - Assert RESET (LOW) → 244 outputs 0x00
+   - Pulse IR_LOAD → 373 latches 0x00
+   - Deassert RESET → Read IR, verify 0x00
+
+2. **Reset Override Test**:
+   - Try to write 0xFF to bus
+   - Assert RESET (should override with 0x00)
+   - Latch and verify 0x00 was stored
+
+3. **Instruction Load Test**:
+   - Deassert RESET
+   - Write instruction patterns
+   - Latch each pattern
+   - Read back and verify
+
+4. **Pattern Tests**:
+   - NOP (0x00)
+   - All ones (0xFF)
+   - Various test patterns
+   - Walking bit tests
+
+### Control Logic
+
+- **RESET = LOW**: 244 enabled, outputs 0x00 to bus (reset state)
+- **RESET = HIGH**: 244 disabled (high-Z), normal operation
+- **IR_LOAD pulse (HIGH→LOW→HIGH)**: Latch current bus value into 373
+- **IR_OE = LOW**: Read instruction register contents onto bus
+
+This test verifies:
+- Reset forces instruction register to 0x00
+- Reset overrides any bus data
+- Instructions can be loaded and retained
+- No floating pins or bus contention
+
+---
+
 ## Adding New Tests
 
 1. Create test files:
