@@ -53,15 +53,13 @@
  */
 
 #include "test_245_373.h"
+#include "test_common.h"
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdbool.h>
 
 // Control signal definitions with IC pin numbers for easy verification
-#define RED_LED         PD0  // D0 - Red LED (fail indicator)
 #define BUS_245_CE      PD1  // D1 -> 245 pin 19 (~OE) - active LOW to enable 245
-#define GREEN_LED       PD2  // D2 - Green LED (pass indicator)
-#define YELLOW_LED      PD3  // D3 - Yellow LED (running indicator)
 #define REG_373_LE      PD4  // D4 -> 373 pin 11 (LE) - HIGH=transparent, LOW=latched
 #define REG_OUT         PD5  // D5 -> 245 pin 1 (DIR) AND 373 pin 1 (~OE)
 
@@ -101,17 +99,16 @@ static const uint8_t test_patterns[] = {
  * - Arduino pins as inputs (high-Z)
  */
 static void init_pins(void) {
+    // Initialize LEDs using common function
+    init_leds();
+    
     // Configure control pins as outputs
-    DDRD |= (1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED);
     DDRD |= (1 << BUS_245_CE) | (1 << REG_373_LE) | (1 << REG_OUT);
     
     // Set safe initial state - EVERYTHING DISABLED
     PORTD &= ~(1 << REG_373_LE);  // 373 LE LOW (latched mode)
     PORTD |= (1 << REG_OUT);       // HIGH: 373 ~OE disabled, 245 DIR = A->B
     PORTD |= (1 << BUS_245_CE);    // 245 ~OE HIGH (245 disabled)
-    
-    // LEDs off
-    PORTD &= ~((1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED));
     
     // Data bus as inputs (high-Z) - Arduino not driving bus
     DDRD &= ~((1 << PD6) | (1 << PD7));  
@@ -276,51 +273,32 @@ static bool test_combined_pattern(uint8_t pattern) {
  * test_245_373_run() - Main test entry point
  * 
  * LED Status:
- * - Yellow flashing at start: Test starting
- * - Yellow solid then flashing: Running through patterns
+ * - Startup sequence: Yellow-Green-Red-Green-Yellow
+ * - Yellow solid: Tests running
  * - Green solid: All patterns passed
  * - Red solid: One or more patterns failed
  */
 void test_245_373_run(void) {
     init_pins();
-    _delay_ms(500);
     
-    // Startup sequence - 3 yellow flashes
-    for (int i = 0; i < 3; i++) {
-        PORTD |= (1 << YELLOW_LED);
-        _delay_ms(100);
-        PORTD &= ~(1 << YELLOW_LED);
-        _delay_ms(100);
-    }
+    // Show startup sequence
+    show_startup_sequence();
     
-    PORTD |= (1 << YELLOW_LED);
-    _delay_ms(200);
+    // Start test execution (adds 500ms delay)
+    start_test_execution();
     
     bool all_passed = true;
     uint8_t num_patterns = sizeof(test_patterns) / sizeof(test_patterns[0]);
     
     for (uint8_t i = 0; i < num_patterns; i++) {
-        // Flash yellow to show progress
-        PORTD &= ~(1 << YELLOW_LED);
-        _delay_ms(50);
-        PORTD |= (1 << YELLOW_LED);
-        _delay_ms(50);
-        
         if (!test_combined_pattern(test_patterns[i])) {
             all_passed = false;
         }
         _delay_ms(10);
     }
     
-    PORTD &= ~(1 << YELLOW_LED);
-    
-    if (all_passed) {
-        PORTD |= (1 << GREEN_LED);
-        PORTD &= ~(1 << RED_LED);
-    } else {
-        PORTD |= (1 << RED_LED);
-        PORTD &= ~(1 << GREEN_LED);
-    }
+    // Show final result
+    show_test_result(all_passed);
     
     while (1) {
         _delay_ms(100);

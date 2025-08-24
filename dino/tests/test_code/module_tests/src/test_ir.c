@@ -83,15 +83,13 @@
  */
 
 #include "test_ir.h"
+#include "test_common.h"
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdbool.h>
 
 // Control signal definitions
-#define RED_LED         PD0  // D0 - Test failed indicator
 #define RESET           PD1  // D1 -> 244 pins 1,19 (~OE) - active LOW for reset
-#define GREEN_LED       PD2  // D2 - Test passed indicator
-#define YELLOW_LED      PD3  // D3 - Test running indicator
 #define IR_LOAD         PD4  // D4 -> 373 pin 11 (LE) - HIGH=transparent, LOW=latched
 #define IR_OE           PD5  // D5 -> 373 pin 1 (~OE) - active LOW to read IR
 
@@ -127,17 +125,16 @@ static const uint8_t test_instructions[] = {
  * - Data bus high-Z
  */
 static void init_pins(void) {
+    // Initialize LEDs using common function
+    init_leds();
+    
     // Configure control pins as outputs
-    DDRD |= (1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED);
     DDRD |= (1 << RESET) | (1 << IR_LOAD) | (1 << IR_OE);
     
     // Safe initial state
     PORTD |= (1 << RESET);      // RESET HIGH (244 disabled)
     PORTD |= (1 << IR_OE);      // IR_OE HIGH (373 outputs disabled)
     PORTD &= ~(1 << IR_LOAD);   // IR_LOAD LOW (373 in latched mode)
-    
-    // LEDs off
-    PORTD &= ~((1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED));
     
     // Data bus as inputs (high-Z)
     DDRD &= ~((1 << PD6) | (1 << PD7));  
@@ -348,48 +345,29 @@ static bool test_reset_overrides_data(void) {
  * 4. Final reset test - verify reset still works
  * 
  * LED INDICATORS:
- * - Yellow flashes indicate test phase
+ * - Startup sequence: Yellow-Green-Red-Green-Yellow
+ * - Yellow solid: Tests running
  * - Green = all tests passed
  * - Red = at least one test failed
  */
 void test_ir_run(void) {
     init_pins();
-    _delay_ms(500);
     
-    // Startup sequence - 3 yellow flashes
-    for (int i = 0; i < 3; i++) {
-        PORTD |= (1 << YELLOW_LED);
-        _delay_ms(100);
-        PORTD &= ~(1 << YELLOW_LED);
-        _delay_ms(100);
-    }
+    // Show startup sequence
+    show_startup_sequence();
     
-    PORTD |= (1 << YELLOW_LED);  // Yellow ON during tests
-    _delay_ms(200);
+    // Start test execution (adds 500ms delay)
+    start_test_execution();
     
     bool all_passed = true;
     
     // === TEST 1: BASIC RESET ===
-    // Single flash = reset test
-    PORTD &= ~(1 << YELLOW_LED);
-    _delay_ms(50);
-    PORTD |= (1 << YELLOW_LED);
-    _delay_ms(50);
-    
     if (!test_reset_function()) {
         all_passed = false;
     }
     _delay_ms(100);
     
     // === TEST 2: RESET OVERRIDE ===
-    // Double flash = override test
-    for (int i = 0; i < 2; i++) {
-        PORTD &= ~(1 << YELLOW_LED);
-        _delay_ms(50);
-        PORTD |= (1 << YELLOW_LED);
-        _delay_ms(50);
-    }
-    
     if (!test_reset_overrides_data()) {
         all_passed = false;
     }
@@ -399,12 +377,6 @@ void test_ir_run(void) {
     uint8_t num_instructions = sizeof(test_instructions) / sizeof(test_instructions[0]);
     
     for (uint8_t i = 0; i < num_instructions; i++) {
-        // Flash for each instruction
-        PORTD &= ~(1 << YELLOW_LED);
-        _delay_ms(50);
-        PORTD |= (1 << YELLOW_LED);
-        _delay_ms(50);
-        
         if (!test_load_instruction(test_instructions[i])) {
             all_passed = false;
         }
@@ -413,26 +385,12 @@ void test_ir_run(void) {
     
     // === TEST 4: FINAL RESET ===
     // Verify reset still works after loading instructions
-    PORTD &= ~(1 << YELLOW_LED);
-    _delay_ms(50);
-    PORTD |= (1 << YELLOW_LED);
-    _delay_ms(50);
-    
     if (!test_reset_function()) {
         all_passed = false;
     }
     
-    // Test complete
-    PORTD &= ~(1 << YELLOW_LED);
-    
-    // Show result
-    if (all_passed) {
-        PORTD |= (1 << GREEN_LED);
-        PORTD &= ~(1 << RED_LED);
-    } else {
-        PORTD |= (1 << RED_LED);
-        PORTD &= ~(1 << GREEN_LED);
-    }
+    // Show final result
+    show_test_result(all_passed);
     
     // Halt
     while (1) {

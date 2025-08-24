@@ -1,4 +1,5 @@
 #include "test_373.h"
+#include "test_common.h"
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdbool.h>
@@ -13,9 +14,6 @@
 // D6-D13: Shared data bus D0-D7 (bidirectional)
 
 // Control signals
-#define RED_LED         PD0
-#define GREEN_LED       PD2
-#define YELLOW_LED      PD3
 #define LE_PIN          PD4
 #define OE_PIN          PD5
 
@@ -52,16 +50,15 @@ static const uint8_t test_patterns[] = {
 };
 
 static void init_pins(void) {
+    // Initialize LEDs using common function
+    init_leds();
+    
     // Set control pins as outputs
-    DDRD |= (1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED);
     DDRD |= (1 << LE_PIN) | (1 << OE_PIN);
     
     // Initialize control signals to safe state
     PORTD &= ~(1 << LE_PIN);    // LE LOW (latched mode)
     PORTD |= (1 << OE_PIN);      // OE HIGH (outputs disabled)
-    
-    // LEDs off initially
-    PORTD &= ~((1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED));
     
     // Data bus pins start as inputs (high-Z)
     DDRD &= ~((1 << PD6) | (1 << PD7));  // D6-D7 as inputs
@@ -204,34 +201,17 @@ void test_373_run(void) {
     // Initialize all pins
     init_pins();
     
-    // Initial delay to let everything stabilize
-    _delay_ms(500);
+    // Show startup sequence
+    show_startup_sequence();
     
-    // Startup sequence - triple flash to show we're starting
-    for (int i = 0; i < 3; i++) {
-        PORTD |= (1 << YELLOW_LED);
-        _delay_ms(100);
-        PORTD &= ~(1 << YELLOW_LED);
-        _delay_ms(100);
-    }
-    
-    // Turn on yellow LED to indicate test is running
-    PORTD |= (1 << YELLOW_LED);
-    
-    // Small delay before starting tests
-    _delay_ms(200);
+    // Start test execution (adds 500ms delay)
+    start_test_execution();
     
     // Run all test patterns
     bool all_passed = true;
     uint8_t num_patterns = sizeof(test_patterns) / sizeof(test_patterns[0]);
     
     for (uint8_t i = 0; i < num_patterns; i++) {
-        // Flash yellow LED to show progress (test number)
-        PORTD &= ~(1 << YELLOW_LED);
-        _delay_ms(50);
-        PORTD |= (1 << YELLOW_LED);
-        _delay_ms(50);
-        
         if (!test_latch_pattern(test_patterns[i])) {
             all_passed = false;
             // Don't break - continue testing all patterns
@@ -239,19 +219,8 @@ void test_373_run(void) {
         _delay_ms(10);  // Small delay between tests
     }
     
-    // Turn off yellow LED - test complete
-    PORTD &= ~(1 << YELLOW_LED);
-    
     // Show final result
-    if (all_passed) {
-        // All tests passed - turn on green LED solid
-        PORTD |= (1 << GREEN_LED);
-        PORTD &= ~(1 << RED_LED);  // Ensure red is off
-    } else {
-        // At least one test failed - turn on red LED
-        PORTD |= (1 << RED_LED);
-        PORTD &= ~(1 << GREEN_LED);  // Ensure green is off
-    }
+    show_test_result(all_passed);
     
     // Done - halt here (user will press reset to run again)
     while (1) {
