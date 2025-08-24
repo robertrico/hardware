@@ -21,7 +21,7 @@
  * Arduino Pin | Signal Name | 244 Pin    | 373 Pin | Function
  * ------------|-------------|------------|---------|----------------------------------
  * D1 (PD1)    | RESET       | 1,19 (~OE) | ---     | Reset control (active LOW)
- * D4 (PD4)    | IR_LOAD     | ---        | 11 (~LE)| Latch Enable (active LOW)
+ * D4 (PD4)    | IR_LOAD     | ---        | 11 (LE)| Latch Enable (HIGH=transparent, LOW=latched)
  * D5 (PD5)    | IR_OE       | ---        | 1 (~OE) | Output Enable (active LOW)
  * ====================================================================================
  * 
@@ -56,7 +56,7 @@
  * 373 Pin | Connection     | Purpose
  * --------|----------------|--------------------------------------------------
  * 1       | Arduino D5     | ~OE - Output Enable (active LOW for reading)
- * 11      | Arduino D4     | ~LE - Latch Enable (active LOW, latches on LOW->HIGH)
+ * 11      | Arduino D4     | LE - Latch Enable (HIGH=transparent, LOW=latched)
  * 3       | Data Bus D0    | D0 - Data input bit 0
  * 4       | Data Bus D1    | D1 - Data input bit 1
  * 7       | Data Bus D2    | D2 - Data input bit 2
@@ -92,14 +92,16 @@
 #define RESET           PD1  // D1 -> 244 pins 1,19 (~OE) - active LOW for reset
 #define GREEN_LED       PD2  // D2 - Test passed indicator
 #define YELLOW_LED      PD3  // D3 - Test running indicator
-#define IR_LOAD         PD4  // D4 -> 373 pin 11 (~LE) - active LOW to latch
+#define IR_LOAD         PD4  // D4 -> 373 pin 11 (LE) - HIGH=transparent, LOW=latched
 #define IR_OE           PD5  // D5 -> 373 pin 1 (~OE) - active LOW to read IR
 
 // Timing parameters
-#define SETUP_TIME       50    
-#define HOLD_TIME        50    
-#define PROPAGATION_TIME 100   
-#define RESET_TIME       200   // Extra time for reset signal to propagate
+// These are orders of magnitude larger than they need to be. 1 µs is 1,000 ns.
+// Hold time for latch is only ~30ns
+#define SETUP_TIME       1    
+#define HOLD_TIME        1    
+#define PROPAGATION_TIME 2   
+#define RESET_TIME       2   // Extra time for reset signal to propagate
 
 // Test patterns for instruction register
 static const uint8_t test_instructions[] = {
@@ -120,7 +122,7 @@ static const uint8_t test_instructions[] = {
  * 
  * Initial state:
  * - RESET inactive (HIGH) - 244 disabled, normal operation
- * - IR_LOAD inactive (HIGH) - 373 not latching
+ * - IR_LOAD inactive (LOW) - 373 in latched mode
  * - IR_OE inactive (HIGH) - 373 outputs disabled
  * - Data bus high-Z
  */
@@ -131,8 +133,8 @@ static void init_pins(void) {
     
     // Safe initial state
     PORTD |= (1 << RESET);      // RESET HIGH (244 disabled)
-    PORTD |= (1 << IR_LOAD);    // IR_LOAD HIGH (373 not latching)
     PORTD |= (1 << IR_OE);      // IR_OE HIGH (373 outputs disabled)
+    PORTD &= ~(1 << IR_LOAD);   // IR_LOAD LOW (373 in latched mode)
     
     // LEDs off
     PORTD &= ~((1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED));
@@ -217,9 +219,9 @@ static bool test_reset_function(void) {
     
     // === PHASE 2: LATCH THE RESET VALUE ===
     // While 244 is driving 0x00, latch it into 373
-    PORTD &= ~(1 << IR_LOAD);     // IR_LOAD LOW (transparent)
+    PORTD |= (1 << IR_LOAD);      // IR_LOAD HIGH (transparent - data flows through)
     _delay_us(HOLD_TIME);
-    PORTD |= (1 << IR_LOAD);      // IR_LOAD HIGH (latch on edge)
+    PORTD &= ~(1 << IR_LOAD);     // IR_LOAD LOW (latched - data is held)
     _delay_us(SETUP_TIME);
     
     // === PHASE 3: DEACTIVATE RESET ===
@@ -254,6 +256,7 @@ static bool test_load_instruction(uint8_t instruction) {
     // === PHASE 1: ENSURE NORMAL MODE ===
     PORTD |= (1 << RESET);        // RESET HIGH - 244 disabled
     PORTD |= (1 << IR_OE);        // 373 outputs off
+    PORTD &= ~(1 << IR_LOAD);    // IR_LOAD LOW (373 in latched mode)
     _delay_us(SETUP_TIME);
     
     // === PHASE 2: WRITE INSTRUCTION ===
@@ -262,9 +265,9 @@ static bool test_load_instruction(uint8_t instruction) {
     _delay_us(SETUP_TIME);
     
     // === PHASE 3: LATCH INSTRUCTION ===
-    PORTD &= ~(1 << IR_LOAD);     // IR_LOAD LOW
+    PORTD |= (1 << IR_LOAD);      // IR_LOAD HIGH (transparent)
     _delay_us(HOLD_TIME);
-    PORTD |= (1 << IR_LOAD);      // IR_LOAD HIGH (latched)
+    PORTD &= ~(1 << IR_LOAD);     // IR_LOAD LOW (latched)
     _delay_us(SETUP_TIME);
     
     // === PHASE 4: READ BACK ===
@@ -314,9 +317,9 @@ static bool test_reset_overrides_data(void) {
     _delay_us(RESET_TIME);
     
     // === PHASE 3: LATCH WITH RESET ACTIVE ===
-    PORTD &= ~(1 << IR_LOAD);     // IR_LOAD LOW
+    PORTD |= (1 << IR_LOAD);      // IR_LOAD HIGH (transparent)
     _delay_us(HOLD_TIME);
-    PORTD |= (1 << IR_LOAD);      // IR_LOAD HIGH
+    PORTD &= ~(1 << IR_LOAD);     // IR_LOAD LOW (latched)
     _delay_us(SETUP_TIME);
     
     // === PHASE 4: RELEASE AND VERIFY ===

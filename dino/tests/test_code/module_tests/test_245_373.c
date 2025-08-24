@@ -62,14 +62,16 @@
 #define BUS_245_CE      PD1  // D1 -> 245 pin 19 (~OE) - active LOW to enable 245
 #define GREEN_LED       PD2  // D2 - Green LED (pass indicator)
 #define YELLOW_LED      PD3  // D3 - Yellow LED (running indicator)
-#define REG_373_LE      PD4  // D4 -> 373 pin 11 (~LE) - active LOW, latches on LOW->HIGH
+#define REG_373_LE      PD4  // D4 -> 373 pin 11 (LE) - HIGH=transparent, LOW=latched
 #define REG_OUT         PD5  // D5 -> 245 pin 1 (DIR) AND 373 pin 1 (~OE)
 
 // Timing parameters (in microseconds) - based on 74LS series typical delays
-#define SETUP_TIME       50    // tsu: Setup time for data before latch
-#define HOLD_TIME        50    // th: Hold time for data after latch
-#define PROPAGATION_TIME 100   // tpd: Propagation delay through ICs
-#define BUS_RELEASE_TIME 100   // Time to ensure bus is fully released
+// These are orders of magnitude larger than they need to be. 1 µs is 1,000 ns.
+// Hold time for latch is only ~30ns
+#define SETUP_TIME       1    // tsu: Setup time for data before latch
+#define HOLD_TIME        1    // th: Hold time for data after latch
+#define PROPAGATION_TIME 2   // tpd: Propagation delay through ICs
+#define BUS_RELEASE_TIME 2   // Time to ensure bus is fully released
 
 /*
  * TEST PATTERNS - Comprehensive set to detect all common failures:
@@ -92,7 +94,7 @@ static const uint8_t test_patterns[] = {
  * init_pins() - Initialize all pins to prevent bus contention
  * 
  * Safe state ensures no two outputs drive the bus simultaneously:
- * - 373 not latching (~LE = HIGH)
+ * - 373 in latched mode (LE = LOW)
  * - 373 outputs disabled (~OE = HIGH)  
  * - 245 disabled (~OE = HIGH)
  * - 245 direction set for write (DIR = HIGH)
@@ -104,7 +106,7 @@ static void init_pins(void) {
     DDRD |= (1 << BUS_245_CE) | (1 << REG_373_LE) | (1 << REG_OUT);
     
     // Set safe initial state - EVERYTHING DISABLED
-    PORTD |= (1 << REG_373_LE);   // 373 ~LE HIGH (not latching)
+    PORTD &= ~(1 << REG_373_LE);  // 373 LE LOW (latched mode)
     PORTD |= (1 << REG_OUT);       // HIGH: 373 ~OE disabled, 245 DIR = A->B
     PORTD |= (1 << BUS_245_CE);    // 245 ~OE HIGH (245 disabled)
     
@@ -112,12 +114,7 @@ static void init_pins(void) {
     PORTD &= ~((1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED));
     
     // Data bus as inputs (high-Z) - Arduino not driving bus
-    DDRD &= ~((1 << PD6) | (1 << PD7));  // D6-D7
-    DDRB &= ~0x3F;                        // D8-D13 (only lower 6 bits)
-    
-    // No pull-ups (let ICs drive the bus)
-    PORTD &= ~((1 << PD6) | (1 << PD7));
-    PORTB &= ~0x3F;
+    set_bus_as_input();
 }
 
 static void set_bus_as_output(void) {
@@ -154,8 +151,20 @@ static void write_to_bus(uint8_t data) {
     PORTB = portb_value;
     
     // Bits 6-7 map to D7-D6 (PD7-PD6) in REVERSE order
-    if (data & 0x40) PORTD |= (1 << PD7); else PORTD &= ~(1 << PD7);  // Bit 6 -> D7
-    if (data & 0x80) PORTD |= (1 << PD6); else PORTD &= ~(1 << PD6);  // Bit 7 -> D6
+    if (data & 0x40) {
+        PORTD |= (1 << PD7); 
+    } else {
+        // Bit 6 -> D7
+        PORTD &= ~(1 << PD7); 
+    }
+
+    if (data & 0x80) {
+        PORTD |= (1 << PD6); 
+    } else {
+        // Bit 7 -> D6
+        PORTD &= ~(1 << PD6);
+    }
+
 }
 
 /*
@@ -172,8 +181,12 @@ static uint8_t read_from_bus(void) {
     }
     
     // Read bits 6-7 from D7-D6 (PD7-PD6) in REVERSE order
-    if (PIND & (1 << PD7)) result |= 0x40;  // D7 -> Bit 6
-    if (PIND & (1 << PD6)) result |= 0x80;  // D6 -> Bit 7
+    if (PIND & (1 << PD7)) {
+        result |= 0x40;  // D7 -> Bit 6
+    }
+    if (PIND & (1 << PD6)){
+        result |= 0x80;  // D6 -> Bit 7
+    }
     
     return result;
 }
@@ -191,8 +204,8 @@ static uint8_t read_from_bus(void) {
  *    - Arduino drives pattern onto bus
  *    - Pattern flows through 245 to 373 D inputs
  * 3. LATCH: Capture data in 373
- *    - Pulse ~LE from HIGH->LOW->HIGH
- *    - Data latches on rising edge
+ *    - Pulse LE from LOW->HIGH->LOW
+ *    - Data latches are level triggered. 
  * 4. TRANSITION: Prepare for read
  *    - Disable 245 briefly
  *    - Arduino releases bus (high-Z)
@@ -208,7 +221,8 @@ static bool test_combined_pattern(uint8_t pattern) {
     
     // === PHASE 1: SAFE STARTING STATE ===
     PORTD |= (1 << REG_OUT);       // 373 ~OE HIGH (disabled), 245 DIR = A->B
-    PORTD |= (1 << REG_373_LE);    // 373 ~LE HIGH (not latching)
+    PORTD &= ~((1 << REG_373_LE));    // 373 LE LOW (latching)
+
     PORTD |= (1 << BUS_245_CE);    // 245 ~OE HIGH (disabled)
     set_bus_as_input();             
     _delay_us(SETUP_TIME);
@@ -221,9 +235,9 @@ static bool test_combined_pattern(uint8_t pattern) {
     _delay_us(SETUP_TIME);          
     
     // === PHASE 3: LATCH DATA IN 373 ===
-    PORTD &= ~(1 << REG_373_LE);   // 373 ~LE LOW (transparent)
+    PORTD |= (1 << REG_373_LE);     // 373 LE HIGH (transparent)
     _delay_us(HOLD_TIME);           
-    PORTD |= (1 << REG_373_LE);     // 373 ~LE HIGH (data latched)
+    PORTD &= ~(1 << REG_373_LE);   // 373 LE LOW (latched)
     _delay_us(SETUP_TIME);
     
     // === PHASE 4: DISABLE 245 AND RELEASE BUS ===

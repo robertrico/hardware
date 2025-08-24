@@ -57,7 +57,7 @@ static void init_pins(void) {
     DDRD |= (1 << LE_PIN) | (1 << OE_PIN);
     
     // Initialize control signals to safe state
-    PORTD &= ~(1 << LE_PIN);    // LE LOW (transparent mode)
+    PORTD &= ~(1 << LE_PIN);    // LE LOW (latched mode)
     PORTD |= (1 << OE_PIN);      // OE HIGH (outputs disabled)
     
     // LEDs off initially
@@ -157,7 +157,7 @@ static bool test_latch_pattern(uint8_t pattern) {
     
     // === PHASE 1: ENSURE SAFE STARTING STATE ===
     PORTD |= (1 << OE_PIN);       // OE HIGH (373 outputs disabled)
-    PORTD &= ~(1 << LE_PIN);      // LE LOW (transparent mode)
+    PORTD &= ~(1 << LE_PIN);      // LE LOW (latched mode)
     set_bus_as_input();            // Arduino pins high-Z
     _delay_us(SETUP_TIME);
     
@@ -167,7 +167,7 @@ static bool test_latch_pattern(uint8_t pattern) {
     _delay_us(SETUP_TIME);         // Let signals settle
     
     // === PHASE 3: LATCH THE DATA ===
-    PORTD |= (1 << LE_PIN);       // LE HIGH (latch data)
+    PORTD |= (1 << LE_PIN);       // LE HIGH (transparent)
     _delay_us(HOLD_TIME);          // Hold for latch
     PORTD &= ~(1 << LE_PIN);      // LE LOW (data latched)
     _delay_us(SETUP_TIME);
