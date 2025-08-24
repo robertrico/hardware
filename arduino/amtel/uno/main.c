@@ -6,6 +6,10 @@
     #include "test_373.h"
 #endif
 
+#ifdef TEST_245_373
+    #include "test_245_373.h"
+#endif
+
 // Add more test includes here as needed
 // #ifdef TEST_245
 //     #include "test_245.h"
@@ -15,6 +19,8 @@ int main(void) {
     // Route to appropriate test based on compile flag
     #ifdef TEST_373
         test_373_run();
+    #elif defined(TEST_245_373)
+        test_245_373_run();
     #elif defined(TEST_245)
         // test_245_run();
     #else
