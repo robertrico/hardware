@@ -1,22 +1,51 @@
 cmake_minimum_required(VERSION 3.12)
-project(blink C)
+project(arduino_tests C)
 
 set(MCU atmega328p)
 set(F_CPU 16000000UL)
 set(BAUD 115200)
-set(PORT /dev/tty.usbmodem1443401)
+set(PORT /dev/tty.usbmodem1431101)
 
+# Base compiler flags
 set(CMAKE_C_FLAGS "-mmcu=${MCU} -DF_CPU=${F_CPU} -Os")
 
-add_executable(blink.elf main.c)
+# Test selection (default to no test)
+set(TEST_TYPE "" CACHE STRING "Test type to build (373, 245, etc.)")
 
-add_custom_command(TARGET blink.elf POST_BUILD
-    COMMAND avr-objcopy -O ihex -R .eeprom blink.elf blink.hex
+# Source files
+set(SOURCES main.c)
+
+# Add test-specific sources and definitions
+if(TEST_TYPE STREQUAL "373")
+    add_definitions(-DTEST_373)
+    list(APPEND SOURCES test_373.c)
+    message(STATUS "Building 74LS373 test")
+elseif(TEST_TYPE STREQUAL "245")
+    add_definitions(-DTEST_245)
+    # list(APPEND SOURCES test_245.c)
+    message(STATUS "Building 74LS245 test")
+else()
+    message(STATUS "Building default blink test (no test selected)")
+endif()
+
+# Create executable
+add_executable(test.elf ${SOURCES})
+
+# Generate HEX file
+add_custom_command(TARGET test.elf POST_BUILD
+    COMMAND avr-objcopy -O ihex -R .eeprom test.elf test.hex
     COMMENT "Generating HEX file"
 )
 
+# Flash target
 add_custom_target(flash
-    COMMAND avrdude -c arduino -p ${MCU} -P ${PORT} -b ${BAUD} -U flash:w:blink.hex
-    DEPENDS blink.elf
+    COMMAND avrdude -c arduino -p ${MCU} -P ${PORT} -b ${BAUD} -U flash:w:test.hex
+    DEPENDS test.elf
     COMMENT "Flashing to Arduino Uno"
+)
+
+# Clean target
+add_custom_target(clean-all
+    COMMAND ${CMAKE_COMMAND} -E remove test.elf test.hex
+    COMMENT "Cleaning build files"
 )
