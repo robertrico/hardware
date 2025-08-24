@@ -4926,7 +4926,7 @@
 	)
 	(wire
 		(pts
-			(xy 139.7 153.67) (xy 140.97 153.67)
+			(xy 172.72 153.67) (xy 171.45 153.67)
 		)
 		(stroke
 			(width 0)
@@ -4956,7 +4956,7 @@
 	)
 	(wire
 		(pts
-			(xy 142.24 153.67) (xy 143.51 153.67)
+			(xy 170.18 153.67) (xy 168.91 153.67)
 		)
 		(stroke
 			(width 0)
@@ -5066,7 +5066,7 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 161.29) (xy 177.8 161.29)
+			(xy 156.21 161.29) (xy 194.31 161.29)
 		)
 		(stroke
 			(width 0)
@@ -5186,7 +5186,7 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 59.69) (xy 135.89 59.69)
+			(xy 167.64 59.69) (xy 166.37 59.69)
 		)
 		(stroke
 			(width 0)
@@ -5586,7 +5586,7 @@
 	)
 	(wire
 		(pts
-			(xy 135.89 59.69) (xy 135.89 57.15)
+			(xy 166.37 59.69) (xy 166.37 57.15)
 		)
 		(stroke
 			(width 0)
@@ -5746,7 +5746,7 @@
 	)
 	(wire
 		(pts
-			(xy 177.8 123.19) (xy 186.69 123.19)
+			(xy 186.69 123.19) (xy 194.31 123.19)
 		)
 		(stroke
 			(width 0)
@@ -5866,7 +5866,7 @@
 	)
 	(wire
 		(pts
-			(xy 135.89 57.15) (xy 138.43 57.15)
+			(xy 166.37 57.15) (xy 163.83 57.15)
 		)
 		(stroke
 			(width 0)
@@ -6096,7 +6096,7 @@
 	)
 	(wire
 		(pts
-			(xy 137.16 63.5) (xy 137.16 59.69)
+			(xy 165.1 63.5) (xy 165.1 59.69)
 		)
 		(stroke
 			(width 0)
@@ -6306,7 +6306,7 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 63.5) (xy 137.16 63.5)
+			(xy 167.64 63.5) (xy 165.1 63.5)
 		)
 		(stroke
 			(width 0)
@@ -6326,7 +6326,7 @@
 	)
 	(wire
 		(pts
-			(xy 137.16 59.69) (xy 138.43 59.69)
+			(xy 165.1 59.69) (xy 163.83 59.69)
 		)
 		(stroke
 			(width 0)
@@ -6346,7 +6346,7 @@
 	)
 	(wire
 		(pts
-			(xy 177.8 123.19) (xy 177.8 161.29)
+			(xy 194.31 123.19) (xy 194.31 161.29)
 		)
 		(stroke
 			(width 0)
@@ -6426,7 +6426,7 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 153.67) (xy 140.97 151.13)
+			(xy 171.45 153.67) (xy 171.45 151.13)
 		)
 		(stroke
 			(width 0)
@@ -6456,7 +6456,7 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 151.13) (xy 143.51 151.13)
+			(xy 171.45 151.13) (xy 168.91 151.13)
 		)
 		(stroke
 			(width 0)
@@ -6786,7 +6786,7 @@
 	)
 	(wire
 		(pts
-			(xy 139.7 157.48) (xy 142.24 157.48)
+			(xy 172.72 157.48) (xy 170.18 157.48)
 		)
 		(stroke
 			(width 0)
@@ -6896,7 +6896,7 @@
 	)
 	(wire
 		(pts
-			(xy 142.24 157.48) (xy 142.24 153.67)
+			(xy 170.18 157.48) (xy 170.18 153.67)
 		)
 		(stroke
 			(width 0)
@@ -7005,12 +7005,12 @@
 		(uuid "132bfa44-4d6c-4fe8-b815-c9da4347ce8c")
 	)
 	(label "REG_OUT_OUT"
-		(at 139.7 153.67 180)
+		(at 172.72 153.67 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify left bottom)
 		)
 		(uuid "19bae7cf-4942-4c8a-b487-193317f1f4bb")
 	)
@@ -7075,12 +7075,12 @@
 		(uuid "56a2f441-5835-46ed-9b6b-767a51a48651")
 	)
 	(label "~{C_EN}"
-		(at 134.62 63.5 180)
+		(at 167.64 63.5 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify left bottom)
 		)
 		(uuid "5e55b773-572d-483b-bd4a-0dcb06d876a8")
 	)
@@ -7165,22 +7165,22 @@
 		(uuid "c3df3708-dc0a-4ece-867e-58048669ed0b")
 	)
 	(label "REG_C_OUT"
-		(at 134.62 59.69 180)
+		(at 167.64 59.69 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify left bottom)
 		)
 		(uuid "c7a761ed-4f55-4863-ae59-72748243914e")
 	)
 	(label "~{OUT_EN}"
-		(at 139.7 157.48 180)
+		(at 172.72 157.48 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify left bottom)
 		)
 		(uuid "cb439a0d-e371-4dd7-8f9c-158ad1d06e2a")
 	)
@@ -7899,6 +7899,7 @@
 	(symbol
 		(lib_id "74xx:74LS245")
 		(at 151.13 46.99 0)
+		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7906,7 +7907,7 @@
 		(dnp no)
 		(uuid "4c02e4e6-e3b2-45fe-9b19-d680d449e684")
 		(property "Reference" "U43"
-			(at 153.162 28.956 0)
+			(at 160.528 28.448 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7915,7 +7916,7 @@
 			)
 		)
 		(property "Value" "74LS245"
-			(at 153.162 30.734 0)
+			(at 160.528 30.226 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8734,6 +8735,7 @@
 	(symbol
 		(lib_id "74xx:74LS245")
 		(at 156.21 140.97 0)
+		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8741,7 +8743,7 @@
 		(dnp no)
 		(uuid "ba8d4685-fde2-4b64-b96e-78b7e49f6a64")
 		(property "Reference" "U44"
-			(at 157.988 122.936 0)
+			(at 166.116 122.428 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8750,7 +8752,7 @@
 			)
 		)
 		(property "Value" "74LS245"
-			(at 158.242 124.714 0)
+			(at 165.862 124.206 0)
 			(effects
 				(font
 					(size 1.27 1.27)
