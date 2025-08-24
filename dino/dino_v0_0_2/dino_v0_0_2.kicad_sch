@@ -6,8 +6,8 @@
 	(paper "USLetter")
 	(title_block
 		(title "Dino v0.0.2")
-		(date "2025-07-28")
-		(rev "v1.0.7")
+		(date "2025-08-14")
+		(rev "v1.1.0")
 		(comment 1 "Control Unit - 16 1-hot inverted timing stages")
 		(comment 3 "An 8-bit computer with 16-bit addressing and 16-bit control words")
 		(comment 4 "A Turing-Complete 8-bit \"Computer\"")
@@ -6472,6 +6472,48 @@
 		)
 	)
 	(sheet
+		(at 237.49 68.58)
+		(size 12.7 11.43)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "3ed6a502-7cba-4f16-923c-85aaad663f36")
+		(property "Sheetname" "Register Modules ( C + Out )"
+			(at 237.49 67.8684 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "registers_c_out.kicad_sch"
+			(at 237.49 80.5946 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 238.76 152.4)
 		(size 15.24 12.7)
 		(exclude_from_sim no)
@@ -6507,7 +6549,7 @@
 		(instances
 			(project "dino_v0_0_2"
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541"
-					(page "8")
+					(page "10")
 				)
 			)
 		)
@@ -6550,6 +6592,48 @@
 			(project "dino_v0_0_2"
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541"
 					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 217.805 67.945)
+		(size 12.7 11.43)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "94d23a53-6e76-40e6-b4c3-1786dc89c3eb")
+		(property "Sheetname" "ALU Module"
+			(at 217.805 67.2334 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "alu.kicad_sch"
+			(at 217.805 79.9596 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541"
+					(page "9")
 				)
 			)
 		)
@@ -6612,7 +6696,7 @@
 			(color 0 0 0 0.0000)
 		)
 		(uuid "de772b95-eca4-4f61-9f12-d1e28130490b")
-		(property "Sheetname" "Register Modules"
+		(property "Sheetname" "Register Modules ( A + B )"
 			(at 187.96 66.5984 0)
 			(effects
 				(font
@@ -6621,7 +6705,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "registers.kicad_sch"
+		(property "Sheetfile" "registers_a_b.kicad_sch"
 			(at 187.96 79.3246 0)
 			(effects
 				(font

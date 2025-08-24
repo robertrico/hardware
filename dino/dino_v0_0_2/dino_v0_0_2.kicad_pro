@@ -653,7 +653,15 @@
     ],
     [
       "de772b95-eca4-4f61-9f12-d1e28130490b",
-      "Register Modules"
+      "Register Modules ( A + B )"
+    ],
+    [
+      "3ed6a502-7cba-4f16-923c-85aaad663f36",
+      "Register Modules ( C + Out )"
+    ],
+    [
+      "94d23a53-6e76-40e6-b4c3-1786dc89c3eb",
+      "ALU Module"
     ],
     [
       "57977dc0-ee09-4ff5-b2e8-b5fa69d8270d",
