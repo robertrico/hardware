@@ -204,10 +204,10 @@ make -C build flash
 #### 74LS373 Connections (Instruction Register)
 | 373 Pin | Connect To | Signal | Description |
 |---------|------------|---------|-------------|
-| Pin 11 | Arduino D4 | ~LE | Latch Enable (active LOW) |
-| Pin 1 | Arduino D5 | ~OE | Output Enable (active LOW) |
+| Pin 11 | Arduino D4 | LE | Latch Enable (HIGH=transparent, LOW=latched) |
+| Pin 1 | GND | ~OE | Output Enable (tied LOW - always enabled) |
 | Pins 3,4,7,8,13,14,17,18 | Data Bus | D0-D7 | Data inputs |
-| Pins 2,5,6,9,12,15,16,19 | Data Bus | Q0-Q7 | Data outputs (same nets) |
+| Pins 2,5,6,9,12,15,16,19 | To Decoder | Q0-Q7 | Outputs to instruction decoder (NOT to bus!) |
 | Pin 10 | GND | Ground | |
 | Pin 20 | 5V | VCC | |
 
@@ -218,42 +218,46 @@ The instruction register module:
 2. **Reset Operation**: When RESET is LOW, the 244 drives all zeros onto the bus
 3. **Priority**: Reset overrides any other data on the bus
 
-### Test Sequence
+### Test Sequence (Logic Analyzer Verification)
 
-1. **Reset Test**:
+**IMPORTANT**: The 373 Q outputs go to the instruction decoder, not back to the data bus.
+Verification must be done with a logic analyzer connected to the 373 Q outputs.
+
+1. **Reset Test** (50ms):
    - Assert RESET (LOW) → 244 outputs 0x00
    - Pulse IR_LOAD → 373 latches 0x00
-   - Deassert RESET → Read IR, verify 0x00
+   - Observe 0x00 on 373 Q outputs
 
-2. **Reset Override Test**:
-   - Try to write 0xFF to bus
-   - Assert RESET (should override with 0x00)
-   - Latch and verify 0x00 was stored
+2. **Reset Override Test** (50ms):
+   - Arduino writes 0xFF to bus
+   - Assert RESET (244 forces 0x00)
+   - Latch → Observe 0x00 (not 0xFF) on outputs
 
-3. **Instruction Load Test**:
-   - Deassert RESET
-   - Write instruction patterns
-   - Latch each pattern
-   - Read back and verify
-
-4. **Pattern Tests**:
-   - NOP (0x00)
-   - All ones (0xFF)
-   - Various test patterns
-   - Walking bit tests
+3. **Pattern Sequence** (50ms each):
+   - Load various test patterns
+   - At specific indices, RESET activates to prove override
+   - Patterns: 0x00, 0xFF, 0xA5, 0x5A, 0x0F, 0xF0, etc.
+   - Walking bits: 0x01, 0x02, 0x04, 0x08, etc.
 
 ### Control Logic
 
-- **RESET = LOW**: 244 enabled, outputs 0x00 to bus (reset state)
+- **RESET = LOW**: 244 enabled, forces 0x00 onto bus (reset state)
 - **RESET = HIGH**: 244 disabled (high-Z), normal operation
-- **IR_LOAD pulse (HIGH→LOW→HIGH)**: Latch current bus value into 373
-- **IR_OE = LOW**: Read instruction register contents onto bus
+- **IR_LOAD = HIGH**: 373 transparent mode (passes data through)
+- **IR_LOAD = LOW**: 373 latched mode (holds last value)
+- **373 ~OE = GND**: Outputs always enabled to instruction decoder
 
-This test verifies:
-- Reset forces instruction register to 0x00
-- Reset overrides any bus data
-- Instructions can be loaded and retained
-- No floating pins or bus contention
+### Logic Analyzer Setup
+
+1. Connect probes to:
+   - RESET signal (D1)
+   - IR_LOAD signal (D4)
+   - 373 Q outputs (pins 2,5,6,9,12,15,16,19)
+
+2. Expected observations:
+   - When RESET=LOW, outputs show 0x00
+   - When RESET=HIGH, patterns load correctly
+   - Total test time: ~1 second for all patterns
 
 ---
 
