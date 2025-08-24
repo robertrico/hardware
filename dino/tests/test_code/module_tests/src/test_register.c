@@ -152,65 +152,10 @@ static void init_pins(void) {
     PORTD &= ~((1 << CTRL_BIT0) | (1 << CTRL_BIT1) | (1 << CTRL_BIT2));
     
     // Data bus as inputs (high-Z)
-    DDRD &= ~((1 << PD6) | (1 << PD7));
-    DDRB &= ~0x3F;
-    PORTD &= ~((1 << PD6) | (1 << PD7));
-    PORTB &= ~0x3F;
+    set_bus_as_input();
 }
 
-static void set_bus_as_output(void) {
-    DDRD |= (1 << PD6) | (1 << PD7);
-    DDRB |= 0x3F;
-}
-
-static void set_bus_as_input(void) {
-    DDRD &= ~((1 << PD6) | (1 << PD7));
-    DDRB &= ~0x3F;
-    PORTD &= ~((1 << PD6) | (1 << PD7));
-    PORTB &= ~0x3F;
-}
-
-static void set_bus_as_input_with_pullups(void) {
-    DDRD &= ~((1 << PD6) | (1 << PD7));
-    DDRB &= ~0x3F;
-    PORTD |= (1 << PD6) | (1 << PD7);
-    PORTB |= 0x3F;
-}
-
-/*
- * write_to_bus() - Write with reversed bit mapping
- * D13=bit0, D6=bit7 (same as all other tests)
- */
-static void write_to_bus(uint8_t data) {
-    uint8_t portb_value = PORTB & 0xC0;
-    for (int i = 0; i < 6; i++) {
-        if (data & (1 << i)) {
-            portb_value |= (1 << (5 - i));
-        }
-    }
-    PORTB = portb_value;
-    
-    if (data & 0x40) PORTD |= (1 << PD7); else PORTD &= ~(1 << PD7);
-    if (data & 0x80) PORTD |= (1 << PD6); else PORTD &= ~(1 << PD6);
-}
-
-/*
- * read_from_bus() - Read with reversed bit mapping
- */
-static uint8_t read_from_bus(void) {
-    uint8_t result = 0;
-    
-    for (int i = 0; i < 6; i++) {
-        if (PINB & (1 << (5 - i))) {
-            result |= (1 << i);
-        }
-    }
-    
-    if (PIND & (1 << PD7)) result |= 0x40;
-    if (PIND & (1 << PD6)) result |= 0x80;
-    
-    return result;
-}
+// Bus operations are now provided by test_common.h
 
 /*
  * set_control_word() - Output 3-bit control word

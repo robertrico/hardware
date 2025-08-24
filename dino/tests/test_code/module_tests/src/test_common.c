@@ -1,4 +1,6 @@
 #include "test_common.h"
+#include <avr/io.h>
+#include <util/delay.h>
 
 void init_leds(void) {
     // Configure LED pins as outputs
@@ -65,4 +67,83 @@ void show_test_result(bool passed) {
 
 void leds_off(void) {
     PORTD &= ~((1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED));
+}
+
+// Bus operations used across all tests
+void set_bus_as_output(void) {
+    // Configure D6-D13 as outputs
+    DDRD |= (1 << PD6) | (1 << PD7);  // D6-D7
+    DDRB |= 0x3F;                      // D8-D13 (PB0-PB5)
+}
+
+void set_bus_as_input(void) {
+    // Configure D6-D13 as inputs (high-Z)
+    DDRD &= ~((1 << PD6) | (1 << PD7));  // D6-D7
+    DDRB &= ~0x3F;                        // D8-D13
+    
+    // Disable pull-ups (keep ports low)
+    PORTD &= ~((1 << PD6) | (1 << PD7));
+    PORTB &= ~0x3F;
+}
+
+void set_bus_as_input_with_pullups(void) {
+    // Configure D6-D13 as inputs
+    DDRD &= ~((1 << PD6) | (1 << PD7));  // D6-D7
+    DDRB &= ~0x3F;                        // D8-D13
+    
+    // Enable weak pull-ups
+    PORTD |= (1 << PD6) | (1 << PD7);
+    PORTB |= 0x3F;
+}
+
+void write_to_bus(uint8_t data) {
+    // Reversed bit mapping:
+    // Bit 0 -> D13 (PB5)
+    // Bit 1 -> D12 (PB4)
+    // Bit 2 -> D11 (PB3)
+    // Bit 3 -> D10 (PB2)
+    // Bit 4 -> D9 (PB1)
+    // Bit 5 -> D8 (PB0)
+    // Bit 6 -> D7 (PD7)
+    // Bit 7 -> D6 (PD6)
+    
+    // Write bits 0-5 to D13-D8 (PB5-PB0) in reverse order
+    uint8_t portb_value = PORTB & 0xC0;  // Preserve PB6-PB7
+    for (int i = 0; i < 6; i++) {
+        if (data & (1 << i)) {
+            portb_value |= (1 << (5 - i));  // PB5 is bit 0, PB0 is bit 5
+        }
+    }
+    PORTB = portb_value;
+    
+    // Write bit 6-7 to D7-D6 (PD7-PD6) in reverse order
+    if (data & 0x40) PORTD |= (1 << PD7); else PORTD &= ~(1 << PD7);  // Bit 6 -> D7
+    if (data & 0x80) PORTD |= (1 << PD6); else PORTD &= ~(1 << PD6);  // Bit 7 -> D6
+}
+
+uint8_t read_from_bus(void) {
+    uint8_t result = 0;
+    
+    // Reversed bit mapping:
+    // D13 (PB5) -> Bit 0
+    // D12 (PB4) -> Bit 1
+    // D11 (PB3) -> Bit 2
+    // D10 (PB2) -> Bit 3
+    // D9 (PB1) -> Bit 4
+    // D8 (PB0) -> Bit 5
+    // D7 (PD7) -> Bit 6
+    // D6 (PD6) -> Bit 7
+    
+    // Read bits 0-5 from D13-D8 (PB5-PB0) in reverse order
+    for (int i = 0; i < 6; i++) {
+        if (PINB & (1 << (5 - i))) {
+            result |= (1 << i);
+        }
+    }
+    
+    // Read bit 6-7 from D7-D6 (PD7-PD6) in reverse order
+    if (PIND & (1 << PD7)) result |= 0x40;  // D7 -> Bit 6
+    if (PIND & (1 << PD6)) result |= 0x80;  // D6 -> Bit 7
+    
+    return result;
 }

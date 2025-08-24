@@ -111,85 +111,10 @@ static void init_pins(void) {
     PORTD |= (1 << BUS_245_CE);    // 245 ~OE HIGH (245 disabled)
     
     // Data bus as inputs (high-Z) - Arduino not driving bus
-    DDRD &= ~((1 << PD6) | (1 << PD7));  
-    DDRB &= ~0x3F;                        
-    PORTD &= ~((1 << PD6) | (1 << PD7));
-    PORTB &= ~0x3F;
+    set_bus_as_input();
 }
 
-static void set_bus_as_output(void) {
-    DDRD |= (1 << PD6) | (1 << PD7);  
-    DDRB |= 0x3F;                      
-}
-
-static void set_bus_as_input(void) {
-    DDRD &= ~((1 << PD6) | (1 << PD7));  
-    DDRB &= ~0x3F;                        
-    PORTD &= ~((1 << PD6) | (1 << PD7));
-    PORTB &= ~0x3F;
-}
-
-static void set_bus_as_input_with_pullups(void) {
-    DDRD &= ~((1 << PD6) | (1 << PD7));  
-    DDRB &= ~0x3F;                        
-    PORTD |= (1 << PD6) | (1 << PD7);
-    PORTB |= 0x3F;
-}
-
-/*
- * write_to_bus() - Write data with REVERSED bit mapping
- * Bit 0 -> D13 (PB5), Bit 7 -> D6 (PD6)
- */
-static void write_to_bus(uint8_t data) {
-    // Bits 0-5 map to D13-D8 (PB5-PB0) in REVERSE order
-    uint8_t portb_value = PORTB & 0xC0;  // Preserve PB6-PB7
-    for (int i = 0; i < 6; i++) {
-        if (data & (1 << i)) {
-            portb_value |= (1 << (5 - i));  // Bit 0 -> PB5, Bit 5 -> PB0
-        }
-    }
-    PORTB = portb_value;
-    
-    // Bits 6-7 map to D7-D6 (PD7-PD6) in REVERSE order
-    if (data & 0x40) {
-        PORTD |= (1 << PD7); 
-    } else {
-        // Bit 6 -> D7
-        PORTD &= ~(1 << PD7); 
-    }
-
-    if (data & 0x80) {
-        PORTD |= (1 << PD6); 
-    } else {
-        // Bit 7 -> D6
-        PORTD &= ~(1 << PD6);
-    }
-
-}
-
-/*
- * read_from_bus() - Read data with REVERSED bit mapping
- */
-static uint8_t read_from_bus(void) {
-    uint8_t result = 0;
-    
-    // Read bits 0-5 from D13-D8 (PB5-PB0) in REVERSE order
-    for (int i = 0; i < 6; i++) {
-        if (PINB & (1 << (5 - i))) {
-            result |= (1 << i);
-        }
-    }
-    
-    // Read bits 6-7 from D7-D6 (PD7-PD6) in REVERSE order
-    if (PIND & (1 << PD7)) {
-        result |= 0x40;  // D7 -> Bit 6
-    }
-    if (PIND & (1 << PD6)){
-        result |= 0x80;  // D6 -> Bit 7
-    }
-    
-    return result;
-}
+// Bus operations are now provided by test_common.h
 
 /*
  * test_combined_pattern() - Test one data pattern through 245+373
