@@ -114,7 +114,10 @@ static void init_pins(void) {
     PORTD &= ~((1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED));
     
     // Data bus as inputs (high-Z) - Arduino not driving bus
-    set_bus_as_input();
+    DDRD &= ~((1 << PD6) | (1 << PD7));  
+    DDRB &= ~0x3F;                        
+    PORTD &= ~((1 << PD6) | (1 << PD7));
+    PORTB &= ~0x3F;
 }
 
 static void set_bus_as_output(void) {
