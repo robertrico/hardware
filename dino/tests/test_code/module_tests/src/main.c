@@ -18,6 +18,10 @@
     #include "test_register.h"
 #endif
 
+#ifdef TEST_PULSE
+    #include "test_pulse.h"
+#endif
+
 // Add more test includes here as needed
 // #ifdef TEST_245
 //     #include "test_245.h"
@@ -33,6 +37,8 @@ int main(void) {
         test_ir_run();
     #elif defined(TEST_REGISTER)
         test_register_run();
+    #elif defined(TEST_PULSE)
+        test_pulse_run();
     #elif defined(TEST_245)
         // test_245_run();
     #else
