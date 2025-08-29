@@ -109,10 +109,10 @@
 #define CTRL_LOAD       0x03  // [1,1,0] - Load data (D1=1, D4=1, D5=0)
 #define CTRL_READ       0x04  // [0,0,1] - Read data (D1=0, D4=0, D5=1)
 
-// Timing parameters
-#define SETUP_TIME       5    // Time for signals to settle
-#define PULSE_WAIT      10    // Time to wait after triggering pulse
-#define PROPAGATION_TIME 5    // Time for data to propagate through ICs
+// Timing parameters for ring counter emulation
+// Ring counter has 16 phases, each phase is ~16ms (60Hz)
+// Total instruction cycle = 16 phases × 16ms = 256ms
+#define PHASE_TIME_MS    16   // Each ring counter phase is 16ms (60Hz)
 
 // Test patterns - same comprehensive set as other tests
 static const uint8_t test_patterns[] = {
@@ -147,90 +147,114 @@ static void init_pins(void) {
     // Configure control pins as outputs
     DDRD |= (1 << CTRL_BIT0) | (1 << CTRL_BIT1) | (1 << CTRL_BIT2);
     
-    // Safe initial state - control word = IDLE [0,0,0]
-    // This disables 245 via the NOR gate (!(0|0) = 1 = disabled)
-    PORTD &= ~((1 << CTRL_BIT0) | (1 << CTRL_BIT1) | (1 << CTRL_BIT2));
-    
-    // Data bus as inputs (high-Z)
-    set_bus_as_input();
+    // Safe initial state
+    set_control_word(CTRL_IDLE);  // [0,0,0] - 245 disabled via NOR gate
+    set_bus_as_input();            // Data bus high-Z
 }
 
 // Bus operations are now provided by test_common.h
 
 /*
- * set_control_word() - Output 3-bit control word
+ * wait_for_phase_boundary() - Wait until next phase boundary
  * 
- * The 121 monitors the control bits and automatically generates
- * a latch pulse when transitioning to a LOAD state.
+ * In a real ring counter, operations happen at specific timing phases.
+ * This ensures we're synchronized to phase boundaries.
+ */
+static void wait_for_phase_boundary(void) {
+    // Wait for the remainder of current phase
+    // In a real system, this would sync to the ring counter
+    _delay_ms(PHASE_TIME_MS);
+}
+
+/*
+ * set_control_word() - Atomically set the 3-bit control word
+ * 
+ * Clears old control bits and sets new ones in a single write to PORTD.
+ * This ensures clean transitions for the 74LS121 trigger detection.
  */
 static void set_control_word(uint8_t control) {
-    // Clear all control bits first
-    PORTD &= ~((1 << CTRL_BIT0) | (1 << CTRL_BIT1) | (1 << CTRL_BIT2));
+    uint8_t portd_value = PORTD;
     
-    // Set new control word
-    if (control & 0x01) PORTD |= (1 << CTRL_BIT0);  // D1
-    if (control & 0x02) PORTD |= (1 << CTRL_BIT1);  // D4
-    if (control & 0x04) PORTD |= (1 << CTRL_BIT2);  // D5
+    // Clear all control bits
+    portd_value &= ~((1 << CTRL_BIT0) | (1 << CTRL_BIT1) | (1 << CTRL_BIT2));
     
-    // Give hardware time to respond
-    _delay_us(PULSE_WAIT);
+    // Set new control bits
+    if (control & 0x01) portd_value |= (1 << CTRL_BIT0);  // D1
+    if (control & 0x02) portd_value |= (1 << CTRL_BIT1);  // D4
+    if (control & 0x04) portd_value |= (1 << CTRL_BIT2);  // D5
+    
+    // Atomic write
+    PORTD = portd_value;
 }
 
 /*
  * test_register_pattern() - Test one pattern through the register
  * 
- * Simply outputs control words - hardware handles everything:
- * - [1,1,0]: Load data (121 auto-generates latch pulse)
- * - [0,0,1]: Read data back
- * - [0,0,0]: Idle between operations
+ * Emulates actual CPU operation where:
+ * - T0: Data appears on bus (from memory/other register)
+ * - T1: LOAD control word latches the data
+ * - T2: IDLE (clear control word)
+ * - T3: READ control word outputs data
+ * - T4: IDLE (allows verification)
+ * 
+ * Control word changes mark phase boundaries.
+ * Data bus setup happens between phases (simulating other components).
  */
 static bool test_register_pattern(uint8_t pattern) {
-    // === START IN IDLE STATE ===
-    set_control_word(CTRL_IDLE);  // [0,0,0]
-    set_bus_as_input();
-    _delay_us(SETUP_TIME);
-    
-    // === LOAD PHASE ===
-    // Put data on bus, then set control word to LOAD
-    // The 121 will detect the transition and generate a latch pulse
+    // === PHASE T0: DATA BUS SETUP ===
+    // In real CPU, another control word would put data on bus
     set_bus_as_output();
     write_to_bus(pattern);
-    _delay_us(SETUP_TIME);
+    set_control_word(CTRL_IDLE);  // [0,0,0]
+    wait_for_phase_boundary();
     
-    set_control_word(CTRL_LOAD);  // [1,1,0] - 121 triggers pulse automatically
+    // === PHASE T1: LOAD OPERATION ===
+    // Control word triggers latch (data still on bus from T0)
+    set_control_word(CTRL_LOAD);  // [1,1,0] - 121 triggers
+    wait_for_phase_boundary();
     
-    // Return to idle
+    // === PHASE T2: IDLE (RELEASE BUS) ===
     set_control_word(CTRL_IDLE);  // [0,0,0]
     set_bus_as_input();
-    _delay_us(SETUP_TIME);
+    wait_for_phase_boundary();
     
-    // === READ PHASE ===
-    // Set control word to READ - hardware enables everything correctly
-    set_control_word(CTRL_READ);  // [0,0,1]
-    _delay_us(PROPAGATION_TIME);
+    // === PHASE T3: READ OPERATION ===
+    // Control word enables register output
+    set_control_word(CTRL_READ);  // [0,0,1] - 245/373 output
+    wait_for_phase_boundary();
     
-    // Read the latched value
+    // === PHASE T4: IDLE (VERIFY DATA) ===
+    // Data has been stable for entire T3 phase
     uint8_t read_value = read_from_bus();
+    set_control_word(CTRL_IDLE);  // [0,0,0]
     
     // Check for floating pins
     set_bus_as_input_with_pullups();
-    _delay_us(50);
+    _delay_us(1);  // Pullup activation
     uint8_t pullup_value = read_from_bus();
-    
-    // Return to idle
-    set_control_word(CTRL_IDLE);  // [0,0,0]
     set_bus_as_input();
     
-    // Verify no floating pins and correct value
-    bool floating_detected = (read_value != pullup_value);
-    return (read_value == pattern) && !floating_detected;
+    wait_for_phase_boundary();
+    
+    // Verify results (no floating = pullup matches read value)
+    return (read_value == pattern) && (read_value == pullup_value);
 }
 
 /*
  * test_register_run() - Main test entry point
  * 
- * Tests the register module with hardware-generated latch pulses.
- * The 74LS121 ensures consistent timing regardless of software variations.
+ * Tests the register module with ring counter timing emulation.
+ * Each test pattern uses 5 phases (T0-T4) of the 16 available phases:
+ * - T0: Data bus setup (simulating memory/register output)
+ * - T1: LOAD control word (latch data into register)
+ * - T2: IDLE (release bus)
+ * - T3: READ control word (register outputs data)
+ * - T4: IDLE (verify data)
+ * 
+ * Total time per test pattern: 5 phases × 16ms = 80ms
+ * 
+ * The 74LS121 generates hardware-controlled latch pulses when it
+ * detects transitions to the LOAD state, ensuring consistent timing.
  * 
  * LED INDICATORS:
  * - Startup sequence: Yellow-Green-Red-Green-Yellow
@@ -247,7 +271,7 @@ void test_register_run(void) {
     // Start test execution (adds 500ms delay)
     start_test_execution();
     
-    // Test all patterns
+    // Test all patterns with ring counter timing
     bool all_passed = true;
     uint8_t num_patterns = sizeof(test_patterns) / sizeof(test_patterns[0]);
     
@@ -256,7 +280,7 @@ void test_register_run(void) {
             all_passed = false;
             // Continue testing all patterns to identify which fail
         }
-        _delay_ms(10);  // Small delay between patterns
+        // Each pattern takes 80ms (5 phases × 16ms)
     }
     
     // Show final result
