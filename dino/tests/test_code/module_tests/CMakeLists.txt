@@ -4,7 +4,10 @@ project(arduino_tests C)
 set(MCU atmega328p)
 set(F_CPU 16000000UL)
 set(BAUD 115200)
-set(PORT /dev/tty.usbserial-143120 )
+# Clone
+# set(PORT /dev/tty.usbserial-143120 )
+# Arduino
+set(PORT /dev/tty.usbmodem1431201 )
 
 # Clock frequency parameter (default 1MHz if not specified)
 set(CLOCK_FREQ "1000000" CACHE STRING "Clock generator frequency in Hz")

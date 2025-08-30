@@ -114,10 +114,11 @@
 #define CTRL_LOAD       0x03  // [1,1,0] - Load data (D1=1, D4=1, D5=0)
 #define CTRL_READ       0x04  // [0,0,1] - Read data (D1=0, D4=0, D5=1)
 
-// Timing parameters for ring counter emulation
-// Ring counter has 16 phases, each phase is ~16ms (60Hz)
-// Total instruction cycle = 16 phases × 16ms = 256ms
-#define PHASE_TIME_MS    16   // Each ring counter phase is 16ms (60Hz)
+// Timing configuration
+// At 250kHz system clock: 4µs per clock cycle
+// We use small delays between operations for hardware settling
+// The 121 generates ~1µs pulses, so 10µs is plenty of margin
+#define OPERATION_DELAY_US    10   // 10µs between operations
 
 // Test patterns - same comprehensive set as other tests
 static const uint8_t test_patterns[] = {
@@ -180,15 +181,13 @@ static void init_pins(void) {
 // Bus operations are now provided by test_common.h
 
 /*
- * wait_for_phase_boundary() - Wait until next phase boundary
+ * hardware_settle_delay() - Brief delay for hardware settling
  * 
- * In a real ring counter, operations happen at specific timing phases.
- * This ensures we're synchronized to phase boundaries.
+ * Gives the hardware time to respond to control signal changes.
+ * At 250kHz, this is about 2.5 clock cycles.
  */
-static void wait_for_phase_boundary(void) {
-    // Wait for the remainder of current phase
-    // In a real system, this would sync to the ring counter
-    _delay_ms(PHASE_TIME_MS);
+static void hardware_settle_delay(void) {
+    _delay_us(OPERATION_DELAY_US);
 }
 
 
@@ -206,54 +205,36 @@ static void wait_for_phase_boundary(void) {
  * Data bus setup happens between phases (simulating other components).
  */
 static bool test_register_pattern(uint8_t pattern) {
-    // === PHASE T0: DATA BUS SETUP ===
-    // In real CPU, another control word would put data on bus
+    // Put data on bus
     set_bus_as_output();
     write_to_bus(pattern);
+    set_control_word(CTRL_IDLE);  // [0,0,0] - Start clean
+    hardware_settle_delay();       // 10µs settle
+    
+    // Trigger LOAD - 121 generates latch pulse automatically
+    set_control_word(CTRL_LOAD);  // [1,1,0] - 121 detects edge
+    hardware_settle_delay();       // 121 pulse ~1µs, wait 10µs
+    
+    // Release bus for reading
     set_control_word(CTRL_IDLE);  // [0,0,0]
-    wait_for_phase_boundary();
+    set_bus_as_input();           // Stop driving bus
+    hardware_settle_delay();
     
-    // === PHASE T1: LOAD OPERATION ===
-    // Control word triggers latch (data still on bus from T0)
-    set_control_word(CTRL_LOAD);  // [1,1,0] - 121 triggers
-    wait_for_phase_boundary();
-    
-    // === PHASE T2: IDLE (RELEASE BUS) ===
-    set_control_word(CTRL_IDLE);  // [0,0,0]
-    set_bus_as_input();
-    wait_for_phase_boundary();
-    
-    // === PHASE T3: READ OPERATION ===
-    // Control word enables register output to bus
-    // Arduino bus MUST be input to avoid contention!
+    // Read data back from register
     set_control_word(CTRL_READ);  // [0,0,1] - 245/373 drive bus
-    wait_for_phase_boundary();
+    hardware_settle_delay();       // Let outputs stabilize
     
-    // === PHASE T4: VERIFY DATA ===
-    // Read the data that register has been outputting
-    // Bus is already in input mode from T2
+    // Sample the data
     uint8_t read_value = read_from_bus();
     set_control_word(CTRL_IDLE);  // [0,0,0] - Release bus
     
-    wait_for_phase_boundary();
+    hardware_settle_delay();
 
-    // === PHASE T5: OUTPUT READ VALUE FOR DEBUGGING ===
-    // Output what we read back for logic analyzer verification
+    // Debug output: show what we read
     set_bus_as_output();
     write_to_bus(read_value);
-    wait_for_phase_boundary();
+    hardware_settle_delay();
 
-    // === PHASE T6: END-OF-TEST MARKER ===
-    // Output distinctive pattern to mark test boundary
-    write_to_bus(0xFF);
-    _delay_us(2);
-    write_to_bus(0x00);
-    _delay_us(2);
-    write_to_bus(0xFF);
-    _delay_us(2);
-    write_to_bus(0x00);
-    wait_for_phase_boundary();
-    
     // Verify results
     return (read_value == pattern);
 }
