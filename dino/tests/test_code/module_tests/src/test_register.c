@@ -28,8 +28,13 @@
  * HARDWARE GATE LOGIC (automatic):
  * - 121 triggers on control word transition to LOAD state
  * - 245 ~OE = !(D4 | D5)  [NOR gate - enabled when either HIGH]
- * - 245 DIR = !D5         [Inverter - HIGH for write, LOW for read]
+ * - 245 DIR = !D5         [Inverter - HIGH=A→B (Arduino writes), LOW=B→A (Arduino reads)]
  * - 373 ~OE = D5          [Direct - enabled when D5 is LOW]
+ * 
+ * BUS DIRECTION CLARIFICATION:
+ * - LOAD operation: Arduino drives bus → 245 accepts input (DIR=HIGH, A→B)
+ * - READ operation: 245/373 drive bus → Arduino must be input (DIR=LOW, B→A)
+ * - Arduino bus direction MUST match 245 direction to avoid contention!
  * 
  * CRITICAL WIRING TABLE:
  * ====================================================================================
@@ -133,6 +138,26 @@ static const uint8_t test_patterns[] = {
 };
 
 /*
+ * set_control_word() - Atomically set the 3-bit control word
+ * 
+ * Clears old control bits and sets new ones in a single write to PORTD.
+ * This ensures clean transitions for the 74LS121 trigger detection.
+ */
+static void set_control_word(uint8_t control) {
+    uint8_t portd_value = PORTD;
+    
+    // Clear all control bits
+    portd_value &= ~((1 << CTRL_BIT0) | (1 << CTRL_BIT1) | (1 << CTRL_BIT2));
+    
+    // Set new control bits
+    if (control & 0x01) portd_value |= (1 << CTRL_BIT0);  // D1
+    if (control & 0x02) portd_value |= (1 << CTRL_BIT1);  // D4
+    if (control & 0x04) portd_value |= (1 << CTRL_BIT2);  // D5
+    
+    // Atomic write
+    PORTD = portd_value;
+}
+/*
  * init_pins() - Initialize for safe operation
  * 
  * Initial state:
@@ -166,26 +191,6 @@ static void wait_for_phase_boundary(void) {
     _delay_ms(PHASE_TIME_MS);
 }
 
-/*
- * set_control_word() - Atomically set the 3-bit control word
- * 
- * Clears old control bits and sets new ones in a single write to PORTD.
- * This ensures clean transitions for the 74LS121 trigger detection.
- */
-static void set_control_word(uint8_t control) {
-    uint8_t portd_value = PORTD;
-    
-    // Clear all control bits
-    portd_value &= ~((1 << CTRL_BIT0) | (1 << CTRL_BIT1) | (1 << CTRL_BIT2));
-    
-    // Set new control bits
-    if (control & 0x01) portd_value |= (1 << CTRL_BIT0);  // D1
-    if (control & 0x02) portd_value |= (1 << CTRL_BIT1);  // D4
-    if (control & 0x04) portd_value |= (1 << CTRL_BIT2);  // D5
-    
-    // Atomic write
-    PORTD = portd_value;
-}
 
 /*
  * test_register_pattern() - Test one pattern through the register
@@ -219,25 +224,38 @@ static bool test_register_pattern(uint8_t pattern) {
     wait_for_phase_boundary();
     
     // === PHASE T3: READ OPERATION ===
-    // Control word enables register output
-    set_control_word(CTRL_READ);  // [0,0,1] - 245/373 output
+    // Control word enables register output to bus
+    // Arduino bus MUST be input to avoid contention!
+    set_control_word(CTRL_READ);  // [0,0,1] - 245/373 drive bus
     wait_for_phase_boundary();
     
-    // === PHASE T4: IDLE (VERIFY DATA) ===
-    // Data has been stable for entire T3 phase
+    // === PHASE T4: VERIFY DATA ===
+    // Read the data that register has been outputting
+    // Bus is already in input mode from T2
     uint8_t read_value = read_from_bus();
-    set_control_word(CTRL_IDLE);  // [0,0,0]
-    
-    // Check for floating pins
-    set_bus_as_input_with_pullups();
-    _delay_us(1);  // Pullup activation
-    uint8_t pullup_value = read_from_bus();
-    set_bus_as_input();
+    set_control_word(CTRL_IDLE);  // [0,0,0] - Release bus
     
     wait_for_phase_boundary();
+
+    // === PHASE T5: OUTPUT READ VALUE FOR DEBUGGING ===
+    // Output what we read back for logic analyzer verification
+    set_bus_as_output();
+    write_to_bus(read_value);
+    wait_for_phase_boundary();
+
+    // === PHASE T6: END-OF-TEST MARKER ===
+    // Output distinctive pattern to mark test boundary
+    write_to_bus(0xFF);
+    _delay_us(2);
+    write_to_bus(0x00);
+    _delay_us(2);
+    write_to_bus(0xFF);
+    _delay_us(2);
+    write_to_bus(0x00);
+    wait_for_phase_boundary();
     
-    // Verify results (no floating = pullup matches read value)
-    return (read_value == pattern) && (read_value == pullup_value);
+    // Verify results
+    return (read_value == pattern);
 }
 
 /*

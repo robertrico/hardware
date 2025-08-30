@@ -107,18 +107,25 @@ void write_to_bus(uint8_t data) {
     // Bit 6 -> D7 (PD7)
     // Bit 7 -> D6 (PD6)
     
-    // Write bits 0-5 to D13-D8 (PB5-PB0) in reverse order
+    // Prepare both port values FIRST, then write atomically
+    
+    // Prepare PORTB value (bits 0-5 to PB5-PB0 reversed)
     uint8_t portb_value = PORTB & 0xC0;  // Preserve PB6-PB7
     for (int i = 0; i < 6; i++) {
         if (data & (1 << i)) {
             portb_value |= (1 << (5 - i));  // PB5 is bit 0, PB0 is bit 5
         }
     }
-    PORTB = portb_value;
     
-    // Write bit 6-7 to D7-D6 (PD7-PD6) in reverse order
-    if (data & 0x40) PORTD |= (1 << PD7); else PORTD &= ~(1 << PD7);  // Bit 6 -> D7
-    if (data & 0x80) PORTD |= (1 << PD6); else PORTD &= ~(1 << PD6);  // Bit 7 -> D6
+    // Prepare PORTD value (bits 6-7 to PD7-PD6)
+    uint8_t portd_value = PORTD & 0x3F;  // Preserve PD0-PD5
+    if (data & 0x40) portd_value |= (1 << PD7);  // Bit 6 -> D7
+    if (data & 0x80) portd_value |= (1 << PD6);  // Bit 7 -> D6
+    
+    // Write both ports as close together as possible
+    // This minimizes the time window where data is inconsistent
+    PORTB = portb_value;
+    PORTD = portd_value;
 }
 
 uint8_t read_from_bus(void) {
