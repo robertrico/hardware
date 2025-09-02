@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(PICO_SDK_PATH "../../pico-sdk-master")
+set(PICO_SDK_PATH "../../../../pico-sdk")
 set(PICO_TOOLCHAIN_PATH "/Applications/ARM/bin")
 # Import Pico SDK
 include(pico_sdk_import.cmake)
