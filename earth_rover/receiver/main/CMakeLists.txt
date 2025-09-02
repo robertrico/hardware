@@ -1,4 +1,7 @@
 idf_component_register(SRCS "main.c"
-    INCLUDE_DIRS "."
-    PRIV_REQUIRES esp_driver_spi esp_driver_gpio esp_timer esp_wifi nvs_flash
+                            "motor/arcade_drive.c"
+                            "motor/tb6612fng.c"
+                            "motor/motor_controller.c"
+    INCLUDE_DIRS "." "../Include" "motor"
+    PRIV_REQUIRES driver esp_wifi nvs_flash esp_system esp_timer freertos interrupts
 )

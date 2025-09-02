@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "driver/gpio.h"
-#include "driver/spi_master.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_now.h"
@@ -36,18 +35,8 @@
 #define ESPNOW_CHANNEL 1
 #define LED_GPIO GPIO_NUM_20  // D7
 
-#define GPIO_HANDSHAKE  GPIO_NUM_2
-#define GPIO_MOSI       GPIO_NUM_10
-#define GPIO_MISO       GPIO_NUM_9
-#define GPIO_SCLK       GPIO_NUM_8
-#define GPIO_CS         GPIO_NUM_5
-
-#define SENDER_HOST SPI2_HOST
 
 // Receiver Ready to Receive
 extern QueueHandle_t rdySem;
-extern spi_device_handle_t spiDeviceHandle;
-
-void vSendSPI(uint8_t* payload);
 
 #endif // INCLUDE_H
