@@ -61,7 +61,7 @@ static void vESPNowInit(void) {
 #define JOYSTICK_CENTER_X  2220   // Measured center position for X-axis
 #define JOYSTICK_CENTER_Y  2195   // Measured center position for Y-axis
 #define JOYSTICK_DEADBAND_X 250   // Deadband radius for X-axis (accounts for analog noise)
-#define JOYSTICK_DEADBAND_Y 250   // Deadband radius for Y-axis (accounts for analog noise)
+#define JOYSTICK_DEADBAND_Y 225   // Deadband radius for Y-axis (reduced by 10% for more responsive steering)
 #define JOYSTICK_MIN_SPEED  100   // Minimum motor speed (0-1000) to overcome friction
 
 QueueHandle_t rdySem = NULL; // This is the only definition
@@ -115,7 +115,7 @@ static esp_err_t init_motor_hardware(void) {
     };
     arcade_drive_configure(&arcade_drive, &joystick_cfg);
     
-    arcade_drive_set_steering_reduction(&arcade_drive, 25);  // 25% steering influence
+    arcade_drive_set_steering_reduction(&arcade_drive, 30);  // 30% steering influence
     arcade_drive_set_min_speed(&arcade_drive, JOYSTICK_MIN_SPEED);  // Minimum speed to prevent stalling
     
     ESP_LOGI("MAIN", "Joystick config: Center(%d,%d) Deadband(%d,%d) MinSpeed(%d)",

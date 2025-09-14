@@ -72,22 +72,25 @@ const arcade_output_t* arcade_drive_calculate(arcade_drive_t* drive, uint16_t x_
     }
     
     // Convert to centered values
-    // Note: X-axis is inverted (low values = forward)
-    int16_t throttle = joystick_to_centered(x_input, drive->config.center_x, 
+    // Note: X-axis inverted (low values = forward)
+    int16_t throttle = joystick_to_centered(x_input, drive->config.center_x,
                                            drive->config.max_throttle_range, 1);
     int16_t steering = joystick_to_centered(y_input, drive->config.center_y,
                                            drive->config.max_steering_range, 0);
     
-    // Scale to motor range (-1000 to 1000)
+    // Scale to motor range (-1000 to 1000) then reduce by 40% for science vehicle operation
     throttle = scale_value(throttle, drive->config.max_throttle_range, 1000);
     steering = scale_value(steering, drive->config.max_steering_range, 1000);
+
+    // Apply 60% speed limit (40% reduction) for controlled data collection
+    throttle = (throttle * 60) / 100;
     
     // Apply steering reduction
     steering = (steering * drive->steering_reduction) / 100;
     
-    // Calculate differential drive
-    int16_t left_raw = throttle + steering;
-    int16_t right_raw = throttle - steering;
+    // Calculate differential drive (steering reversed)
+    int16_t left_raw = throttle - steering;
+    int16_t right_raw = throttle + steering;
     
     // Clamp to valid range
     left_raw = clamp_int16(left_raw, -1000, 1000);
