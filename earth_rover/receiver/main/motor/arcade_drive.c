@@ -82,8 +82,8 @@ const arcade_output_t* arcade_drive_calculate(arcade_drive_t* drive, uint16_t x_
     throttle = scale_value(throttle, drive->config.max_throttle_range, 1000);
     steering = scale_value(steering, drive->config.max_steering_range, 1000);
 
-    // Apply 60% speed limit (40% reduction) for controlled data collection
-    throttle = (throttle * 60) / 100;
+    // Apply 40% speed limit (60% reduction total) for precise scientific operations
+    throttle = (throttle * 40) / 100;
     
     // Apply steering reduction
     steering = (steering * drive->steering_reduction) / 100;
