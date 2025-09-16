@@ -2,7 +2,7 @@
 
 # Project-local aliases/functions
 
-ESP_PORT=/dev/tty.usbmodem1434201
+ESP_PORT=/dev/tty.usbmodem1431401
 
 function build() {
     idf.py build
