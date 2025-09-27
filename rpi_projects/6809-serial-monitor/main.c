@@ -14,6 +14,8 @@ const uint8_t ADDR_PINS_LOW[] = {2, 3, 4, 5, 6, 7, 8, 9};
 const uint8_t ADDR_PINS_HIGH[] = {10, 11, 12, 13, 14, 15, 16, 17};
 
 // Data bus D0-D7 (using GPIO 18-22, 26-28)
+// D0(LSB)=GPIO18, D1=GPIO19, D2=GPIO20, D3=GPIO21,
+// D4=GPIO22, D5=GPIO26, D6=GPIO27, D7(MSB)=GPIO28
 const uint8_t DATA_PINS[] = {18, 19, 20, 21, 22, 26, 27, 28};
 
 // ANSI escape codes for screen formatting
@@ -131,15 +133,6 @@ void print_gpio_diagnostics() {
     fflush(stdout);
 }
 
-// Buffer for capturing transitions
-#define CAPTURE_BUFFER_SIZE 256
-typedef struct {
-    bus_state_t states[CAPTURE_BUFFER_SIZE];
-    uint32_t write_idx;
-    uint32_t read_idx;
-    bool overflow;
-} capture_buffer_t;
-
 int main() {
     stdio_init_all();
 
@@ -153,62 +146,103 @@ int main() {
     printf("\nInitializing 6809 Bus Monitor...\n");
     print_gpio_diagnostics();
 
-    printf("Press any key to start monitoring...\n");
-    getchar();
+    printf("\nSelect monitoring mode:\n");
+    printf("  'd' - Data bus diagnostic\n");
+    printf("  's' - Slow scan (400Hz)\n");
+    printf("  'f' - Fast scan (no delay)\n");
+    printf("  'r' - Single read (press key for each sample)\n");
+    printf("Choice: ");
+
+    int choice = getchar();
+    printf("\n");
 
     // Print initial header
     print_header();
 
     bus_state_t current_state = {0};
     bus_state_t last_state = {0};
-    capture_buffer_t capture = {0};
 
-    uint32_t sample_count = 0;
     absolute_time_t last_display_time = get_absolute_time();
+    absolute_time_t last_sample_time = get_absolute_time();
 
-    printf("\nStarting continuous bus monitoring (capturing all transitions)...\n\n");
+    // Diagnostic mode
+    if (choice == 'd' || choice == 'D') {
+        printf("\nData Bus Diagnostic Mode - showing pin states\n\n");
+        while (true) {
+            current_state.address = read_address_bus();
+            current_state.data = read_data_bus();
+
+            // Show data bus pin by pin
+            printf("\r");  // Return to start of line
+            printf("Addr: 0x%04X  Data: 0x%02X  Pins: ", current_state.address, current_state.data);
+            for (int i = 0; i < 8; i++) {
+                printf("D%d:%d ", i, gpio_get(DATA_PINS[i]));
+            }
+            printf("  ");  // Clear any remaining chars
+            fflush(stdout);
+
+            sleep_ms(100);  // Update 10 times per second
+        }
+    }
+
+    // Single read mode
+    if (choice == 'r' || choice == 'R') {
+        printf("\nSingle read mode - press any key to sample\n\n");
+        while (true) {
+            getchar();  // Wait for keypress
+            current_state.address = read_address_bus();
+            current_state.data = read_data_bus();
+            print_bus_state(&current_state);
+        }
+    }
+
+    // Continuous monitoring modes
+    bool slow_mode = (choice == 's' || choice == 'S');
+    uint32_t scan_interval_us = slow_mode ? 2500 : 0;  // 2500us = 400Hz
+
+    if (slow_mode) {
+        printf("\nSlow scan mode (400Hz) - showing all samples\n\n");
+    } else {
+        printf("\nFast scan mode - showing changes only\n\n");
+    }
 
     while (true) {
-        // Continuously read all bus signals independently - NO DELAY for maximum speed
-        current_state.address = read_address_bus();
-        current_state.data = read_data_bus();
+        absolute_time_t now = get_absolute_time();
 
-        // Capture if ANY signal changed
-        if ((current_state.address != last_state.address) ||
-            (current_state.data != last_state.data)) {
-
-            // Store in circular buffer
-            capture.states[capture.write_idx] = current_state;
-            capture.write_idx = (capture.write_idx + 1) % CAPTURE_BUFFER_SIZE;
-
-            // Check for overflow
-            if (capture.write_idx == capture.read_idx) {
-                capture.overflow = true;
-                capture.read_idx = (capture.read_idx + 1) % CAPTURE_BUFFER_SIZE;
+        // For slow mode, sample at fixed rate
+        if (slow_mode) {
+            int64_t time_since_sample = absolute_time_diff_us(last_sample_time, now);
+            if (time_since_sample >= scan_interval_us) {
+                current_state.address = read_address_bus();
+                current_state.data = read_data_bus();
+                print_bus_state(&current_state);
+                last_sample_time = now;
             }
+        }
+        // For fast mode, show changes only
+        else {
+            current_state.address = read_address_bus();
+            current_state.data = read_data_bus();
 
-            last_state = current_state;
+            // Display if ANY signal changed
+            if ((current_state.address != last_state.address) ||
+                (current_state.data != last_state.data)) {
+
+                // Throttle display to prevent terminal overload
+                int64_t time_since_display = absolute_time_diff_us(last_display_time, now);
+                if (time_since_display > 1000) {  // Minimum 1ms between prints
+                    print_bus_state(&current_state);
+                    last_display_time = now;
+                }
+
+                last_state = current_state;
+            }
         }
 
-        // Periodically dump the buffer
-        sample_count++;
-        if (sample_count > 100000) {  // About every 100k samples
-            // Print any captured transitions
-            while (capture.read_idx != capture.write_idx) {
-                print_bus_state(&capture.states[capture.read_idx]);
-                capture.read_idx = (capture.read_idx + 1) % CAPTURE_BUFFER_SIZE;
-            }
-
-            if (capture.overflow) {
-                printf("[Buffer overflow - some transitions lost]\n");
-                capture.overflow = false;
-            }
-
-            sample_count = 0;
+        // Small delay for slow mode to not busy-wait
+        if (slow_mode) {
+            sleep_us(100);
         }
-
-        // NO DELAY - run as fast as possible to catch 575kHz signals
-        // The Pico runs at 125MHz by default, should easily keep up
     }
 
     return 0;
