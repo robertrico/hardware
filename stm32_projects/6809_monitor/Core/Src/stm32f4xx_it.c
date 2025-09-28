@@ -224,9 +224,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
       return;  // System is off, ignore this clock edge
     }
 
+    static uint32_t cycle_count = 0;
+    static uint16_t last_address = 0xFFFF;
     uint16_t address = 0;
     uint8_t data = 0;
-    char msg[100];
+    char msg[120];
+
+    cycle_count++;
 
     // Read address lines (A0-A15)
     // A0 on PC9
@@ -283,18 +287,29 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     // Read R/W pin (PB7)
     uint8_t rw = HAL_GPIO_ReadPin(R_W_GPIO_Port, R_W_Pin);
 
-    // Format output
-    sprintf(msg, "%s 0x%04X  Data: 0x%02X (",
-            rw ? "READ " : "WRITE",
-            address,
-            data);
+    // Check if addresses are sequential (for instruction fetches)
+    int16_t addr_diff = (int16_t)address - (int16_t)last_address;
 
-    // Add data binary representation
-    for(int i = 7; i >= 0; i--) {
-      strcat(msg, (data & (1 << i)) ? "1" : "0");
+    // Format output with cycle counter
+    if(addr_diff != 1 && addr_diff != 2 && addr_diff != 3 && last_address != 0xFFFF) {
+      // Non-sequential access - might indicate missed cycles or jump
+      sprintf(msg, "[%lu] %s 0x%04X  Data: 0x%02X (jump from 0x%04X)%s\r\n",
+              cycle_count,
+              rw ? "READ " : "WRITE",
+              address,
+              data,
+              last_address,
+              (address == 0xFFFF && data == 0x00) ? " <-- BUS FLOAT?" : "");
+    } else {
+      sprintf(msg, "[%lu] %s 0x%04X  Data: 0x%02X%s\r\n",
+              cycle_count,
+              rw ? "READ " : "WRITE",
+              address,
+              data,
+              (address == 0xFFFF && data == 0x00) ? " <-- BUS FLOAT?" : "");
     }
 
-    strcat(msg, ")\r\n");
+    last_address = address;
 
     HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), 10);
   }

@@ -269,17 +269,23 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = D2_Pin|D3_Pin|D0_Pin|D1_Pin
                           |A15_Pin|A7_Pin|A0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;  /* No pull for passive monitoring */
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : D7_Pin D6_Pin D5_Pin A3_Pin
                            A4_Pin A5_Pin A9_Pin A8_Pin
-                           A14_Pin SYS_PWR_Pin */
+                           A14_Pin */
   GPIO_InitStruct.Pin = D7_Pin|D6_Pin|D5_Pin|A3_Pin
                           |A4_Pin|A5_Pin|A9_Pin|A8_Pin
-                          |A14_Pin|SYS_PWR_Pin;
+                          |A14_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;  /* No pull for passive monitoring */
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SYS_PWR_Pin */
+  GPIO_InitStruct.Pin = SYS_PWR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;  /* Keep pull-down for power detection */
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : D4_Pin A10_Pin A13_Pin A11_Pin
@@ -289,13 +295,13 @@ static void MX_GPIO_Init(void)
                           |A12_Pin|A6_Pin|R_W_Pin|A1_Pin
                           |A2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;  /* No pull for passive monitoring */
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CLOCK_Pin */
   GPIO_InitStruct.Pin = CLOCK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;  /* No pull for passive monitoring */
   HAL_GPIO_Init(CLOCK_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
