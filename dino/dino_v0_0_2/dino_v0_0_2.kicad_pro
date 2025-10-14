@@ -652,12 +652,12 @@
       "Memory"
     ],
     [
-      "de772b95-eca4-4f61-9f12-d1e28130490b",
-      "Register Modules ( A + B )"
+      "43f4e320-a08c-450d-82cd-12df6eda366a",
+      "Register Logic"
     ],
     [
-      "3ed6a502-7cba-4f16-923c-85aaad663f36",
-      "Register Modules ( C + Out )"
+      "de772b95-eca4-4f61-9f12-d1e28130490b",
+      "Register Modules"
     ],
     [
       "94d23a53-6e76-40e6-b4c3-1786dc89c3eb",
