@@ -1,72 +1,55 @@
 #!/bin/bash
 
-# Standalone flash script for Arduino Mega 2560
-# Can be used without sourcing env.sh
+# Simplified flash script for Arduino Mega 2560 - Multi-test version
+# Leverages cmake flash targets
+#
+# Usage:
+#   ./flash.sh [test_name]
+#   ./flash.sh              # Flash default test (74LS121)
+#   ./flash.sh 74LS121      # Flash specific test
+#   ./flash.sh 74LS161      # Flash another test
 
-# Configuration
-PROJECT_NAME="mega2560_blink"
 BUILD_DIR="build"
-MCU="atmega2560"
-PROGRAMMER="wiring"
-BAUD_RATE="115200"
+DEFAULT_TEST="74LS121"
 
-# Default port (can be overridden with environment variable or command line argument)
-UPLOAD_PORT=${UPLOAD_PORT:-${1:-/dev/cu.usbmodem*}}
+# Parse arguments
+TEST_NAME=${1:-$DEFAULT_TEST}
 
-# Find the actual port if wildcard is used
-ACTUAL_PORT=$(ls ${UPLOAD_PORT} 2>/dev/null | head -n 1)
-
-if [ -z "$ACTUAL_PORT" ]; then
-    echo "Error: No device found matching ${UPLOAD_PORT}"
-    echo ""
-    echo "Available ports:"
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        ls /dev/cu.* 2>/dev/null || echo "  No USB devices found"
-    else
-        ls /dev/ttyACM* /dev/ttyUSB* 2>/dev/null || echo "  No USB devices found"
-    fi
-    echo ""
-    echo "Usage: $0 [port]"
-    echo "Example: $0 /dev/cu.usbmodem14201"
+# Check if build directory exists
+if [ ! -d "$BUILD_DIR" ]; then
+    echo "Error: Build directory not found: $BUILD_DIR"
+    echo "Please run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=avr-gcc-toolchain.cmake"
     exit 1
 fi
 
 # Check if hex file exists
-HEX_FILE="${BUILD_DIR}/${PROJECT_NAME}.hex"
+HEX_FILE="${BUILD_DIR}/${TEST_NAME}.hex"
 if [ ! -f "$HEX_FILE" ]; then
     echo "Error: Hex file not found: $HEX_FILE"
-    echo "Please build the project first using 'source env.sh && build'"
+    echo ""
+    echo "Available tests:"
+    for hex in ${BUILD_DIR}/*.hex; do
+        if [ -f "$hex" ]; then
+            basename "$hex" .hex | sed 's/^/  /'
+        fi
+    done
+    echo ""
+    echo "To build this test:"
+    echo "  cmake --build build --target ${TEST_NAME}.elf"
     exit 1
 fi
 
-echo "================================================"
-echo "Flashing Arduino Mega 2560"
-echo "================================================"
-echo "Port:       ${ACTUAL_PORT}"
-echo "MCU:        ${MCU}"
-echo "Programmer: ${PROGRAMMER}"
-echo "Baud Rate:  ${BAUD_RATE}"
-echo "Hex File:   ${HEX_FILE}"
-echo "================================================"
+echo "Flashing ${TEST_NAME} to Arduino Mega 2560..."
 echo ""
 
-# Flash the board
-avrdude -p ${MCU} \
-        -c ${PROGRAMMER} \
-        -P ${ACTUAL_PORT} \
-        -b ${BAUD_RATE} \
-        -D \
-        -U flash:w:${HEX_FILE}:i
+# Use cmake to flash via the flash_<test_name> target
+cmake --build ${BUILD_DIR} --target flash_${TEST_NAME}
 
 if [ $? -eq 0 ]; then
     echo ""
-    echo "================================================"
-    echo "Flash successful!"
-    echo "================================================"
+    echo "Flash successful! (${TEST_NAME})"
 else
     echo ""
-    echo "================================================"
     echo "Flash failed!"
-    echo "================================================"
     exit 1
 fi
