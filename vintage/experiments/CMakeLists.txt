@@ -59,6 +59,15 @@ endfunction()
 # 74LS121 Monostable Multivibrator Test
 add_avr_test(74LS121 74LS121_mega.c)
 
+# DAC80 12-bit DAC Sine Wave Generator
+add_avr_test(DAC80 DAC80_mega.c)
+
+# DAC80 Pin Toggle Test (for troubleshooting)
+add_avr_test(DAC80_test DAC80_test_mega.c)
+
+# DAC80 Music/Tune Player (Twinkle Twinkle Little Star)
+add_avr_test(DAC80_tune DAC80_tune_mega.c)
+
 # Add more tests here as needed:
 # add_avr_test(74LS161 74LS161_mega.c)
 # add_avr_test(memory_test memory_test.c)

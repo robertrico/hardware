@@ -1,0 +1,122 @@
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdint.h>
+#include <avr/pgmspace.h>
+
+// DAC80 Pin Assignments (ATmega2560)
+// 12-bit parallel output to DAC80 inputs
+// Bit 1 (MSB) = PA0 (Pin 22)
+// Bit 2       = PA1 (Pin 23)
+// Bit 3       = PA2 (Pin 24)
+// Bit 4       = PA3 (Pin 25)
+// Bit 5       = PA4 (Pin 26)
+// Bit 6       = PA5 (Pin 27)
+// Bit 7       = PA6 (Pin 28)
+// Bit 8       = PA7 (Pin 29)
+// Bit 9       = PC0 (Pin 37)
+// Bit 10      = PC1 (Pin 36)
+// Bit 11      = PC2 (Pin 35)
+// Bit 12 (LSB)= PC3 (Pin 34)
+
+// Sine wave lookup table (256 samples, 12-bit values: 0-4095)
+// Offset to center at 2048 (mid-scale for bipolar output)
+const uint16_t sine_table[256] = {
+    2048, 2098, 2148, 2198, 2248, 2298, 2348, 2398,
+    2447, 2496, 2545, 2594, 2642, 2690, 2737, 2784,
+    2831, 2877, 2923, 2968, 3013, 3057, 3100, 3143,
+    3185, 3227, 3267, 3307, 3346, 3385, 3422, 3459,
+    3495, 3530, 3564, 3597, 3629, 3660, 3690, 3719,
+    3748, 3775, 3801, 3826, 3850, 3873, 3895, 3916,
+    3935, 3954, 3971, 3987, 4002, 4016, 4028, 4039,
+    4050, 4059, 4067, 4074, 4080, 4084, 4088, 4090,
+    4091, 4091, 4090, 4088, 4084, 4080, 4074, 4067,
+    4059, 4050, 4039, 4028, 4016, 4002, 3987, 3971,
+    3954, 3935, 3916, 3895, 3873, 3850, 3826, 3801,
+    3775, 3748, 3719, 3690, 3660, 3629, 3597, 3564,
+    3530, 3495, 3459, 3422, 3385, 3346, 3307, 3267,
+    3227, 3185, 3143, 3100, 3057, 3013, 2968, 2923,
+    2877, 2831, 2784, 2737, 2690, 2642, 2594, 2545,
+    2496, 2447, 2398, 2348, 2298, 2248, 2198, 2148,
+    2098, 2048, 1998, 1948, 1898, 1848, 1798, 1748,
+    1698, 1649, 1600, 1551, 1502, 1454, 1406, 1359,
+    1312, 1265, 1219, 1173, 1128, 1083, 1039,  996,
+     953,  911,  869,  829,  789,  750,  711,  674,
+     637,  601,  566,  532,  499,  467,  436,  407,
+     378,  351,  325,  300,  276,  253,  231,  210,
+     191,  172,  155,  139,  124,  110,   98,   87,
+      76,   67,   59,   52,   46,   42,   38,   36,
+      35,   35,   36,   38,   42,   46,   52,   59,
+      67,   76,   87,   98,  110,  124,  139,  155,
+     172,  191,  210,  231,  253,  276,  300,  325,
+     351,  378,  407,  436,  467,  499,  532,  566,
+     601,  637,  674,  711,  750,  789,  829,  869,
+     911,  953,  996, 1039, 1083, 1128, 1173, 1219,
+    1265, 1312, 1359, 1406, 1454, 1502, 1551, 1600,
+    1649, 1698, 1748, 1798, 1848, 1898, 1948, 1998
+};
+
+// 8-bit bit reversal lookup table (in flash memory for speed)
+const uint8_t bit_reverse[256] PROGMEM = {
+    0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0, 0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0, 0x70, 0xF0,
+    0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8, 0x68, 0xE8, 0x18, 0x98, 0x58, 0xD8, 0x38, 0xB8, 0x78, 0xF8,
+    0x04, 0x84, 0x44, 0xC4, 0x24, 0xA4, 0x64, 0xE4, 0x14, 0x94, 0x54, 0xD4, 0x34, 0xB4, 0x74, 0xF4,
+    0x0C, 0x8C, 0x4C, 0xCC, 0x2C, 0xAC, 0x6C, 0xEC, 0x1C, 0x9C, 0x5C, 0xDC, 0x3C, 0xBC, 0x7C, 0xFC,
+    0x02, 0x82, 0x42, 0xC2, 0x22, 0xA2, 0x62, 0xE2, 0x12, 0x92, 0x52, 0xD2, 0x32, 0xB2, 0x72, 0xF2,
+    0x0A, 0x8A, 0x4A, 0xCA, 0x2A, 0xAA, 0x6A, 0xEA, 0x1A, 0x9A, 0x5A, 0xDA, 0x3A, 0xBA, 0x7A, 0xFA,
+    0x06, 0x86, 0x46, 0xC6, 0x26, 0xA6, 0x66, 0xE6, 0x16, 0x96, 0x56, 0xD6, 0x36, 0xB6, 0x76, 0xF6,
+    0x0E, 0x8E, 0x4E, 0xCE, 0x2E, 0xAE, 0x6E, 0xEE, 0x1E, 0x9E, 0x5E, 0xDE, 0x3E, 0xBE, 0x7E, 0xFE,
+    0x01, 0x81, 0x41, 0xC1, 0x21, 0xA1, 0x61, 0xE1, 0x11, 0x91, 0x51, 0xD1, 0x31, 0xB1, 0x71, 0xF1,
+    0x09, 0x89, 0x49, 0xC9, 0x29, 0xA9, 0x69, 0xE9, 0x19, 0x99, 0x59, 0xD9, 0x39, 0xB9, 0x79, 0xF9,
+    0x05, 0x85, 0x45, 0xC5, 0x25, 0xA5, 0x65, 0xE5, 0x15, 0x95, 0x55, 0xD5, 0x35, 0xB5, 0x75, 0xF5,
+    0x0D, 0x8D, 0x4D, 0xCD, 0x2D, 0xAD, 0x6D, 0xED, 0x1D, 0x9D, 0x5D, 0xDD, 0x3D, 0xBD, 0x7D, 0xFD,
+    0x03, 0x83, 0x43, 0xC3, 0x23, 0xA3, 0x63, 0xE3, 0x13, 0x93, 0x53, 0xD3, 0x33, 0xB3, 0x73, 0xF3,
+    0x0B, 0x8B, 0x4B, 0xCB, 0x2B, 0xAB, 0x6B, 0xEB, 0x1B, 0x9B, 0x5B, 0xDB, 0x3B, 0xBB, 0x7B, 0xFB,
+    0x07, 0x87, 0x47, 0xC7, 0x27, 0xA7, 0x67, 0xE7, 0x17, 0x97, 0x57, 0xD7, 0x37, 0xB7, 0x77, 0xF7,
+    0x0F, 0x8F, 0x4F, 0xCF, 0x2F, 0xAF, 0x6F, 0xEF, 0x1F, 0x9F, 0x5F, 0xDF, 0x3F, 0xBF, 0x7F, 0xFF
+};
+
+// 4-bit bit reversal lookup table
+const uint8_t bit_reverse_4[16] PROGMEM = {
+    0x0, 0x8, 0x4, 0xC, 0x2, 0xA, 0x6, 0xE, 0x1, 0x9, 0x5, 0xD, 0x3, 0xB, 0x7, 0xF
+};
+
+// Write 12-bit value to DAC80 - ultra-fast with lookup tables
+void dac_write(uint16_t value) {
+    // Use lookup tables for instant bit reversal
+    PORTA = pgm_read_byte(&bit_reverse[(value >> 4) & 0xFF]);
+    PORTC = (PORTC & 0xF0) | pgm_read_byte(&bit_reverse_4[value & 0x0F]);
+}
+
+int main(void) {
+    // Configure PORTA (8 MSBs: Bit 1-8) as outputs
+    DDRA = 0xFF;
+
+    // Configure PORTC lower 4 bits (4 LSBs: Bit 9-12) as outputs
+    DDRC |= 0x0F;
+
+    // Initialize DAC to mid-scale (bipolar zero)
+    dac_write(2048);
+
+    uint8_t index = 0;
+
+    // Generate sine wave continuously
+    while(1) {
+        dac_write(sine_table[index]);
+
+        // Increment index (wraps automatically due to uint8_t overflow)
+        index++;
+
+        // Delay controls the frequency
+        // For a 256-sample table:
+        // - 1ms delay = ~4Hz sine wave (256ms per cycle)
+        // - 100us delay = ~39Hz sine wave
+        // - 39us delay = ~100Hz sine wave
+        // - 10us delay = ~390Hz sine wave
+        // - 1us delay = ~3.9kHz sine wave
+        // - No delay = ~50kHz sine wave (limited by loop/write overhead)
+
+        // No delay - run at maximum speed (~50kHz)
+    }
+
+    return 0;
+}
