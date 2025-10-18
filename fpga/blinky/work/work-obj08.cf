@@ -1,0 +1,7 @@
+v 4
+file "/Users/hackbook/Development/hardware/fpga/blinky/" "sim/test.vhdl" "3689505c25c27a27773a8ad878487f2d3f83b50e" "20251018020150.556":
+  entity blinky_tb at 2( 69) + 0 on 25;
+  architecture sim of blinky_tb at 14( 491) + 0 on 26;
+file "/Users/hackbook/Development/hardware/fpga/blinky/" "src/blink.vhdl" "e986e814e46475228d9dee0958b7de54ec2b6ff5" "20251018020150.533":
+  entity blinky at 2( 69) + 0 on 23;
+  architecture rtl of blinky at 24( 1109) + 0 on 24;

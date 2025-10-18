@@ -1,0 +1,4 @@
+v 4
+file . "blink.vhdl" "5142cdb331b0d65a5031650506db7908c3b3440c" "20251018014450.301":
+  entity blinky at 1( 0) + 0 on 11;
+  architecture rtl of blinky at 17( 355) + 0 on 12;

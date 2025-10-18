@@ -1,0 +1,7 @@
+v 4
+file . "test.vhdl" "5d23578392f44ca4b5eb9ffab1f35a826f1dda31" "20251018012519.428":
+  entity blinky_tb at 1( 0) + 0 on 25;
+  architecture sim of blinky_tb at 8( 106) + 0 on 26;
+file . "../src/blink.vhdl" "5142cdb331b0d65a5031650506db7908c3b3440c" "20251018012511.194":
+  entity blinky at 1( 0) + 0 on 23;
+  architecture rtl of blinky at 17( 355) + 0 on 24;
