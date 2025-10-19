@@ -33,6 +33,7 @@ architecture rtl of blinky is
     -- Internal signal to hold current LED state (on or off)
     -- Initialized to '0' (LED off at startup)
     signal led_state : std_logic := '0';
+    signal led_state_offset : std_logic := '0';
 begin
 
     -- Process: a sequential block that executes when any signal in sensitivity list changes
@@ -44,9 +45,14 @@ begin
         if rst = '1' then
             counter <= 0;           -- Reset counter to 0
             led_state <= '0';       -- Turn LED off
+            led_state_offset <= '0';       -- Turn LED off
 
         -- If not resetting, check for rising edge of clock (0 -> 1 transition)
         -- This makes it a "synchronous" design - changes only happen on clock edge
+        elsif falling_edge(clk) then 
+            if counter = (MAX_COUNT / 2) then
+                led_state_offset <= not led_state_offset;  -- Toggle LED state (0->1 or 1->0)
+            end if;
         elsif rising_edge(clk) then
 
             -- Check if we've counted up to our target (6,000,000 - 1)
@@ -65,9 +71,12 @@ begin
     -- Concurrent signal assignments (happen continuously, not just on clock edges)
     -- Drive LED0 with the blinking led_state signal
     led(0) <= led_state;
+    led(1) <= not led_state;
+    led(2) <= led_state;
+    led(3) <= led_state_offset;
 
     -- Drive all other LEDs (7 down to 1) to '0' (off)
     -- The "(others => '0')" syntax means "set all remaining bits to 0"
-    led(7 downto 1) <= (others => '0');
+    led(7 downto 4) <= (others => '0');
 
 end rtl;

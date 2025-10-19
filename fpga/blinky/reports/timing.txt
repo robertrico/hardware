@@ -1,0 +1,115 @@
+Info: Critical path report for clock '$glbnet$clk$TRELLIS_IO_IN' (posedge -> posedge):
+Info:       type curr  total name
+Info:   clk-to-q  0.40  0.40 Source n15_o_CCU2C_S0_B0_LUT4_A_Z_TRELLIS_FF_Q_3.Q
+Info:    routing  0.85  1.24 Net n15_o_CCU2C_S0_B0_LUT4_A_Z[2] (83,8) -> (84,9)
+Info:                          Sink n15_o_CCU2C_S1_2$CCU2_COMB0.B
+Info:                          Defined in:
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_map.v:108.23-108.24
+Info:      logic  0.35  1.60 Source n15_o_CCU2C_S1_2$CCU2_COMB0.FCO
+Info:    routing  0.00  1.60 Net n15_o_CCU2C_S1_2$CCU2_FCI_INT (84,9) -> (84,9)
+Info:                          Sink n15_o_CCU2C_S1_2$CCU2_COMB1.FCI
+Info:      logic  0.00  1.60 Source n15_o_CCU2C_S1_2$CCU2_COMB1.FCO
+Info:    routing  0.00  1.60 Net n15_o_CCU2C_S1_2_COUT (84,9) -> (84,9)
+Info:                          Sink n15_o_CCU2C_S0_2$CCU2_COMB0.FCI
+Info:                          Defined in:
+Info:                               build/blinky.v:39.18-39.62
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
+Info:      logic  0.06  1.65 Source n15_o_CCU2C_S0_2$CCU2_COMB0.FCO
+Info:    routing  0.00  1.65 Net n15_o_CCU2C_S0_2$CCU2_FCI_INT (84,9) -> (84,9)
+Info:                          Sink n15_o_CCU2C_S0_2$CCU2_COMB1.FCI
+Info:      logic  0.00  1.65 Source n15_o_CCU2C_S0_2$CCU2_COMB1.FCO
+Info:    routing  0.00  1.65 Net n15_o_CCU2C_S0_2_COUT (84,9) -> (84,9)
+Info:                          Sink n15_o_CCU2C_S0_1$CCU2_COMB0.FCI
+Info:                          Defined in:
+Info:                               build/blinky.v:39.18-39.62
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
+Info:      logic  0.06  1.71 Source n15_o_CCU2C_S0_1$CCU2_COMB0.FCO
+Info:    routing  0.00  1.71 Net n15_o_CCU2C_S0_1$CCU2_FCI_INT (84,9) -> (84,9)
+Info:                          Sink n15_o_CCU2C_S0_1$CCU2_COMB1.FCI
+Info:      logic  0.00  1.71 Source n15_o_CCU2C_S0_1$CCU2_COMB1.FCO
+Info:    routing  0.00  1.71 Net n15_o_CCU2C_S0_1_COUT (84,9) -> (85,9)
+Info:                          Sink n15_o_CCU2C_S0$CCU2_COMB0.FCI
+Info:                          Defined in:
+Info:                               build/blinky.v:39.18-39.62
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
+Info:      logic  0.06  1.77 Source n15_o_CCU2C_S0$CCU2_COMB0.FCO
+Info:    routing  0.00  1.77 Net n15_o_CCU2C_S0$CCU2_FCI_INT (85,9) -> (85,9)
+Info:                          Sink n15_o_CCU2C_S0$CCU2_COMB1.FCI
+Info:      logic  0.00  1.77 Source n15_o_CCU2C_S0$CCU2_COMB1.FCO
+Info:    routing  0.00  1.77 Net n15_o_CCU2C_S0_COUT (85,9) -> (85,9)
+Info:                          Sink n15_o_CCU2C_S1$CCU2_COMB0.FCI
+Info:                          Defined in:
+Info:                               build/blinky.v:39.18-39.62
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
+Info:      logic  0.06  1.82 Source n15_o_CCU2C_S1$CCU2_COMB0.FCO
+Info:    routing  0.00  1.82 Net n15_o_CCU2C_S1$CCU2_FCI_INT (85,9) -> (85,9)
+Info:                          Sink n15_o_CCU2C_S1$CCU2_COMB1.FCI
+Info:      logic  0.00  1.82 Source n15_o_CCU2C_S1$CCU2_COMB1.FCO
+--
+Info: Critical path report for cross-domain path '<async>' -> 'posedge $glbnet$clk$TRELLIS_IO_IN':
+Info:       type curr  total name
+Info:     source  0.00  0.00 Source rst$tr_io.O
+Info:    routing  4.49  4.49 Net rst$TRELLIS_IO_IN (0,23) -> (88,8)
+Info:                          Sink led_state_TRELLIS_FF_Q.LSR
+Info:                          Defined in:
+Info:                               build/blinky.v:3.11-3.14
+Info:      setup  0.29  4.77 Source led_state_TRELLIS_FF_Q.LSR
+Info: 0.29 ns logic, 4.49 ns routing
+
+Info: Critical path report for cross-domain path 'posedge $glbnet$clk$TRELLIS_IO_IN' -> '<async>':
+Info:       type curr  total name
+Info:   clk-to-q  0.40  0.40 Source led_state_TRELLIS_FF_Q.Q
+Info:    routing  0.17  0.57 Net led[0]$TRELLIS_IO_OUT (88,8) -> (88,8)
+Info:                          Sink n9_o_LUT4_Z.D
+Info:                          Defined in:
+Info:                               build/blinky.v:17.7-17.12
+Info:      logic  0.18  0.75 Source n9_o_LUT4_Z.F
+Info:    routing  0.94  1.68 Net led[1]$TRELLIS_IO_OUT (88,8) -> (90,11)
+Info:                          Sink led[1]$tr_io.I
+Info:                          Defined in:
+Info:                               build/blinky.v:9.8-9.12
+Info: 0.57 ns logic, 1.11 ns routing
+
+Info: Max frequency for clock '$glbnet$clk$TRELLIS_IO_IN': 305.53 MHz (PASS at 12.00 MHz)
+
+Info: Max delay <async>                           -> posedge $glbnet$clk$TRELLIS_IO_IN: 4.77 ns
+Info: Max delay posedge $glbnet$clk$TRELLIS_IO_IN -> <async>                          : 1.68 ns
+
+Info: Slack histogram:
+Info:  legend: * represents 1 endpoint(s)
+Info:          + represents [1,1) endpoint(s)
+Info: [ 80060,  80181) |*** 
+Info: [ 80181,  80302) |**** 
+Info: [ 80302,  80423) |** 
+Info: [ 80423,  80544) |** 
+Info: [ 80544,  80665) | 
+Info: [ 80665,  80786) |* 
+Info: [ 80786,  80907) |* 
+Info: [ 80907,  81028) |*** 
+Info: [ 81028,  81149) |* 
+Info: [ 81149,  81270) |*** 
+Info: [ 81270,  81391) |*** 
+Info: [ 81391,  81512) | 
+Info: [ 81512,  81633) | 
+Info: [ 81633,  81754) | 
+Info: [ 81754,  81875) | 
+Info: [ 81875,  81996) | 
+Info: [ 81996,  82117) | 
+Info: [ 82117,  82238) | 
+Info: [ 82238,  82359) | 
+Info: [ 82359,  82480) |** 
+1 warning, 0 errors
+
+Info: Program finished normally.
+Info: Max frequency for clock '$glbnet$clk$TRELLIS_IO_IN': 314.47 MHz (PASS at 12.00 MHz)
+Info: Max delay <async>                           -> posedge $glbnet$clk$TRELLIS_IO_IN: 7.66 ns
+Info: Max delay posedge $glbnet$clk$TRELLIS_IO_IN -> <async>                          : 1.57 ns
+Info: Slack histogram:
+Info: Max frequency for clock '$glbnet$clk$TRELLIS_IO_IN': 305.53 MHz (PASS at 12.00 MHz)
+Info: Max delay <async>                           -> posedge $glbnet$clk$TRELLIS_IO_IN: 4.77 ns
+Info: Max delay posedge $glbnet$clk$TRELLIS_IO_IN -> <async>                          : 1.68 ns
+Info: Slack histogram:

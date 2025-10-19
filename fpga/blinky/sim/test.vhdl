@@ -41,7 +41,7 @@ architecture sim of blinky_tb is
     -- Real hardware: 12,000,000 Hz clock, 1 Hz blink = 12 million cycles per toggle
     -- Simulation: 1,000 Hz clock, 10 Hz blink = 50 cycles per toggle (much faster!)
     constant SIM_CLK_FREQ : integer := 1000;   -- 1 kHz simulated clock
-    constant SIM_BLINK_FREQ : integer := 10;   -- 10 Hz simulated blink rate
+    constant SIM_BLINK_FREQ : integer := 100;   -- 10 Hz simulated blink rate
 
     -- Signal to stop the clock generation when simulation is done
     signal sim_done : boolean := false;
