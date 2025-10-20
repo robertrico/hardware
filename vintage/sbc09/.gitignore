@@ -1,0 +1,23 @@
+# Build artifacts
+*.o
+*.lst
+*.bin
+*.hex
+*.map
+
+# Executables
+v09
+a09
+makerom
+
+# Generated ROM files
+v09.rom
+v09.rom.new
+
+# Build directory
+build/
+
+# Editor backups
+*~
+*.swp
+*.swo
