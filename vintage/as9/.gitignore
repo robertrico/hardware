@@ -1,0 +1,4 @@
+
+# Debug symbols (optional - created by gcc -g)
+*.dSYM/
+as9.dSYM/
