@@ -521,8 +521,8 @@ The AS9 assembler (originally from 2004) has been updated:
 
 ## Credits
 
-- **Original AS9 assembler:** Motorola/various contributors
-- **Linux port (2004):** Albert van der Horst (HCC Forth gg)
+- **Original AS9 assembler:** Motorola (circa 1980s)
+- **Linux port (2004):** [Albert van der Horst](https://home.hccnet.nl/a.w.m.van.der.horst/m6809.html) (HCC Forth gg)
 - **Modern port & framework (2025):** Apple Silicon update + opinionated tooling
 
 ---

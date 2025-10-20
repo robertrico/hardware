@@ -212,7 +212,10 @@ See [docs/COPYING](docs/COPYING) for full license text.
 
 ## Credits
 
-- **Original Author:** L.C. Benschop (1994-1995)
+- **Original Author:** [L.C. Benschop](https://lennartb.home.xs4all.nl/) (1994-1995)
+  - v09 emulator (6809 CPU simulator)
+  - a09 assembler
+  - BUGGY monitor ROM
 - **6809 Architecture:** Motorola
 - **TETRIS:** Dirk Uwe Zoller (Forth implementation)
 - **Modernization:** 2025 updates for current compilers
