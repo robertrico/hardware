@@ -27,7 +27,7 @@ architecture sim of kitt_tb is
 
     -- Testbench signals: these connect to the component under test
     signal clk : std_logic := '0';                   -- Clock signal, starts at '0'
-    signal rst : std_logic := '0';                   -- Reset signal, starts at '0' (not reset)
+    signal rst : std_logic := '1';                   -- Reset signal, starts at '1' (not in reset, active-low)
     signal led : std_logic_vector(7 downto 0);       -- 8-bit LED output
 
     -- Clock period definition for simulation
@@ -67,10 +67,10 @@ begin
     -- Stimulus process: applies test inputs to the UUT
     stim_process: process
     begin
-        -- Apply reset
-        rst <= '1';
+        -- Apply reset (active low)
+        rst <= '0';  -- Assert reset (active low)
         wait for 100 ns;
-        rst <= '0';
+        rst <= '1';  -- Release reset
 
         -- Run test
         wait for 500 ms;
