@@ -1,4 +1,4 @@
-# clk_test - ECP5-5G Versa Development Kit
+# kitt - ECP5-5G Versa Development Kit
 
 FPGA project for the Lattice ECP5-5G Versa Development Kit (LFE5UM5G-45F-VERSA-EVN).
 
@@ -36,13 +36,13 @@ make check-tools
 ## Project Structure
 
 ```
-clk_test/
+kitt/
 ├── Makefile              # Build system
 ├── README.md             # This file
 ├── constraints/
 │   └── versa_ecp5.lpf    # Pin constraints for ECP5 Versa board
 ├── src/
-│   └── clk_test.vhdl # RTL source code
+│   └── kitt.vhdl # RTL source code
 ├── sim/
 │   └── test.vhdl         # Testbench
 ├── build/                # Generated build artifacts
@@ -115,7 +115,7 @@ make help                # Show all targets
 
 ## Development
 
-Edit the RTL source file [src/clk_test.vhdl](src/clk_test.vhdl) to implement your design.
+Edit the RTL source file [src/kitt.vhdl](src/kitt.vhdl) to implement your design.
 
 Edit the testbench [sim/test.vhdl](sim/test.vhdl) to add test cases.
 

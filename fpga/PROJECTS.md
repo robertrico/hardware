@@ -23,7 +23,7 @@ This document outlines a series of progressively complex projects that build fun
 
 ---
 
-## Project 2: LED Knight Rider / Cylon Scanner
+## Project 2: LED Knight Rider / Cylon Scanner ✅ COMPLETE
 **Difficulty**: ⭐⭐☆☆☆
 
 **Description**:

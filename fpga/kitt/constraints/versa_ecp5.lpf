@@ -49,6 +49,17 @@ LOCATE COMP "led[7]" SITE "F16";
 IOBUF PORT "led[7]" IO_TYPE=LVCMOS25;
 
 # ====================================================================================
+# Reset Input
+# ====================================================================================
+# Note: SW1/SW2 (GSRN/PROGRAMN at W3) are configuration-only pins, not available as user I/O
+# Using SW3-1 DIP switch for reset instead
+
+# SW3-1 used as Reset (Bank 7 - 1.5V)
+# Active low (logic '0' when switch is in ON position)
+LOCATE COMP "rst" SITE "H2";
+IOBUF PORT "rst" IO_TYPE=LVCMOS15;
+
+# ====================================================================================
 # DIP Switches (SW3) - User Input (Optional)
 # ====================================================================================
 

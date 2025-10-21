@@ -31,10 +31,10 @@ REPORTS_DIR = reports
 #==========================================
 # Source files
 #==========================================
-RTL_SOURCES = $(SRC_DIR)/clk_test.vhdl
+RTL_SOURCES = $(SRC_DIR)/kitt.vhdl
 TB_SOURCES = $(SIM_DIR)/test.vhdl
-TOP_ENTITY = clk_test
-TB_ENTITY = clk_test_tb
+TOP_ENTITY = kitt
+TB_ENTITY = kitt_tb
 
 # Constraint files (create if needed)
 LPF_FILE = $(CONSTRAINTS_DIR)/versa_ecp5.lpf
@@ -43,7 +43,7 @@ LPF_FILE = $(CONSTRAINTS_DIR)/versa_ecp5.lpf
 # FPGA Configuration
 #==========================================
 # Lattice ECP5-5G Versa board defaults (LFE5UM5G-45F-VERSA-EVN)
-FPGA_DEVICE = 45k
+FPGA_DEVICE = um5g-45k
 FPGA_PACKAGE = CABGA381
 FPGA_SPEED = 8
 
@@ -177,7 +177,7 @@ bitstream: $(BITSTREAM_FILE)
 .PHONY: program
 program: $(BITSTREAM_FILE)
 	@echo "Programming FPGA SRAM (volatile)..."
-	$(OPENFPGALOADER) -b versa_ecp5 -m $(BITSTREAM_FILE)
+	$(OPENFPGALOADER) -c ft2232 -m $(BITSTREAM_FILE)
 
 # Program to FPGA flash (persistent, survives power cycle)
 .PHONY: flash

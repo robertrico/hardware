@@ -7,14 +7,14 @@ use IEEE.NUMERIC_STD.ALL;
 
 -- Testbench entity has NO ports - it's a self-contained test environment
 -- The "_tb" suffix is a common naming convention for testbenches
-entity clk_test_tb is
-end clk_test_tb;
+entity kitt_tb is
+end kitt_tb;
 
 -- Architecture for the testbench - describes the test setup
-architecture sim of clk_test_tb is
+architecture sim of kitt_tb is
 
     -- Component declaration: describes the interface of the module we're testing
-    component clk_test is
+    component kitt is
         generic (
             CLK_FREQ : integer := 12000000    -- Default clock frequency
         );
@@ -42,7 +42,7 @@ architecture sim of clk_test_tb is
 begin
 
     -- Instantiate the Unit Under Test (UUT)
-    uut: clk_test
+    uut: kitt
         generic map (
             CLK_FREQ => SIM_CLK_FREQ        -- Use 1 kHz instead of 12 MHz
         )
