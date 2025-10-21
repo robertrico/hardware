@@ -1,7 +1,7 @@
-Info: Checksum: 0x1e4c682a
+Info: Checksum: 0x7ee6dc09
 
 Info: Device utilisation:
-Info: 	          TRELLIS_IO:      10/    245     4%
+Info: 	          TRELLIS_IO:      11/    245     4%
 Info: 	                DCCA:       1/     56     1%
 Info: 	              DP16KD:       0/    108     0%
 Info: 	          MULT18X18D:       0/     72     0%
@@ -26,8 +26,8 @@ Info: 	             DQSBUFM:       0/     10     0%
 Info: 	     TRELLIS_ECLKBUF:       0/      8     0%
 Info: 	        ECLKBRIDGECS:       0/      2     0%
 Info: 	                DCSC:       0/      2     0%
-Info: 	          TRELLIS_FF:      24/  43848     0%
-Info: 	        TRELLIS_COMB:      60/  43848     0%
+Info: 	          TRELLIS_FF:      28/  43848     0%
+Info: 	        TRELLIS_COMB:      82/  43848     0%
 Info: 	        TRELLIS_RAMW:       0/   5481     0%
 
-Info: Placed 9 cells based on constraints.
+Info: Placed 10 cells based on constraints.

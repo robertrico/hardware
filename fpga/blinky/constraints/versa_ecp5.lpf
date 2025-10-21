@@ -12,8 +12,8 @@ LOCATE COMP "clk" SITE "P3";
 IOBUF PORT "clk" IO_TYPE=LVDS;
 
 # Alternative: If using single-ended
-# LOCATE COMP "clk" SITE "P3";
-# IOBUF PORT "clk" IO_TYPE=LVCMOS33;
+LOCATE COMP "clk" SITE "P3";
+IOBUF PORT "clk" IO_TYPE=LVDS;
 
 # ====================================================================================
 # Reset and Control
@@ -24,6 +24,15 @@ IOBUF PORT "clk" IO_TYPE=LVDS;
 # Commenting out - use a DIP switch for reset instead if needed
 # LOCATE COMP "rst" SITE "W3";
 # IOBUF PORT "rst" IO_TYPE=LVCMOS33 PULLMODE=UP;
+
+# ====================================================================================
+# 14-Segment
+# Note: LEDs are ACTIVE LOW (illuminate when driven to '0')
+# ====================================================================================
+
+# A
+LOCATE COMP "seg_a" SITE "U1";
+IOBUF PORT "seg_a" IO_TYPE=LVCMOS25;
 
 # ====================================================================================
 # General Purpose LEDs (Bank 2 - 2.5V)

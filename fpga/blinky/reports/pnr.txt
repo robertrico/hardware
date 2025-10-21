@@ -1,15 +1,16 @@
 Warning: IO 'rst' is unconstrained in LPF and will be automatically placed
 
 Info: Logic utilisation before packing:
-Info:     Total LUT4s:        54/43848     0%
-Info:         logic LUTs:     30/43848     0%
-Info:         carry LUTs:     24/43848     0%
+Info:     Total LUT4s:        76/43848     0%
+Info:         logic LUTs:     50/43848     0%
+Info:         carry LUTs:     26/43848     0%
 Info:           RAM LUTs:      0/ 5481     0%
 Info:          RAMW LUTs:      0/10962     0%
 
-Info:      Total DFFs:        24/43848     0%
+Info:      Total DFFs:        28/43848     0%
 
 Info: Packing IOs..
+Info: pin 'seg_a$tr_io' constrained to Bel 'X6/Y71/PIOA'.
 Info: pin 'led[7]$tr_io' constrained to Bel 'X90/Y11/PIOD'.
 Info: pin 'led[6]$tr_io' constrained to Bel 'X90/Y14/PIOB'.
 Info: pin 'led[5]$tr_io' constrained to Bel 'X90/Y14/PIOD'.
@@ -24,14 +25,14 @@ Info: Packing carries...
 Info: Packing LUTs...
 Info: Packing LUT5-7s...
 Info: Packing FFs...
-Info:     24 FFs paired with LUTs.
+Info:     20 FFs paired with LUTs.
 Info: Generating derived timing constraints...
 Info: Promoting globals...
 Info:     promoting clock net clk$TRELLIS_IO_IN to global network
-Info: Checksum: 0x1e4c682a
+Info: Checksum: 0x7ee6dc09
 
 Info: Device utilisation:
-Info: 	          TRELLIS_IO:      10/    245     4%
+Info: 	          TRELLIS_IO:      11/    245     4%
 Info: 	                DCCA:       1/     56     1%
 Info: 	              DP16KD:       0/    108     0%
 Info: 	          MULT18X18D:       0/     72     0%
@@ -56,233 +57,265 @@ Info: 	             DQSBUFM:       0/     10     0%
 Info: 	     TRELLIS_ECLKBUF:       0/      8     0%
 Info: 	        ECLKBRIDGECS:       0/      2     0%
 Info: 	                DCSC:       0/      2     0%
-Info: 	          TRELLIS_FF:      24/  43848     0%
-Info: 	        TRELLIS_COMB:      60/  43848     0%
+Info: 	          TRELLIS_FF:      28/  43848     0%
+Info: 	        TRELLIS_COMB:      82/  43848     0%
 Info: 	        TRELLIS_RAMW:       0/   5481     0%
 
-Info: Placed 9 cells based on constraints.
-Info: Creating initial analytic placement for 21 cells, random placement wirelen = 2916.
-Info:     at initial placer iter 0, wirelen = 220
-Info:     at initial placer iter 1, wirelen = 179
-Info:     at initial placer iter 2, wirelen = 174
-Info:     at initial placer iter 3, wirelen = 174
+Info: Placed 10 cells based on constraints.
+Info: Creating initial analytic placement for 41 cells, random placement wirelen = 4800.
+Info:     at initial placer iter 0, wirelen = 386
+Info:     at initial placer iter 1, wirelen = 312
+Info:     at initial placer iter 2, wirelen = 280
+Info:     at initial placer iter 3, wirelen = 267
 Info: Running main analytical placer, max placement attempts per cell = 10000.
-Info:     at iteration #1, type TRELLIS_COMB: wirelen solved = 174, spread = 290, legal = 328; time = 0.00s
-Info:     at iteration #2, type TRELLIS_COMB: wirelen solved = 192, spread = 290, legal = 295; time = 0.00s
-Info:     at iteration #3, type TRELLIS_COMB: wirelen solved = 193, spread = 261, legal = 289; time = 0.00s
-Info:     at iteration #4, type TRELLIS_COMB: wirelen solved = 189, spread = 247, legal = 265; time = 0.00s
-Info:     at iteration #5, type TRELLIS_COMB: wirelen solved = 188, spread = 241, legal = 272; time = 0.00s
-Info:     at iteration #6, type TRELLIS_COMB: wirelen solved = 192, spread = 275, legal = 284; time = 0.00s
-Info:     at iteration #7, type TRELLIS_COMB: wirelen solved = 204, spread = 273, legal = 283; time = 0.00s
-Info:     at iteration #8, type TRELLIS_COMB: wirelen solved = 197, spread = 279, legal = 294; time = 0.00s
-Info:     at iteration #9, type TRELLIS_COMB: wirelen solved = 203, spread = 269, legal = 287; time = 0.00s
+Info:     at iteration #1, type ALL: wirelen solved = 254, spread = 506, legal = 424; time = 0.00s
+Info:     at iteration #2, type ALL: wirelen solved = 253, spread = 345, legal = 371; time = 0.00s
+Info:     at iteration #3, type ALL: wirelen solved = 251, spread = 349, legal = 355; time = 0.00s
+Info:     at iteration #4, type ALL: wirelen solved = 254, spread = 337, legal = 345; time = 0.00s
+Info:     at iteration #5, type ALL: wirelen solved = 257, spread = 387, legal = 391; time = 0.00s
+Info:     at iteration #6, type ALL: wirelen solved = 253, spread = 377, legal = 383; time = 0.00s
+Info:     at iteration #7, type ALL: wirelen solved = 254, spread = 377, legal = 387; time = 0.00s
+Info:     at iteration #8, type ALL: wirelen solved = 256, spread = 377, legal = 386; time = 0.00s
+Info:     at iteration #9, type ALL: wirelen solved = 255, spread = 377, legal = 385; time = 0.00s
 Info: HeAP Placer Time: 0.03s
-Info:   of which solving equations: 0.00s
+Info:   of which solving equations: 0.01s
 Info:   of which spreading cells: 0.00s
 Info:   of which strict legalisation: 0.00s
 
 Info: Running simulated annealing placer for refinement.
-Info:   at iteration #1: temp = 0.000000, timing cost = 16, wirelen = 265
-Info:   at iteration #4: temp = 0.000000, timing cost = 14, wirelen = 246 
+Info:   at iteration #1: temp = 0.000000, timing cost = 31, wirelen = 345
+Info:   at iteration #2: temp = 0.000000, timing cost = 26, wirelen = 332 
 Info: SA placement time 0.00s
 
-Info: Max frequency for clock '$glbnet$clk$TRELLIS_IO_IN': 314.47 MHz (PASS at 12.00 MHz)
+Info: Max frequency for clock '$glbnet$clk$TRELLIS_IO_IN': 317.06 MHz (PASS at 12.00 MHz)
 
-Info: Max delay <async>                           -> posedge $glbnet$clk$TRELLIS_IO_IN: 7.66 ns
-Info: Max delay posedge $glbnet$clk$TRELLIS_IO_IN -> <async>                          : 1.57 ns
+Info: Max delay <async>                           -> posedge $glbnet$clk$TRELLIS_IO_IN: 1.97 ns
+Info: Max delay posedge $glbnet$clk$TRELLIS_IO_IN -> <async>                          : 8.05 ns
 
 Info: Slack histogram:
 Info:  legend: * represents 1 endpoint(s)
 Info:          + represents [1,1) endpoint(s)
-Info: [ 80153,  80284) |** 
-Info: [ 80284,  80415) |** 
-Info: [ 80415,  80546) |******* 
-Info: [ 80546,  80677) | 
-Info: [ 80677,  80808) | 
-Info: [ 80808,  80939) | 
-Info: [ 80939,  81070) | 
-Info: [ 81070,  81201) |** 
-Info: [ 81201,  81332) |* 
-Info: [ 81332,  81463) |*** 
-Info: [ 81463,  81594) |*** 
-Info: [ 81594,  81725) |*** 
-Info: [ 81725,  81856) | 
-Info: [ 81856,  81987) | 
-Info: [ 81987,  82118) | 
-Info: [ 82118,  82249) | 
-Info: [ 82249,  82380) | 
-Info: [ 82380,  82511) | 
-Info: [ 82511,  82642) | 
-Info: [ 82642,  82773) |** 
-Info: Checksum: 0x4d0d035d
+Info: [ 80179,  80315) |**** 
+Info: [ 80315,  80451) |**** 
+Info: [ 80451,  80587) |* 
+Info: [ 80587,  80723) |**** 
+Info: [ 80723,  80859) | 
+Info: [ 80859,  80995) |* 
+Info: [ 80995,  81131) | 
+Info: [ 81131,  81267) | 
+Info: [ 81267,  81403) | 
+Info: [ 81403,  81539) | 
+Info: [ 81539,  81675) |* 
+Info: [ 81675,  81811) |*** 
+Info: [ 81811,  81947) |*** 
+Info: [ 81947,  82083) |***** 
+Info: [ 82083,  82219) |* 
+Info: [ 82219,  82355) | 
+Info: [ 82355,  82491) | 
+Info: [ 82491,  82627) | 
+Info: [ 82627,  82763) | 
+Info: [ 82763,  82899) |*** 
+Info: Checksum: 0xecbc8138
 Info: Routing globals...
 Info:     routing clock net $glbnet$clk$TRELLIS_IO_IN using global 0
 
 Info: Routing..
 Info: Setting up routing queue.
-Info: Routing 195 arcs.
+Info: Routing 270 arcs.
 Info:            |   (re-)routed arcs  |   delta    | remaining|       time spent     |
 Info:    IterCnt |  w/ripup   wo/ripup |  w/r  wo/r |      arcs| batch(sec) total(sec)|
-Info:        310 |      107        182 |  107   182 |         0|       0.03       0.03|
+Info:        432 |      156        245 |  156   245 |         0|       0.05       0.05|
 Info: Routing complete.
-Info: Router1 time 0.03s
-Info: Checksum: 0x677c56d8
+Info: Router1 time 0.05s
+Info: Checksum: 0xd12eff22
 
 Info: Critical path report for clock '$glbnet$clk$TRELLIS_IO_IN' (posedge -> posedge):
 Info:       type curr  total name
-Info:   clk-to-q  0.40  0.40 Source n15_o_CCU2C_S0_B0_LUT4_A_Z_TRELLIS_FF_Q_3.Q
-Info:    routing  0.85  1.24 Net n15_o_CCU2C_S0_B0_LUT4_A_Z[2] (83,8) -> (84,9)
-Info:                          Sink n15_o_CCU2C_S1_2$CCU2_COMB0.B
+Info:   clk-to-q  0.31  0.31 Source n18_o_LUT4_Z_5_D_TRELLIS_FF_Q_3.Q
+Info:    routing  0.60  0.91 Net n18_o_LUT4_Z_5_D[2] (84,13) -> (84,12)
+Info:                          Sink n18_o_CCU2C_S1_4$CCU2_COMB0.B
 Info:                          Defined in:
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_map.v:108.23-108.24
-Info:      logic  0.35  1.60 Source n15_o_CCU2C_S1_2$CCU2_COMB0.FCO
-Info:    routing  0.00  1.60 Net n15_o_CCU2C_S1_2$CCU2_FCI_INT (84,9) -> (84,9)
-Info:                          Sink n15_o_CCU2C_S1_2$CCU2_COMB1.FCI
-Info:      logic  0.00  1.60 Source n15_o_CCU2C_S1_2$CCU2_COMB1.FCO
-Info:    routing  0.00  1.60 Net n15_o_CCU2C_S1_2_COUT (84,9) -> (84,9)
-Info:                          Sink n15_o_CCU2C_S0_2$CCU2_COMB0.FCI
+Info:      logic  0.28  1.19 Source n18_o_CCU2C_S1_4$CCU2_COMB0.FCO
+Info:    routing  0.00  1.19 Net n18_o_CCU2C_S1_4$CCU2_FCI_INT (84,12) -> (84,12)
+Info:                          Sink n18_o_CCU2C_S1_4$CCU2_COMB1.FCI
+Info:      logic  0.00  1.19 Source n18_o_CCU2C_S1_4$CCU2_COMB1.FCO
+Info:    routing  0.00  1.19 Net n18_o_CCU2C_S1_4_COUT (84,12) -> (84,12)
+Info:                          Sink n18_o_CCU2C_S0_2$CCU2_COMB0.FCI
 Info:                          Defined in:
-Info:                               build/blinky.v:39.18-39.62
+Info:                               build/blinky.v:59.18-59.62
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
-Info:      logic  0.06  1.65 Source n15_o_CCU2C_S0_2$CCU2_COMB0.FCO
-Info:    routing  0.00  1.65 Net n15_o_CCU2C_S0_2$CCU2_FCI_INT (84,9) -> (84,9)
-Info:                          Sink n15_o_CCU2C_S0_2$CCU2_COMB1.FCI
-Info:      logic  0.00  1.65 Source n15_o_CCU2C_S0_2$CCU2_COMB1.FCO
-Info:    routing  0.00  1.65 Net n15_o_CCU2C_S0_2_COUT (84,9) -> (84,9)
-Info:                          Sink n15_o_CCU2C_S0_1$CCU2_COMB0.FCI
+Info:      logic  0.04  1.23 Source n18_o_CCU2C_S0_2$CCU2_COMB0.FCO
+Info:    routing  0.00  1.23 Net n18_o_CCU2C_S0_2$CCU2_FCI_INT (84,12) -> (84,12)
+Info:                          Sink n18_o_CCU2C_S0_2$CCU2_COMB1.FCI
+Info:      logic  0.00  1.23 Source n18_o_CCU2C_S0_2$CCU2_COMB1.FCO
+Info:    routing  0.00  1.23 Net n18_o_CCU2C_S0_2_COUT (84,12) -> (84,12)
+Info:                          Sink n18_o_CCU2C_S0_1$CCU2_COMB0.FCI
 Info:                          Defined in:
-Info:                               build/blinky.v:39.18-39.62
+Info:                               build/blinky.v:59.18-59.62
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
-Info:      logic  0.06  1.71 Source n15_o_CCU2C_S0_1$CCU2_COMB0.FCO
-Info:    routing  0.00  1.71 Net n15_o_CCU2C_S0_1$CCU2_FCI_INT (84,9) -> (84,9)
-Info:                          Sink n15_o_CCU2C_S0_1$CCU2_COMB1.FCI
-Info:      logic  0.00  1.71 Source n15_o_CCU2C_S0_1$CCU2_COMB1.FCO
-Info:    routing  0.00  1.71 Net n15_o_CCU2C_S0_1_COUT (84,9) -> (85,9)
-Info:                          Sink n15_o_CCU2C_S0$CCU2_COMB0.FCI
+Info:      logic  0.04  1.28 Source n18_o_CCU2C_S0_1$CCU2_COMB0.FCO
+Info:    routing  0.00  1.28 Net n18_o_CCU2C_S0_1$CCU2_FCI_INT (84,12) -> (84,12)
+Info:                          Sink n18_o_CCU2C_S0_1$CCU2_COMB1.FCI
+Info:      logic  0.00  1.28 Source n18_o_CCU2C_S0_1$CCU2_COMB1.FCO
+Info:    routing  0.00  1.28 Net n18_o_CCU2C_S0_1_COUT (84,12) -> (85,12)
+Info:                          Sink n18_o_CCU2C_S1$CCU2_COMB0.FCI
 Info:                          Defined in:
-Info:                               build/blinky.v:39.18-39.62
+Info:                               build/blinky.v:59.18-59.62
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
-Info:      logic  0.06  1.77 Source n15_o_CCU2C_S0$CCU2_COMB0.FCO
-Info:    routing  0.00  1.77 Net n15_o_CCU2C_S0$CCU2_FCI_INT (85,9) -> (85,9)
-Info:                          Sink n15_o_CCU2C_S0$CCU2_COMB1.FCI
-Info:      logic  0.00  1.77 Source n15_o_CCU2C_S0$CCU2_COMB1.FCO
-Info:    routing  0.00  1.77 Net n15_o_CCU2C_S0_COUT (85,9) -> (85,9)
-Info:                          Sink n15_o_CCU2C_S1$CCU2_COMB0.FCI
+Info:      logic  0.04  1.32 Source n18_o_CCU2C_S1$CCU2_COMB0.FCO
+Info:    routing  0.00  1.32 Net n18_o_CCU2C_S1$CCU2_FCI_INT (85,12) -> (85,12)
+Info:                          Sink n18_o_CCU2C_S1$CCU2_COMB1.FCI
+Info:      logic  0.00  1.32 Source n18_o_CCU2C_S1$CCU2_COMB1.FCO
+Info:    routing  0.00  1.32 Net n18_o_CCU2C_S1_COUT (85,12) -> (85,12)
+Info:                          Sink n18_o_CCU2C_S0$CCU2_COMB0.FCI
 Info:                          Defined in:
-Info:                               build/blinky.v:39.18-39.62
+Info:                               build/blinky.v:59.18-59.62
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
-Info:      logic  0.06  1.82 Source n15_o_CCU2C_S1$CCU2_COMB0.FCO
-Info:    routing  0.00  1.82 Net n15_o_CCU2C_S1$CCU2_FCI_INT (85,9) -> (85,9)
-Info:                          Sink n15_o_CCU2C_S1$CCU2_COMB1.FCI
-Info:      logic  0.00  1.82 Source n15_o_CCU2C_S1$CCU2_COMB1.FCO
-Info:    routing  0.00  1.82 Net n15_o_CCU2C_S1_COUT (85,9) -> (85,9)
-Info:                          Sink n15_o_CCU2C_S1_COUT_CCU2C_CIN$CCU2_COMB0.FCI
+Info:      logic  0.04  1.36 Source n18_o_CCU2C_S0$CCU2_COMB0.FCO
+Info:    routing  0.00  1.36 Net n18_o_CCU2C_S0$CCU2_FCI_INT (85,12) -> (85,12)
+Info:                          Sink n18_o_CCU2C_S0$CCU2_COMB1.FCI
+Info:      logic  0.00  1.36 Source n18_o_CCU2C_S0$CCU2_COMB1.FCO
+Info:    routing  0.00  1.36 Net n18_o_CCU2C_S0_COUT (85,12) -> (85,12)
+Info:                          Sink n18_o_CCU2C_S0_3$CCU2_COMB0.FCI
 Info:                          Defined in:
-Info:                               build/blinky.v:39.18-39.62
+Info:                               build/blinky.v:59.18-59.62
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
-Info:      logic  0.06  1.88 Source n15_o_CCU2C_S1_COUT_CCU2C_CIN$CCU2_COMB0.FCO
-Info:    routing  0.00  1.88 Net n15_o_CCU2C_S1_COUT_CCU2C_CIN$CCU2_FCI_INT (85,9) -> (85,9)
-Info:                          Sink n15_o_CCU2C_S1_COUT_CCU2C_CIN$CCU2_COMB1.FCI
-Info:      logic  0.00  1.88 Source n15_o_CCU2C_S1_COUT_CCU2C_CIN$CCU2_COMB1.FCO
-Info:    routing  0.00  1.88 Net n15_o_CCU2C_S0_5_CIN (85,9) -> (85,9)
-Info:                          Sink n15_o_CCU2C_S0_5$CCU2_COMB0.FCI
+Info:      logic  0.04  1.40 Source n18_o_CCU2C_S0_3$CCU2_COMB0.FCO
+Info:    routing  0.00  1.40 Net n18_o_CCU2C_S0_3$CCU2_FCI_INT (85,12) -> (85,12)
+Info:                          Sink n18_o_CCU2C_S0_3$CCU2_COMB1.FCI
+Info:      logic  0.00  1.40 Source n18_o_CCU2C_S0_3$CCU2_COMB1.FCO
+Info:    routing  0.00  1.40 Net n18_o_CCU2C_S0_3_COUT (85,12) -> (85,12)
+Info:                          Sink n18_o_CCU2C_S0_3_COUT_CCU2C_CIN$CCU2_COMB0.FCI
 Info:                          Defined in:
-Info:                               build/blinky.v:39.18-39.62
+Info:                               build/blinky.v:59.18-59.62
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
-Info:      logic  0.06  1.93 Source n15_o_CCU2C_S0_5$CCU2_COMB0.FCO
-Info:    routing  0.00  1.93 Net n15_o_CCU2C_S0_5$CCU2_FCI_INT (85,9) -> (85,9)
-Info:                          Sink n15_o_CCU2C_S0_5$CCU2_COMB1.FCI
-Info:      logic  0.00  1.93 Source n15_o_CCU2C_S0_5$CCU2_COMB1.FCO
-Info:    routing  0.00  1.93 Net n15_o_CCU2C_S0_5_COUT (85,9) -> (86,9)
-Info:                          Sink n15_o_CCU2C_S0_4$CCU2_COMB0.FCI
+Info:      logic  0.04  1.45 Source n18_o_CCU2C_S0_3_COUT_CCU2C_CIN$CCU2_COMB0.FCO
+Info:    routing  0.00  1.45 Net n18_o_CCU2C_S0_3_COUT_CCU2C_CIN$CCU2_FCI_INT (85,12) -> (85,12)
+Info:                          Sink n18_o_CCU2C_S0_3_COUT_CCU2C_CIN$CCU2_COMB1.FCI
+Info:      logic  0.00  1.45 Source n18_o_CCU2C_S0_3_COUT_CCU2C_CIN$CCU2_COMB1.FCO
+Info:    routing  0.00  1.45 Net n18_o_CCU2C_S1_3_CIN (85,12) -> (86,12)
+Info:                          Sink n18_o_CCU2C_S1_3$CCU2_COMB0.FCI
 Info:                          Defined in:
-Info:                               build/blinky.v:39.18-39.62
+Info:                               build/blinky.v:59.18-59.62
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
-Info:      logic  0.06  1.99 Source n15_o_CCU2C_S0_4$CCU2_COMB0.FCO
-Info:    routing  0.00  1.99 Net n15_o_CCU2C_S0_4$CCU2_FCI_INT (86,9) -> (86,9)
-Info:                          Sink n15_o_CCU2C_S0_4$CCU2_COMB1.FCI
-Info:      logic  0.00  1.99 Source n15_o_CCU2C_S0_4$CCU2_COMB1.FCO
-Info:    routing  0.00  1.99 Net n15_o_CCU2C_S0_4_COUT (86,9) -> (86,9)
-Info:                          Sink n15_o_CCU2C_S0_4_COUT_CCU2C_CIN$CCU2_COMB0.FCI
+Info:      logic  0.04  1.49 Source n18_o_CCU2C_S1_3$CCU2_COMB0.FCO
+Info:    routing  0.00  1.49 Net n18_o_CCU2C_S1_3$CCU2_FCI_INT (86,12) -> (86,12)
+Info:                          Sink n18_o_CCU2C_S1_3$CCU2_COMB1.FCI
+Info:      logic  0.00  1.49 Source n18_o_CCU2C_S1_3$CCU2_COMB1.FCO
+Info:    routing  0.00  1.49 Net n18_o_CCU2C_S1_3_COUT (86,12) -> (86,12)
+Info:                          Sink n18_o_CCU2C_S1_2$CCU2_COMB0.FCI
 Info:                          Defined in:
-Info:                               build/blinky.v:39.18-39.62
+Info:                               build/blinky.v:59.18-59.62
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
-Info:      logic  0.06  2.05 Source n15_o_CCU2C_S0_4_COUT_CCU2C_CIN$CCU2_COMB0.FCO
-Info:    routing  0.00  2.05 Net n15_o_CCU2C_S0_4_COUT_CCU2C_CIN$CCU2_FCI_INT (86,9) -> (86,9)
-Info:                          Sink n15_o_CCU2C_S0_4_COUT_CCU2C_CIN$CCU2_COMB1.FCI
-Info:      logic  0.29  2.34 Source n15_o_CCU2C_S0_4_COUT_CCU2C_CIN$CCU2_COMB1.F
-Info:    routing  0.63  2.97 Net n15_o_LUT4_Z_5_C[2] (86,9) -> (87,9)
-Info:                          Sink n15_o_LUT4_Z_5.C
+Info:      logic  0.04  1.53 Source n18_o_CCU2C_S1_2$CCU2_COMB0.FCO
+Info:    routing  0.00  1.53 Net n18_o_CCU2C_S1_2$CCU2_FCI_INT (86,12) -> (86,12)
+Info:                          Sink n18_o_CCU2C_S1_2$CCU2_COMB1.FCI
+Info:      logic  0.00  1.53 Source n18_o_CCU2C_S1_2$CCU2_COMB1.FCO
+Info:    routing  0.00  1.53 Net n18_o_CCU2C_S1_2_COUT (86,12) -> (86,12)
+Info:                          Sink n18_o_CCU2C_S1_2_COUT_CCU2C_CIN$CCU2_COMB0.FCI
+Info:                          Defined in:
+Info:                               build/blinky.v:59.18-59.62
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
+Info:      logic  0.04  1.58 Source n18_o_CCU2C_S1_2_COUT_CCU2C_CIN$CCU2_COMB0.FCO
+Info:    routing  0.00  1.58 Net n18_o_CCU2C_S1_2_COUT_CCU2C_CIN$CCU2_FCI_INT (86,12) -> (86,12)
+Info:                          Sink n18_o_CCU2C_S1_2_COUT_CCU2C_CIN$CCU2_COMB1.FCI
+Info:      logic  0.00  1.58 Source n18_o_CCU2C_S1_2_COUT_CCU2C_CIN$CCU2_COMB1.FCO
+Info:    routing  0.00  1.58 Net n18_o_CCU2C_S1_2_COUT_CCU2C_CIN_COUT (86,12) -> (86,12)
+Info:                          Sink n18_o_PFUMX_Z_3_C0_CCU2C_S0$CCU2_COMB0.FCI
+Info:                          Defined in:
+Info:                               build/blinky.v:59.18-59.62
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
+Info:      logic  0.04  1.62 Source n18_o_PFUMX_Z_3_C0_CCU2C_S0$CCU2_COMB0.FCO
+Info:    routing  0.00  1.62 Net n18_o_PFUMX_Z_3_C0_CCU2C_S0$CCU2_FCI_INT (86,12) -> (86,12)
+Info:                          Sink n18_o_PFUMX_Z_3_C0_CCU2C_S0$CCU2_COMB1.FCI
+Info:      logic  0.00  1.62 Source n18_o_PFUMX_Z_3_C0_CCU2C_S0$CCU2_COMB1.FCO
+Info:    routing  0.00  1.62 Net n18_o_CCU2C_S1_1_CIN (86,12) -> (87,12)
+Info:                          Sink n18_o_CCU2C_S1_1$CCU2_COMB0.FCI
+Info:                          Defined in:
+Info:                               build/blinky.v:59.18-59.62
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
+Info:      logic  0.04  1.66 Source n18_o_CCU2C_S1_1$CCU2_COMB0.FCO
+Info:    routing  0.00  1.66 Net n18_o_CCU2C_S1_1$CCU2_FCI_INT (87,12) -> (87,12)
+Info:                          Sink n18_o_CCU2C_S1_1$CCU2_COMB1.FCI
+Info:      logic  0.00  1.66 Source n18_o_CCU2C_S1_1$CCU2_COMB1.FCO
+Info:    routing  0.00  1.66 Net n18_o_CCU2C_S1_1_COUT (87,12) -> (87,12)
+Info:                          Sink n18_o_CCU2C_S1_1_COUT_CCU2C_CIN$CCU2_COMB0.FCI
+Info:                          Defined in:
+Info:                               build/blinky.v:59.18-59.62
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/arith_map.v:74.7-80.4
+Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_sim.v:82.9-82.13
+Info:      logic  0.26  1.92 Source n18_o_CCU2C_S1_1_COUT_CCU2C_CIN$CCU2_COMB0.F
+Info:    routing  0.60  2.52 Net n18_o_PFUMX_Z_C0[4] (87,12) -> (88,13)
+Info:                          Sink n18_o_PFUMX_Z_BLUT_LUT4_Z.M
 Info:                          Defined in:
 Info:                               /Users/hackbook/oss-cad-suite/libexec/../share/yosys/ecp5/cells_map.v:108.23-108.24
-Info:      logic  0.18  3.15 Source n15_o_LUT4_Z_5.F
-Info:    routing  0.12  3.27 Net n15_o[17] (87,9) -> (87,9)
-Info:                          Sink n15_o_CCU2C_S0_3_B0_LUT4_C_Z_TRELLIS_FF_Q_3.DI
+Info:      logic  0.15  2.67 Source n18_o_PFUMX_Z_BLUT_LUT4_Z.OFX
+Info:    routing  0.25  2.91 Net n18_o[24] (88,13) -> (88,13)
+Info:                          Sink n18_o_CCU2C_S1_1_B0_TRELLIS_FF_Q.M
 Info:                          Defined in:
-Info:                               build/blinky.v:13.15-13.20
-Info:      setup  0.00  3.27 Source n15_o_CCU2C_S0_3_B0_LUT4_C_Z_TRELLIS_FF_Q_3.DI
-Info: 1.67 ns logic, 1.60 ns routing
+Info:                               build/blinky.v:16.15-16.20
+Info:      setup  0.00  2.91 Source n18_o_CCU2C_S1_1_B0_TRELLIS_FF_Q.M
+Info: 1.47 ns logic, 1.45 ns routing
 
 Info: Critical path report for cross-domain path '<async>' -> 'posedge $glbnet$clk$TRELLIS_IO_IN':
 Info:       type curr  total name
 Info:     source  0.00  0.00 Source rst$tr_io.O
-Info:    routing  4.49  4.49 Net rst$TRELLIS_IO_IN (0,23) -> (88,8)
-Info:                          Sink led_state_TRELLIS_FF_Q.LSR
+Info:    routing  1.13  1.13 Net rst$TRELLIS_IO_IN (90,23) -> (84,13)
+Info:                          Sink n18_o_LUT4_Z_5_D_TRELLIS_FF_Q_3.LSR
 Info:                          Defined in:
 Info:                               build/blinky.v:3.11-3.14
-Info:      setup  0.29  4.77 Source led_state_TRELLIS_FF_Q.LSR
-Info: 0.29 ns logic, 4.49 ns routing
+Info:      setup  0.22  1.36 Source n18_o_LUT4_Z_5_D_TRELLIS_FF_Q_3.LSR
+Info: 0.22 ns logic, 1.13 ns routing
 
 Info: Critical path report for cross-domain path 'posedge $glbnet$clk$TRELLIS_IO_IN' -> '<async>':
 Info:       type curr  total name
-Info:   clk-to-q  0.40  0.40 Source led_state_TRELLIS_FF_Q.Q
-Info:    routing  0.17  0.57 Net led[0]$TRELLIS_IO_OUT (88,8) -> (88,8)
-Info:                          Sink n9_o_LUT4_Z.D
+Info:   clk-to-q  0.31  0.31 Source seg_a_TRELLIS_FF_Q.Q
+Info:    routing  5.32  5.63 Net seg_a$TRELLIS_IO_OUT (88,23) -> (6,71)
+Info:                          Sink seg_a$tr_io.I
 Info:                          Defined in:
-Info:                               build/blinky.v:17.7-17.12
-Info:      logic  0.18  0.75 Source n9_o_LUT4_Z.F
-Info:    routing  0.94  1.68 Net led[1]$TRELLIS_IO_OUT (88,8) -> (90,11)
-Info:                          Sink led[1]$tr_io.I
-Info:                          Defined in:
-Info:                               build/blinky.v:9.8-9.12
-Info: 0.57 ns logic, 1.11 ns routing
+Info:                               build/blinky.v:9.7-9.16
+Info: 0.31 ns logic, 5.32 ns routing
 
-Info: Max frequency for clock '$glbnet$clk$TRELLIS_IO_IN': 305.53 MHz (PASS at 12.00 MHz)
+Info: Max frequency for clock '$glbnet$clk$TRELLIS_IO_IN': 343.17 MHz (PASS at 12.00 MHz)
 
-Info: Max delay <async>                           -> posedge $glbnet$clk$TRELLIS_IO_IN: 4.77 ns
-Info: Max delay posedge $glbnet$clk$TRELLIS_IO_IN -> <async>                          : 1.68 ns
+Info: Max delay <async>                           -> posedge $glbnet$clk$TRELLIS_IO_IN: 1.36 ns
+Info: Max delay posedge $glbnet$clk$TRELLIS_IO_IN -> <async>                          : 5.63 ns
 
 Info: Slack histogram:
 Info:  legend: * represents 1 endpoint(s)
 Info:          + represents [1,1) endpoint(s)
-Info: [ 80060,  80181) |*** 
-Info: [ 80181,  80302) |**** 
-Info: [ 80302,  80423) |** 
-Info: [ 80423,  80544) |** 
-Info: [ 80544,  80665) | 
-Info: [ 80665,  80786) |* 
-Info: [ 80786,  80907) |* 
-Info: [ 80907,  81028) |*** 
-Info: [ 81028,  81149) |* 
-Info: [ 81149,  81270) |*** 
-Info: [ 81270,  81391) |*** 
-Info: [ 81391,  81512) | 
-Info: [ 81512,  81633) | 
-Info: [ 81633,  81754) | 
-Info: [ 81754,  81875) | 
-Info: [ 81875,  81996) | 
-Info: [ 81996,  82117) | 
-Info: [ 82117,  82238) | 
-Info: [ 82238,  82359) | 
-Info: [ 82359,  82480) |** 
+Info: [ 80419,  80530) |**** 
+Info: [ 80530,  80641) |*** 
+Info: [ 80641,  80752) |****** 
+Info: [ 80752,  80863) |* 
+Info: [ 80863,  80974) | 
+Info: [ 80974,  81085) | 
+Info: [ 81085,  81196) | 
+Info: [ 81196,  81307) | 
+Info: [ 81307,  81418) |* 
+Info: [ 81418,  81529) |** 
+Info: [ 81529,  81640) |** 
+Info: [ 81640,  81751) |**** 
+Info: [ 81751,  81862) |*** 
+Info: [ 81862,  81973) |* 
+Info: [ 81973,  82084) | 
+Info: [ 82084,  82195) | 
+Info: [ 82195,  82306) | 
+Info: [ 82306,  82417) | 
+Info: [ 82417,  82528) |* 
+Info: [ 82528,  82639) |** 
 1 warning, 0 errors
 
 Info: Program finished normally.

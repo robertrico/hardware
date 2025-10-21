@@ -9,14 +9,15 @@ use IEEE.NUMERIC_STD.ALL;
 entity blinky is
     -- Generics are like compile-time constants that can be overridden
     generic (
-        CLK_FREQ : integer := 12000000;  -- Clock frequency in Hz (12 MHz on ECP5 Versa board)
-        BLINK_FREQ : integer := 1        -- Desired blink rate in Hz (1 Hz = 1 blink per second)
+        CLK_FREQ : integer := 100000000;  -- Clock frequency in Hz (100 MHz on ECP5 Versa board)
+        BLINK_FREQ : integer := 2         -- Desired blink rate in Hz (1 Hz = 1 blink per second)
     );
     -- Ports are the actual input/output pins
     port (
         clk : in std_logic;                       -- Clock input from FPGA oscillator
         rst : in std_logic;                       -- Reset input (active high - '1' = reset)
-        led : out std_logic_vector(7 downto 0)    -- 8-bit output bus for LEDs (7 down to 0)
+        led : out std_logic_vector(7 downto 0);    -- 8-bit output bus for LEDs (7 down to 0)
+        seg_a: out std_logic
     );
 end blinky;
 
@@ -34,6 +35,7 @@ architecture rtl of blinky is
     -- Initialized to '0' (LED off at startup)
     signal led_state : std_logic := '0';
     signal led_state_offset : std_logic := '0';
+    signal seg_a_reg : std_logic := '0';
 begin
 
     -- Process: a sequential block that executes when any signal in sensitivity list changes
@@ -46,13 +48,10 @@ begin
             counter <= 0;           -- Reset counter to 0
             led_state <= '0';       -- Turn LED off
             led_state_offset <= '0';       -- Turn LED off
+            seg_a_reg <= '0';       -- Reset seg_a output
 
         -- If not resetting, check for rising edge of clock (0 -> 1 transition)
         -- This makes it a "synchronous" design - changes only happen on clock edge
-        elsif falling_edge(clk) then 
-            if counter = (MAX_COUNT / 2) then
-                led_state_offset <= not led_state_offset;  -- Toggle LED state (0->1 or 1->0)
-            end if;
         elsif rising_edge(clk) then
 
             -- Check if we've counted up to our target (6,000,000 - 1)
@@ -65,6 +64,14 @@ begin
             else
                 counter <= counter + 1;      -- Increment counter by 1
             end if;
+
+            -- Toggle offset LED at half period for visual effect
+            if counter = (MAX_COUNT / 2) then
+                led_state_offset <= not led_state_offset;  -- Toggle LED state (0->1 or 1->0)
+            end if;
+
+            -- Register the output to reduce routing delay to distant pin
+            seg_a_reg <= led_state;
         end if;
     end process;
 
@@ -74,9 +81,10 @@ begin
     led(1) <= not led_state;
     led(2) <= led_state;
     led(3) <= led_state_offset;
+    seg_a <= seg_a_reg;
 
     -- Drive all other LEDs (7 down to 1) to '0' (off)
     -- The "(others => '0')" syntax means "set all remaining bits to 0"
-    led(7 downto 4) <= (others => '0');
+    led(7 downto 4) <= (others => '1');
 
 end rtl;

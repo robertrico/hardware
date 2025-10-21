@@ -43,7 +43,7 @@ LPF_FILE = $(CONSTRAINTS_DIR)/versa_ecp5.lpf
 # FPGA Configuration
 #==========================================
 # Lattice ECP5-5G Versa board defaults (LFE5UM5G-45F-VERSA-EVN)
-FPGA_DEVICE = 45k
+FPGA_DEVICE = um5g-45k
 FPGA_PACKAGE = CABGA381
 FPGA_SPEED = 8
 
@@ -177,7 +177,7 @@ bitstream: $(BITSTREAM_FILE)
 .PHONY: program
 program: $(BITSTREAM_FILE)
 	@echo "Programming FPGA SRAM (volatile)..."
-	$(OPENFPGALOADER) -b versa_ecp5 -m $(BITSTREAM_FILE)
+	$(OPENFPGALOADER) -c ft2232 -m $(BITSTREAM_FILE)
 
 # Program to FPGA flash (persistent, survives power cycle)
 .PHONY: flash
