@@ -41,7 +41,7 @@ echo ""
 
 # Create directory structure
 echo "Creating directory structure..."
-mkdir -p "$PROJECT_NAME"/{src,sim,constraints,build,work,docs,install_scripts,reports}
+mkdir -p "$PROJECT_NAME"/{src,sim,constraints,build,work,docs,reports}
 
 # Create main RTL file
 echo "Creating RTL source file..."
@@ -499,11 +499,6 @@ reports:
 	@echo "  Timing:       $(TIMING_REPORT)"
 	@echo "  Utilization:  $(UTILIZATION_REPORT)"
 
-# Check toolchain
-.PHONY: check-tools
-check-tools:
-	@./install_scripts/check_toolchain.sh
-
 # Clean generated files
 .PHONY: clean
 clean:
@@ -587,11 +582,6 @@ brew install --cask oss-cad-suite
 # Or download from: https://github.com/YosysHQ/oss-cad-suite-build/releases
 ```
 
-Verify installation:
-```bash
-make check-tools
-```
-
 ## Project Structure
 
 ```
@@ -611,12 +601,7 @@ PROJECT_NAME/
 
 ## Quick Start
 
-### 1. Verify Toolchain
-```bash
-make check-tools
-```
-
-### 2. Simulate
+### 1. Simulate
 Run the GHDL testbench to verify functionality:
 ```bash
 make sim                  # Run simulation and open GTKWave
@@ -666,7 +651,6 @@ make reports             # View synthesis/timing reports
 
 ### Utilities
 ```bash
-make check-tools         # Verify toolchain installation
 make clean               # Clean simulation files
 make clean-all           # Clean everything
 make help                # Show all targets
@@ -705,108 +689,16 @@ EOF
 # Replace PROJECT_NAME in README
 sed -i '' "s/PROJECT_NAME/${PROJECT_NAME}/g" "$PROJECT_NAME/README.md"
 
-# Create check_toolchain.sh
-echo "Creating toolchain check script..."
-cat > "$PROJECT_NAME/install_scripts/check_toolchain.sh" << 'EOF'
-#!/bin/bash
-
-# FPGA Toolchain Check Script
-# Verifies that all required tools are installed and accessible
-
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-echo "Checking FPGA toolchain installation..."
-echo ""
-
-# Array to track missing tools
-MISSING_TOOLS=()
-
-# Function to check if a command exists
-check_tool() {
-    local tool=$1
-    local name=$2
-
-    if command -v "$tool" &> /dev/null; then
-        local version=$($tool --version 2>&1 | head -n 1)
-        echo -e "${GREEN}✓${NC} $name: $version"
-        return 0
-    else
-        echo -e "${RED}✗${NC} $name: NOT FOUND"
-        MISSING_TOOLS+=("$name")
-        return 1
-    fi
-}
-
-# Check each tool
-check_tool "ghdl" "GHDL"
-check_tool "yosys" "Yosys"
-check_tool "nextpnr-ecp5" "nextpnr-ecp5"
-check_tool "ecppack" "ecppack"
-check_tool "openFPGALoader" "openFPGALoader"
-check_tool "gtkwave" "GTKWave"
-
-echo ""
-
-# Report results
-if [ ${#MISSING_TOOLS[@]} -eq 0 ]; then
-    echo -e "${GREEN}All tools are installed and ready!${NC}"
-    exit 0
-else
-    echo -e "${RED}Missing tools: ${MISSING_TOOLS[*]}${NC}"
-    echo ""
-    echo -e "${YELLOW}Install OSS CAD Suite:${NC}"
-    echo "  brew install --cask oss-cad-suite"
-    echo "  Or download from: https://github.com/YosysHQ/oss-cad-suite-build/releases"
-    exit 1
-fi
-EOF
-
-chmod +x "$PROJECT_NAME/install_scripts/check_toolchain.sh"
-
-# Create .gitignore
-echo "Creating .gitignore..."
-cat > "$PROJECT_NAME/.gitignore" << 'EOF'
-# GHDL work files
-work/
-*.cf
-
-# Build artifacts
-build/
-reports/
-
-# Simulation outputs
-sim/*.vcd
-sim/*.ghw
-sim/output.txt
-
-# GTKWave save files
-*.gtkw
-
-# Editor files
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Testbench executables
-*_tb
-e~*.lst
-EOF
-
 echo ""
 echo -e "${GREEN}Project '$PROJECT_NAME' created successfully!${NC}"
 echo ""
 echo "Next steps:"
 echo "  1. cd $PROJECT_NAME"
-echo "  2. make check-tools           # Verify toolchain"
-echo "  3. Edit src/${PROJECT_NAME}.vhdl  # Implement your design"
-echo "  4. Edit sim/test.vhdl         # Add test cases"
-echo "  5. make sim                   # Run simulation"
-echo "  6. make bitstream             # Build for FPGA"
-echo "  7. make program               # Flash to hardware"
+echo "  2. Edit src/${PROJECT_NAME}.vhdl  # Implement your design"
+echo "  3. Edit sim/test.vhdl         # Add test cases"
+echo "  4. make sim                   # Run simulation"
+echo "  5. make bitstream             # Build for FPGA"
+echo "  6. make program               # Flash to hardware"
 echo ""
 echo -e "${YELLOW}Documentation:${NC} See $PROJECT_NAME/README.md"
 echo ""
