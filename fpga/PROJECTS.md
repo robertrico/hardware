@@ -53,7 +53,7 @@ Create a "Knight Rider" style LED pattern where a single LED moves left-to-right
 
 ---
 
-## Project 3: Binary Counter Display
+## Project 3: Binary Counter Display 🛠️ READY FOR HARDWARE
 **Difficulty**: ⭐⭐☆☆☆
 
 **Description**:
@@ -83,7 +83,7 @@ Display an 8-bit binary counter on the 8 LEDs, incrementing once per second.
 
 ---
 
-## Project 4: Button-Controlled LED
+## Project 4: Button-Controlled LED ✅ COMPLETE
 **Difficulty**: ⭐⭐☆☆☆
 
 **Description**:
