@@ -1,0 +1,114 @@
+# ECP5-5G Versa Development Kit Constraints
+# Board: LFE5UM5G-45F-VERSA-EVN
+# Device: LFE5UM5G-45F-8BG381C
+
+# ====================================================================================
+# Clock Inputs
+# ====================================================================================
+
+# 100 MHz LVDS Oscillator (X1) - General Purpose Clock
+# Bank 6 - Connects to PCLKT6_0/PCLKC6_0
+LOCATE COMP "clk" SITE "P3";
+IOBUF PORT "clk" IO_TYPE=LVDS;
+
+# ====================================================================================
+# Reset - Using DIP Switch SW3-1 as reset
+# ====================================================================================
+LOCATE COMP "rst" SITE "H2";
+IOBUF PORT "rst" IO_TYPE=LVCMOS15;
+
+# ====================================================================================
+# General Purpose LEDs (Bank 2 - 2.5V)
+# Note: LEDs are ACTIVE LOW (illuminate when driven to '0')
+# ====================================================================================
+
+# LED0 - D25 (Yellow)
+LOCATE COMP "led[0]" SITE "E16";
+IOBUF PORT "led[0]" IO_TYPE=LVCMOS25;
+
+# LED1 - D24 (Yellow)
+LOCATE COMP "led[1]" SITE "D17";
+IOBUF PORT "led[1]" IO_TYPE=LVCMOS25;
+
+# LED2 - D22 (Green)
+LOCATE COMP "led[2]" SITE "D18";
+IOBUF PORT "led[2]" IO_TYPE=LVCMOS25;
+
+# LED3 - D21 (Green)
+LOCATE COMP "led[3]" SITE "E18";
+IOBUF PORT "led[3]" IO_TYPE=LVCMOS25;
+
+# LED4 - D26 (Red)
+LOCATE COMP "led[4]" SITE "F17";
+IOBUF PORT "led[4]" IO_TYPE=LVCMOS25;
+
+# LED5 - D27 (Red)
+LOCATE COMP "led[5]" SITE "F18";
+IOBUF PORT "led[5]" IO_TYPE=LVCMOS25;
+
+# LED6 - D28 (Red)
+LOCATE COMP "led[6]" SITE "E17";
+IOBUF PORT "led[6]" IO_TYPE=LVCMOS25;
+
+# LED7 - D29 (Red)
+LOCATE COMP "led[7]" SITE "F16";
+IOBUF PORT "led[7]" IO_TYPE=LVCMOS25;
+
+# ====================================================================================
+# DIP Switches (SW3) - User Input (Optional)
+# ====================================================================================
+
+# SW3-1 (Bank 7 - 1.5V)
+LOCATE COMP "sw[0]" SITE "H2";
+IOBUF PORT "sw[0]" IO_TYPE=LVCMOS15;
+
+# SW3-2 (Bank 7 - 1.5V)
+LOCATE COMP "sw[1]" SITE "K3";
+IOBUF PORT "sw[1]" IO_TYPE=LVCMOS15;
+
+# SW3-3 (Bank 7 - 1.5V)
+LOCATE COMP "sw[2]" SITE "G3";
+IOBUF PORT "sw[2]" IO_TYPE=LVCMOS15;
+
+# SW3-4 (Bank 7 - 1.5V)
+LOCATE COMP "sw[3]" SITE "F2";
+IOBUF PORT "sw[3]" IO_TYPE=LVCMOS15;
+
+# SW3-5 (Bank 2 - 2.5V)
+LOCATE COMP "sw[4]" SITE "J18";
+IOBUF PORT "sw[4]" IO_TYPE=LVCMOS25;
+
+# SW3-6 (Bank 2 - 2.5V)
+LOCATE COMP "sw[5]" SITE "K18";
+IOBUF PORT "sw[5]" IO_TYPE=LVCMOS25;
+
+# SW3-7 (Bank 2 - 2.5V)
+LOCATE COMP "sw[6]" SITE "K19";
+IOBUF PORT "sw[6]" IO_TYPE=LVCMOS25;
+
+# SW3-8 (Bank 2 - 2.5V)
+LOCATE COMP "sw[7]" SITE "K20";
+IOBUF PORT "sw[7]" IO_TYPE=LVCMOS25;
+
+# ====================================================================================
+# Push Buttons - User Input
+# ====================================================================================
+
+# Button on B19 (Bank 1 - 3.3V) - Active Low (pulled to GND when pressed)
+LOCATE COMP "btn" SITE "B19";
+IOBUF PORT "btn" IO_TYPE=LVCMOS33 PULLMODE=UP;
+
+# ====================================================================================
+# X3 Expansion Connector Test Pins
+# ====================================================================================
+
+# X3 Pin 7 - IO32 (Bank 1 - 3.3V) - Test output for blinking LED
+LOCATE COMP "test_pin7" SITE "E6";
+IOBUF PORT "test_pin7" IO_TYPE=LVCMOS33;
+
+# ====================================================================================
+# Configuration
+# ====================================================================================
+
+# These apply to the entire design
+SYSCONFIG CONFIG_IOVOLTAGE=3.3 COMPRESS_CONFIG=ON MCCLK_FREQ=62;
