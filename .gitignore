@@ -12,7 +12,8 @@ pico_w_intro
 projects/pico-sdk*
 
 secrets.py
-*.env*
+*.env
+!*.env.example
 
 esp_projects/init/sdkconfig
 managed_components/
@@ -62,3 +63,6 @@ fpga/**/sim/output.txt
 fpga/**/*.gtkw
 fpga/**/*_tb
 fpga/**/e~*.lst
+
+# FPGA environment (machine-specific)
+fpga/.env
