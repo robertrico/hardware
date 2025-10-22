@@ -4,7 +4,7 @@
 # Environment Setup
 #==========================================
 # OSS CAD Suite path
-OSS_CAD_SUITE = /Users/hackbook/oss-cad-suite
+OSS_CAD_SUITE = /Users/hambook/oss-cad-suite
 SHELL := /bin/bash
 export PATH := $(OSS_CAD_SUITE)/bin:$(PATH)
 
