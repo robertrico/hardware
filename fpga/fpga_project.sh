@@ -34,7 +34,7 @@ if [ -d "$PROJECT_NAME" ]; then
 fi
 
 # Path to OSS CAD Suite
-OSS_CAD_SUITE="/Users/hackbook/oss-cad-suite"
+OSS_CAD_SUITE="/Users/$2/oss-cad-suite"
 
 echo -e "${GREEN}Creating FPGA project: $PROJECT_NAME${NC}"
 echo ""

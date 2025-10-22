@@ -428,7 +428,7 @@ By completing all projects, you'll be proficient in:
   fpga/
     blinky/           (Project 1) ✅
     knight_rider/     (Project 2)
-    binary_counter/   (Project 3)
+    external_components/   (Project 3)
     button_toggle/    (Project 4)
     ...
   ```
