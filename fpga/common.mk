@@ -3,11 +3,13 @@
 #
 # Required project-specific variables:
 #   TOP_ENTITY      - Top-level entity name
-#   TB_ENTITY       - Testbench entity name
+#   TB_ENTITY       - Testbench entity name (or default testbench if TEST not specified)
 #   RTL_SOURCES     - List of RTL source files
-#   TB_SOURCES      - List of testbench files (optional)
+#   TB_SOURCES      - List of testbench files (optional, for single test)
+#   ALL_TB_SOURCES  - List of all testbench files (optional, for multiple tests)
 #
 # Optional overrides:
+#   TEST            - Specify which test to run (e.g., make sim TEST=debouncer_test)
 #   SIM_STOP_TIME   - Simulation duration (default: 1ms)
 #   FPGA_DEVICE     - FPGA device (default: um5g-45k)
 #   FPGA_PACKAGE    - Package type (default: CABGA381)
@@ -73,10 +75,19 @@ SIM_REPORT = $(REPORTS_DIR)/simulation.txt
 #==========================================
 # Simulation parameters
 #==========================================
+# If TEST is specified, override TB_ENTITY and TB_SOURCES
+ifdef TEST
+    ACTIVE_TB_ENTITY = $(TEST)
+    ACTIVE_TB_SOURCES = $(SIM_DIR)/$(TEST).vhdl
+else
+    ACTIVE_TB_ENTITY = $(TB_ENTITY)
+    ACTIVE_TB_SOURCES = $(TB_SOURCES)
+endif
+
 SIM_STOP_TIME ?= 1ms
 SIM_OUTPUT = $(SIM_DIR)/output.txt
-VCD_FILE = $(SIM_DIR)/$(TB_ENTITY).vcd
-GTKW_FILE = $(SIM_DIR)/$(TB_ENTITY).gtkw
+VCD_FILE = $(SIM_DIR)/$(ACTIVE_TB_ENTITY).vcd
+GTKW_FILE = $(SIM_DIR)/$(ACTIVE_TB_ENTITY).gtkw
 GHDL_FLAGS ?= --std=08
 
 #==========================================
@@ -113,13 +124,13 @@ analyze-rtl: $(WORK_DIR)
 .PHONY: analyze-tb
 analyze-tb: analyze-rtl
 	@echo "Analyzing testbench sources..."
-	$(GHDL) -a $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(TB_SOURCES)
+	$(GHDL) -a $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(ACTIVE_TB_SOURCES)
 
 # Elaborate (build) testbench
 .PHONY: elaborate
 elaborate: analyze-tb
-	@echo "Elaborating $(TB_ENTITY)..."
-	$(GHDL) -e $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(TB_ENTITY)
+	@echo "Elaborating $(ACTIVE_TB_ENTITY)..."
+	$(GHDL) -e $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(ACTIVE_TB_ENTITY)
 
 # Run simulation, generate VCD, and open GTKWave
 .PHONY: sim
@@ -127,9 +138,10 @@ sim: elaborate | create-reports-dir
 	@echo "Running simulation with VCD output..."
 	@echo "==========================================" > $(SIM_REPORT)
 	@echo "Simulation Report - $(shell date)" >> $(SIM_REPORT)
+	@echo "Testbench: $(ACTIVE_TB_ENTITY)" >> $(SIM_REPORT)
 	@echo "==========================================" >> $(SIM_REPORT)
 	@echo "" >> $(SIM_REPORT)
-	@set -o pipefail; $(GHDL) -r $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(TB_ENTITY) \
+	@set -o pipefail; $(GHDL) -r $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(ACTIVE_TB_ENTITY) \
 		--stop-time=$(SIM_STOP_TIME) \
 		--vcd=$(VCD_FILE) \
 		--assert-level=error \
@@ -224,6 +236,22 @@ flash: $(BITSTREAM_FILE)
 # Utility Targets
 #==========================================
 
+# List available tests
+.PHONY: list-tests
+list-tests:
+	@echo "Available testbenches:"
+	@if [ -n "$(ALL_TB_SOURCES)" ]; then \
+		for tb in $(ALL_TB_SOURCES); do \
+			name=$$(basename $$tb .vhdl); \
+			echo "  - $$name"; \
+		done; \
+		echo ""; \
+		echo "Usage: make sim TEST=<testbench_name>"; \
+		echo "Example: make sim TEST=$$(basename $(word 1,$(ALL_TB_SOURCES)) .vhdl)"; \
+	else \
+		echo "  - $(TB_ENTITY) (default)"; \
+	fi
+
 # View simulation report
 .PHONY: sim-report
 sim-report:
@@ -267,9 +295,9 @@ clean:
 	@echo "Cleaning simulation files..."
 	@$(GHDL) --clean $(GHDL_FLAGS) --workdir=$(WORK_DIR) 2>/dev/null || true
 	@rm -rf $(WORK_DIR)
-	@rm -f $(TB_ENTITY)
+	@rm -f $(TB_ENTITY) $(ACTIVE_TB_ENTITY)
 	@rm -f *.cf
-	@rm -f $(VCD_FILE)
+	@rm -f $(SIM_DIR)/*.vcd
 
 # Clean everything including FPGA build
 .PHONY: clean-all distclean
@@ -289,6 +317,13 @@ help:
 	@echo "  make program    - Flash to FPGA SRAM (volatile, fast)"
 	@echo "  make flash      - Flash to FPGA flash (persistent)"
 	@echo ""
+	@echo "=== Testing ==="
+	@echo "  make list-tests - List all available testbenches"
+	@echo "  make sim TEST=<name> - Run specific testbench"
+	@if [ -n "$(ALL_TB_SOURCES)" ]; then \
+		echo "  Example: make sim TEST=$$(basename $(word 1,$(ALL_TB_SOURCES)) .vhdl)"; \
+	fi
+	@echo ""
 	@echo "=== Utility Targets ==="
 	@echo "  make sim-report - View simulation report (assertions, warnings)"
 	@echo "  make reports    - View synthesis/timing/utilization reports"
@@ -298,7 +333,8 @@ help:
 	@echo ""
 	@echo "=== Advanced Options ==="
 	@echo "  SIM_STOP_TIME   - Simulation duration (default: $(SIM_STOP_TIME))"
-	@echo "  Example: make sim SIM_STOP_TIME=2ms"
+	@echo "  TEST            - Specify testbench to run"
+	@echo "  Example: make sim SIM_STOP_TIME=2ms TEST=debouncer_test"
 	@echo ""
 	@echo "=== Typical Workflow ==="
 	@echo "  1. make sim         # Verify design in simulation"

@@ -57,7 +57,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity PROJECT_NAME is
     -- Generics are like compile-time constants that can be overridden
     generic (
-        CLK_FREQ : integer := 12000000  -- Clock frequency in Hz (12 MHz on ECP5 Versa board)
+        CLK_FREQ : integer := 100_000_000  -- Clock frequency in Hz (100 MHz on ECP5 Versa board)
     );
     -- Ports are the actual input/output pins
     port (
