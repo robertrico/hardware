@@ -53,8 +53,8 @@ IOBUF PORT "led[7]" IO_TYPE=LVCMOS25;
 # ====================================================================================
 
 # SW3-1 (Bank 7 - 1.5V)
-LOCATE COMP "sw[0]" SITE "H2";
-IOBUF PORT "sw[0]" IO_TYPE=LVCMOS15;
+LOCATE COMP "rst" SITE "H2";
+IOBUF PORT "rst" IO_TYPE=LVCMOS15;
 
 # SW3-2 (Bank 7 - 1.5V)
 LOCATE COMP "sw[1]" SITE "K3";
@@ -89,4 +89,4 @@ IOBUF PORT "sw[7]" IO_TYPE=LVCMOS25;
 # ====================================================================================
 
 # These apply to the entire design
-SYSCONFIG CONFIG_IOVOLTAGE=3.3 COMPRESS_CONFIG=ON MCCLK_FREQ=62;
+SYSCONFIG CONFIG_IOVOLTAGE=2.5 COMPRESS_CONFIG=ON MCCLK_FREQ=62;

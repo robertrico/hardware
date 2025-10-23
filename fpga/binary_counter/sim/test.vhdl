@@ -21,14 +21,13 @@ architecture sim of binary_counter_tb is
         port (
             clk : in std_logic;                       -- Clock input
             rst : in std_logic;                       -- Reset input
-            led : out std_logic_vector(7 downto 0);    -- 8-bit LED output
-            out_counter : out integer
+            led : out std_logic_vector(7 downto 0)     -- 8-bit LED output
         );
     end component;
 
     -- Testbench signals: these connect to the component under test
     signal clk : std_logic := '0';                   -- Clock signal, starts at '0'
-    signal rst : std_logic := '0';                   -- Reset signal, starts at '0' (not reset)
+    signal rst : std_logic := '1';                   -- Reset signal (active-low: '1'=not reset, '0'=reset)
     signal led : std_logic_vector(7 downto 0);       -- 8-bit LED output
     signal counter : integer := 0;
 
@@ -46,14 +45,16 @@ begin
     -- Instantiate the Unit Under Test (UUT)
     uut: binary_counter
         generic map (
-            CLK_FREQ => SIM_CLK_FREQ        -- Use 1 kHz instead of 12 MHz
+            CLK_FREQ => SIM_CLK_FREQ        -- Use fast frequency for simulation
         )
         port map (
             clk => clk,
             rst => rst,
-            led => led,
-            out_counter => counter
+            led => led
         );
+
+    -- Derive counter value from LED output (invert since LEDs are active-low)
+    counter <= to_integer(unsigned(not led));
 
     -- Clock generation process: creates a continuous square wave
     clk_process: process
@@ -71,11 +72,11 @@ begin
     stim_process: process
         variable expected_led : std_logic_vector(7 downto 0);
     begin
-        -- Test 1: Apply reset and verify initial state
+        -- Test 1: Apply reset and verify initial state (active-low reset)
         report "=== Test 1: Reset ===";
-        rst <= '1';
+        rst <= '0';  -- Assert reset (active-low)
         wait for 100 ns;
-        rst <= '0';
+        rst <= '1';  -- De-assert reset
         wait for 20 ns;
         assert counter = 0
             report "FAIL: Counter should be 0 after reset, got " & integer'image(counter)
@@ -85,7 +86,9 @@ begin
         -- Test 2: Verify first few increments with LED matching
         report "=== Test 2: Counter increments 0->1->2->3 ===";
         for i in 1 to 3 loop
-            wait until rising_edge(clk);
+            -- Wait for counter to actually change
+            wait until counter = i or counter'event;
+            wait until counter = i;  -- Make sure we're at the right value
             wait for 1 ns;  -- Signal propagation delay
 
             -- Check counter value
@@ -143,14 +146,16 @@ begin
         wait for 1 ns;
         report "At counter=254, led=0x" & to_hstring(led);
 
-        wait until rising_edge(clk);
+        -- Wait for counter to actually increment to 255 (not just next clock edge)
+        wait until counter = 255;
         wait for 1 ns;
         assert counter = 255
-            report "FAIL: Counter should reach 255"
+            report "FAIL: Counter should reach 255, got " & integer'image(counter)
             severity error;
         report "PASS: counter=255, led=0x" & to_hstring(led);
 
-        wait until rising_edge(clk);
+        -- Wait for counter to rollover to 0
+        wait until counter = 0;
         wait for 1 ns;
         assert counter = 0
             report "FAIL: Counter should rollover to 0 after 255, got " & integer'image(counter)
@@ -161,14 +166,14 @@ begin
             severity error;
         report "PASS: Counter rolled over to 0, led=0x" & to_hstring(led);
 
-        -- Test 6: Reset during counting
+        -- Test 6: Reset during counting (active-low)
         report "=== Test 6: Reset during operation ===";
         wait until counter = 50;
         wait for 1 ns;
         report "Counter at 50, applying reset...";
-        rst <= '1';
+        rst <= '0';  -- Assert reset (active-low)
         wait for 50 ns;
-        rst <= '0';
+        rst <= '1';  -- De-assert reset
         wait for 1 ns;
         assert counter = 0
             report "FAIL: Reset should force counter to 0"
