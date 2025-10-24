@@ -5,18 +5,19 @@
 # Project Configuration
 #==========================================
 # Top-level entity and testbench names
-TOP_ENTITY = btn_modules
+TOP_ENTITY = btn_modules_top
 TB_ENTITY = btn_modules_tb  # Default testbench when TEST is not specified
 
 # RTL Source files (all modules in src/)
 RTL_SOURCES = $(SRC_DIR)/debouncer.vhdl \
-              $(SRC_DIR)/btn_modules.vhdl
+              $(SRC_DIR)/btn_modules.vhdl \
+              $(SRC_DIR)/btn_modules_top.vhdl
 
 # Default testbench (for backward compatibility)
-TB_SOURCES = $(SIM_DIR)/test.vhdl
+TB_SOURCES = $(SIM_DIR)/btn_modules_tb.vhdl
 
 # All available testbenches (for TEST= parameter)
-ALL_TB_SOURCES = $(SIM_DIR)/test.vhdl \
+ALL_TB_SOURCES = $(SIM_DIR)/btn_modules_tb.vhdl \
                  $(SIM_DIR)/debouncer_test.vhdl
 
 #==========================================

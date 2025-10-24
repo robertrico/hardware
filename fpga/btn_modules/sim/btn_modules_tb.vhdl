@@ -22,13 +22,13 @@ architecture sim of btn_modules_tb is
             rst : in std_logic;                        -- Reset input (active high - '1' = reset)
             btns : in std_logic_vector(3 downto 0);    -- 4 button inputs (active low)
             led : out std_logic_vector(7 downto 0);    -- 8-bit output bus for LEDs
-            btns_pressed : out std_logic_vector(7 downto 0)  -- Button press events
+            btns_pressed : out std_logic_vector(7 downto 0)  -- Debug output
         );
     end component;
 
     -- Testbench signals
     signal clk : std_logic := '0';
-    signal rst : std_logic := '0';
+    signal rst : std_logic := '1';  -- Active low reset - '1' = not in reset
     signal btns : std_logic_vector(3 downto 0) := (others => '1');  -- All buttons released
     signal led : std_logic_vector(7 downto 0);
     signal btns_pressed : std_logic_vector(7 downto 0);

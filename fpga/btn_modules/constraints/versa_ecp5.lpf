@@ -53,8 +53,8 @@ IOBUF PORT "led[7]" IO_TYPE=LVCMOS25;
 # ====================================================================================
 
 # SW3-1 (Bank 7 - 1.5V)
-LOCATE COMP "sw[0]" SITE "H2";
-IOBUF PORT "sw[0]" IO_TYPE=LVCMOS15;
+LOCATE COMP "rst" SITE "H2";
+IOBUF PORT "rst" IO_TYPE=LVCMOS15;
 
 # SW3-2 (Bank 7 - 1.5V)
 LOCATE COMP "sw[1]" SITE "K3";
@@ -83,6 +83,23 @@ IOBUF PORT "sw[6]" IO_TYPE=LVCMOS25;
 # SW3-8 (Bank 2 - 2.5V)
 LOCATE COMP "sw[7]" SITE "K20";
 IOBUF PORT "sw[7]" IO_TYPE=LVCMOS25;
+
+# ====================================================================================
+# Push Buttons - User Input
+# ====================================================================================
+
+# Button on B19 (Bank 1 - 3.3V) - Active Low (pulled to GND when pressed)
+LOCATE COMP "btns[0]" SITE "B19";
+IOBUF PORT "btns[0]" IO_TYPE=LVCMOS33 PULLMODE=UP;
+
+LOCATE COMP "btns[1]" SITE "B12";
+IOBUF PORT "btns[1]" IO_TYPE=LVCMOS33 PULLMODE=UP;
+
+LOCATE COMP "btns[2]" SITE "B9";
+IOBUF PORT "btns[2]" IO_TYPE=LVCMOS33 PULLMODE=UP;
+
+LOCATE COMP "btns[3]" SITE "E6";
+IOBUF PORT "btns[3]" IO_TYPE=LVCMOS33 PULLMODE=UP;
 
 # ====================================================================================
 # Configuration
