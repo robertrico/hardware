@@ -6,7 +6,8 @@
 #==========================================
 # Top-level entity and testbench names
 TOP_ENTITY = btn_modules_top
-TB_ENTITY = btn_modules_tb  # Default testbench when TEST is not specified
+# Default testbench when TEST is not specified
+TB_ENTITY = btn_modules_tb
 
 # RTL Source files (all modules in src/)
 RTL_SOURCES = $(SRC_DIR)/debouncer.vhdl \

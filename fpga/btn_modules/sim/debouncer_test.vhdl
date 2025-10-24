@@ -13,6 +13,7 @@ architecture testbench of debouncer_test is
         );
         port(
             clk : in std_logic;
+            rst : in std_logic;
             btn : in std_logic;
             btn_pressed : out std_logic
         );
@@ -24,6 +25,7 @@ architecture testbench of debouncer_test is
 
     -- Signals
     signal clk : std_logic := '0';
+    signal rst : std_logic := '1';  -- Active low reset - starts deasserted
     signal btn : std_logic := '1';  -- Button starts released (active low)
     signal btn_pressed : std_logic;
 
@@ -50,6 +52,7 @@ begin
         )
         port map(
             clk => clk,
+            rst => rst,
             btn => btn,
             btn_pressed => btn_pressed
         );
