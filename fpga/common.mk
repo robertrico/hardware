@@ -86,7 +86,7 @@ endif
 
 SIM_STOP_TIME ?= 1ms
 SIM_OUTPUT = $(SIM_DIR)/output.txt
-VCD_FILE = $(SIM_DIR)/$(ACTIVE_TB_ENTITY).vcd
+WAVE_FILE = $(SIM_DIR)/$(ACTIVE_TB_ENTITY).ghw
 GTKW_FILE = $(SIM_DIR)/$(ACTIVE_TB_ENTITY).gtkw
 GHDL_FLAGS ?= --std=08
 
@@ -132,10 +132,10 @@ elaborate: analyze-tb
 	@echo "Elaborating $(ACTIVE_TB_ENTITY)..."
 	$(GHDL) -e $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(ACTIVE_TB_ENTITY)
 
-# Run simulation, generate VCD, and open GTKWave
+# Run simulation, generate GHW, and open GTKWave
 .PHONY: sim
 sim: elaborate | create-reports-dir
-	@echo "Running simulation with VCD output..."
+	@echo "Running simulation with GHW output..."
 	@echo "==========================================" > $(SIM_REPORT)
 	@echo "Simulation Report - $(shell date)" >> $(SIM_REPORT)
 	@echo "Testbench: $(ACTIVE_TB_ENTITY)" >> $(SIM_REPORT)
@@ -143,7 +143,7 @@ sim: elaborate | create-reports-dir
 	@echo "" >> $(SIM_REPORT)
 	@set -o pipefail; $(GHDL) -r $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(ACTIVE_TB_ENTITY) \
 		--stop-time=$(SIM_STOP_TIME) \
-		--vcd=$(VCD_FILE) \
+		--wave=$(WAVE_FILE) \
 		--assert-level=error \
 		--ieee-asserts=disable-at-0 \
 		2>&1 | tee -a $(SIM_REPORT); \
@@ -151,13 +151,13 @@ sim: elaborate | create-reports-dir
 	echo "" >> $(SIM_REPORT); \
 	if [ $$SIM_EXIT -eq 0 ]; then \
 		echo "✓ SIMULATION PASSED - No assertion violations" | tee -a $(SIM_REPORT); \
-		echo "VCD file saved to $(VCD_FILE)"; \
+		echo "GHW file saved to $(WAVE_FILE)"; \
 		echo "Report saved to $(SIM_REPORT)"; \
 		echo "Opening waveform in GTKWave..."; \
 		if [ -f "$(GTKW_FILE)" ]; then \
 			nohup $(GTKWAVE) $(GTKW_FILE) > /dev/null 2>&1 & \
 		else \
-			nohup $(GTKWAVE) $(VCD_FILE) > /dev/null 2>&1 & \
+			nohup $(GTKWAVE) $(WAVE_FILE) > /dev/null 2>&1 & \
 		fi; \
 	else \
 		echo "✗ SIMULATION FAILED - Assertion violations detected!" | tee -a $(SIM_REPORT); \
@@ -166,7 +166,7 @@ sim: elaborate | create-reports-dir
 		if [ -f "$(GTKW_FILE)" ]; then \
 			nohup $(GTKWAVE) $(GTKW_FILE) > /dev/null 2>&1 & \
 		else \
-			nohup $(GTKWAVE) $(VCD_FILE) > /dev/null 2>&1 & \
+			nohup $(GTKWAVE) $(WAVE_FILE) > /dev/null 2>&1 & \
 		fi; \
 		exit $$SIM_EXIT; \
 	fi
@@ -297,7 +297,7 @@ clean:
 	@rm -rf $(WORK_DIR)
 	@rm -f $(TB_ENTITY) $(ACTIVE_TB_ENTITY)
 	@rm -f *.cf
-	@rm -f $(SIM_DIR)/*.vcd
+	@rm -f $(SIM_DIR)/*.vcd $(SIM_DIR)/*.ghw
 
 # Clean everything including FPGA build
 .PHONY: clean-all distclean
