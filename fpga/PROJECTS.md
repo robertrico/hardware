@@ -114,7 +114,7 @@ Use a push button to toggle an LED on/off. Press once = ON, press again = OFF.
 
 ---
 
-## Project 5: Multi-Button LED Control 🛠️ READY FOR HARDWARE
+## Project 5: Multi-Button LED Control ✅ COMPLETE
 **Difficulty**: ⭐⭐⭐☆☆
 
 **Description**:
