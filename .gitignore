@@ -51,18 +51,3 @@ earth_rover/receiver/design/schematics/receiver_schematic-backups/
 earth_rover/transmitter/design/schematics/schematics-backups/
 
 ~$*
-
-# FPGA build files
-fpga/**/work/
-fpga/**/*.cf
-fpga/**/build/
-fpga/**/reports/
-fpga/**/sim/*.vcd
-fpga/**/sim/*.ghw
-fpga/**/sim/output.txt
-fpga/**/*.gtkw
-fpga/**/*_tb
-fpga/**/e~*.lst
-
-# FPGA environment (machine-specific)
-fpga/.env
