@@ -8,6 +8,7 @@ SRC_DIR   = src
 BUILD_DIR = build
 TEMPLATES = templates
 EXAMPLES  = examples
+TOOLS     = tools
 
 # Default assembler options
 ASM_OPTS  = l c s bin s19 cre
@@ -17,6 +18,10 @@ PROJECT   ?=
 SOURCE    ?= main.asm
 OPTIONS   ?= $(ASM_OPTS)
 
+# ROM configuration (28C256 with A14 tied HIGH)
+ROM_CHIP  ?= AT28C256
+ROM_SIZE  = 32768
+
 # Colors for output
 BOLD      = \033[1m
 GREEN     = \033[32m
@@ -24,7 +29,7 @@ BLUE      = \033[34m
 YELLOW    = \033[33m
 RESET     = \033[0m
 
-.PHONY: help new build clean clean-project assembler list examples
+.PHONY: help new build rom flash clean clean-project assembler list examples
 
 # Default target
 help:
@@ -33,12 +38,18 @@ help:
 	@echo "$(BOLD)Project Management:$(RESET)"
 	@echo "  make new PROJECT=<name>           - Create new project"
 	@echo "  make build PROJECT=<name>         - Build project (src/<name>/main.asm)"
+	@echo "  make rom PROJECT=<name>           - Build + create 32KB ROM image"
+	@echo "  make flash PROJECT=<name>         - Build + flash to 28C256 EEPROM"
 	@echo "  make clean-project PROJECT=<name> - Clean project build outputs"
 	@echo ""
 	@echo "$(BOLD)Examples:$(RESET)"
 	@echo "  make example-blinker              - Build blinker example"
 	@echo "  make example-hello                - Build hello example"
 	@echo "  make example-minimal              - Build minimal example"
+	@echo ""
+	@echo "$(BOLD)ROM Programming:$(RESET)"
+	@echo "  make rom PROJECT=combined         - Create 32KB ROM image"
+	@echo "  make flash PROJECT=combined       - Flash to EEPROM with minipro"
 	@echo ""
 	@echo "$(BOLD)Options:$(RESET)"
 	@echo "  make build PROJECT=test SOURCE=main.asm OPTIONS=\"l s19\""
@@ -124,6 +135,73 @@ build: $(AS9)
 	else \
 		echo ""; \
 		echo "$(YELLOW)✗ Assembly failed - check source for errors$(RESET)"; \
+		exit 1; \
+	fi
+
+# Create 32KB ROM image from S19 file (for 28C256 with A14 tied HIGH)
+rom: build
+	@if [ -z "$(PROJECT)" ]; then \
+		echo "$(YELLOW)Error: PROJECT name required$(RESET)"; \
+		echo "Usage: make rom PROJECT=<name>"; \
+		exit 1; \
+	fi
+	@BASENAME=$$(basename "$(SOURCE)" .asm); \
+	S19_FILE="$(BUILD_DIR)/$(PROJECT)/$${BASENAME}.s19"; \
+	ROM_FILE="$(BUILD_DIR)/$(PROJECT)/$${BASENAME}_32k.bin"; \
+	if [ ! -f "$${S19_FILE}" ]; then \
+		echo "$(YELLOW)Error: S19 file not found: $${S19_FILE}$(RESET)"; \
+		exit 1; \
+	fi; \
+	echo ""; \
+	echo "$(BOLD)Creating 32KB ROM image...$(RESET)"; \
+	echo ""; \
+	python3 "$(TOOLS)/s19_to_32k.py" "$${S19_FILE}" "$${ROM_FILE}"; \
+	echo ""; \
+	echo "$(GREEN)✓ ROM image ready for programming!$(RESET)"; \
+	echo "$(BLUE)📦 File:$(RESET) $${ROM_FILE}"; \
+	echo ""; \
+	echo "$(BOLD)Next steps:$(RESET)"; \
+	echo "  Program: make flash PROJECT=$(PROJECT)"; \
+	echo "  Manual:  minipro -p $(ROM_CHIP) -w $${ROM_FILE}"
+
+# Flash ROM to EEPROM using minipro
+flash: rom
+	@if [ -z "$(PROJECT)" ]; then \
+		echo "$(YELLOW)Error: PROJECT name required$(RESET)"; \
+		echo "Usage: make flash PROJECT=<name>"; \
+		exit 1; \
+	fi
+	@BASENAME=$$(basename "$(SOURCE)" .asm); \
+	ROM_FILE="$(BUILD_DIR)/$(PROJECT)/$${BASENAME}_32k.bin"; \
+	if ! command -v minipro >/dev/null 2>&1; then \
+		echo "$(YELLOW)Error: minipro not found$(RESET)"; \
+		echo "Install with: brew install minipro"; \
+		exit 1; \
+	fi; \
+	echo ""; \
+	echo "$(BOLD)╔════════════════════════════════════════════════╗$(RESET)"; \
+	echo "$(BOLD)║         Programming EEPROM with minipro        ║$(RESET)"; \
+	echo "$(BOLD)╚════════════════════════════════════════════════╝$(RESET)"; \
+	echo ""; \
+	echo "$(BOLD)ROM Chip:$(RESET)  $(ROM_CHIP)"; \
+	echo "$(BOLD)ROM File:$(RESET)  $${ROM_FILE}"; \
+	echo "$(BOLD)Size:$(RESET)      $(ROM_SIZE) bytes (32KB)"; \
+	echo ""; \
+	read -p "$(BOLD)Insert EEPROM and press ENTER to flash...$(RESET) " dummy; \
+	echo ""; \
+	if minipro -p $(ROM_CHIP) -w "$${ROM_FILE}"; then \
+		echo ""; \
+		echo "$(GREEN)✓ EEPROM programmed successfully!$(RESET)"; \
+		echo ""; \
+		echo "$(BOLD)Verifying...$(RESET)"; \
+		minipro -p $(ROM_CHIP) -m "$${ROM_FILE}"; \
+		echo ""; \
+		echo "$(GREEN)✨ Flash complete!$(RESET)"; \
+		echo ""; \
+		echo "Your 6809 system is ready to boot!"; \
+	else \
+		echo ""; \
+		echo "$(YELLOW)✗ Programming failed$(RESET)"; \
 		exit 1; \
 	fi
 

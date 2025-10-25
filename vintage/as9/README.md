@@ -129,11 +129,75 @@ All output formats are generated in one pass:
 
 ### 4. Program Your ROM
 
+**Quick method (automated):**
+```bash
+make flash PROJECT=led_blinker
+```
+
+**Manual method:**
 1. Open your ROM programmer software (TL866, MiniPro, etc.)
-2. Load `build/led_blinker/main.s19`
+2. Load `build/led_blinker/main.s19` or `main_32k.bin` (see below)
 3. Program your EPROM chip (27128, 28C256, etc.)
 4. Install in your 6809 PCB
 5. Power on and watch it run!
+
+---
+
+## ROM Programming for 28C256 with A14 Tied HIGH
+
+If you're using a 28C256 EEPROM with pin 1 (A14) tied to +5V, you need a special 32KB ROM image.
+
+### Quick Method
+
+```bash
+# Build + create 32KB ROM image
+make rom PROJECT=myproject
+
+# Build + flash to EEPROM (requires minipro)
+make flash PROJECT=myproject
+```
+
+### How It Works
+
+**Hardware Configuration:**
+- EEPROM: 28C256 (32KB)
+- Pin 1 (A14): Tied to +5V
+- Effective size: 16KB (uses upper half of ROM)
+
+**Address Mapping:**
+```
+CPU Address Range  →  ROM Physical Address
+$C000 - $FFFF      →  $4000 - $7FFF (upper 16KB)
+```
+
+With A14 tied HIGH, the CPU always reads from the upper 16KB of the ROM chip. The `make rom` command automatically:
+1. Parses your S19 file
+2. Creates a 32KB image with your code in the upper half
+3. Ensures the reset vector is at the correct location ($7FFE-$7FFF)
+4. Outputs `build/<project>/main_32k.bin`
+
+**Why This is Needed:**
+- Normal assembly creates code for CPU addresses ($C000-$FFFF)
+- A14 tied HIGH means ROM addresses must be in upper half ($4000-$7FFF)
+- The conversion script maps CPU addresses to correct ROM addresses
+
+**Manual Programming:**
+```bash
+# After running 'make rom PROJECT=myproject'
+minipro -p AT28C256 -w build/myproject/main_32k.bin
+```
+
+**Files Generated:**
+- `main.s19` - Standard S-record (may not work directly with A14 tied HIGH)
+- `main_32k.bin` - 32KB ROM image for 28C256 ⭐ **Use this one!**
+
+**Verification:**
+The build system automatically verifies:
+- Reset vector is at correct ROM location
+- All interrupt vectors are properly mapped
+- Code is in the upper 16KB as required
+
+For more details, see the technical explanation in the ROM Programming section below.
 
 ---
 
@@ -519,6 +583,123 @@ The AS9 assembler (originally from 2004) has been updated:
 
 ---
 
+## Technical Details: ROM Programming with A14 Tied HIGH
+
+### The Problem
+
+When using a 28C256 (32KB EEPROM) as a drop-in replacement for a 27C128 (16KB EPROM), pin 1 is often tied HIGH to make it act like a 16KB ROM. However, this creates an addressing issue:
+
+**28C256 vs 27C128 Pinout:**
+| Pin | 27C128 (16KB) | 28C256 (32KB) | Typical Config |
+|-----|---------------|---------------|----------------|
+| 1   | A14 / VCC     | A14           | +5V (HIGH)     |
+| 26  | A13           | A13           | Connected      |
+| 27  | VCC           | /WE           | +5V (HIGH)     |
+| 28  | VCC           | VCC           | +5V            |
+
+With pin 1 (A14) tied HIGH:
+- A14 is always 1 → CPU only accesses upper 16KB of ROM
+- ROM addresses $4000-$7FFF are accessible
+- ROM addresses $0000-$3FFF are never accessed
+
+### Address Translation
+
+Your code is assembled for CPU addresses:
+```
+$C000 - $FFFF  (16KB range)
+```
+
+But the ROM chip with A14=1 maps this to:
+```
+$4000 - $7FFF  (upper 16KB of the 32KB chip)
+```
+
+**Translation formula:**
+```
+ROM_offset = CPU_address - $C000 + $4000
+```
+
+**Example - Reset Vector:**
+- CPU address: `$FFFE` (where CPU reads reset vector)
+- Calculation: `$FFFE - $C000 + $4000 = $7FFE`
+- Result: Reset vector must be at ROM address `$7FFE-$7FFF`
+
+### The Solution
+
+The `tools/s19_to_32k.py` script:
+
+1. **Creates blank 32KB image:**
+   ```python
+   rom_32k = bytearray([0xFF] * 32768)
+   ```
+
+2. **Parses S19 file for addresses:**
+   ```
+   S1 13 FFFE FFD4FFD8FFDCFFE0FFE4FFE8FFECF837 B5
+          ^^^^
+          CPU address $FFFE
+   ```
+
+3. **Maps to ROM offset:**
+   ```python
+   if addr >= 0xC000:
+       rom_offset = addr - 0xC000 + 0x4000
+       rom_32k[rom_offset:rom_offset + len(data)] = data
+   ```
+
+4. **Verifies vectors:**
+   - Checks reset vector at ROM $7FFE-$7FFF
+   - Shows all interrupt vectors for debugging
+
+### Automated Build Process
+
+The Makefile orchestrates this automatically:
+
+```makefile
+rom: build
+    # 1. Assemble code → generates main.s19
+    # 2. Run s19_to_32k.py → creates main_32k.bin
+    # 3. Verify reset vector is correct
+
+flash: rom
+    # 1. Build ROM image
+    # 2. Program with minipro
+    # 3. Verify programming
+```
+
+### Why Not Just Program the S19 Directly?
+
+Some ROM programmers can handle S19 files with address offsets, but:
+- Not all programmers support this
+- Minipro requires binary files
+- Binary format guarantees exact ROM contents
+- Easier to verify with hexdump
+
+### Verification
+
+After building, you can verify the ROM image:
+
+```bash
+# Check reset vector location
+hexdump -C build/combined/main_32k.bin | grep "00007ff0"
+
+# Expected output:
+# 00007ff0  ff d4 ff d8 ff dc ff e0  ff e4 ff e8 ff ec f8 37
+#                                                          ^^^^
+#                                                    Reset vector $F837
+```
+
+### Alternative: Different Hardware Config
+
+If you could change your hardware, alternatives include:
+- Tie A14 LOW → use lower 16KB (offset $0000-$3FFF)
+- Connect A14 to address decoder → switch between upper/lower 16KB
+- Use actual 27C128 chip → no offset needed
+
+But with A14 tied HIGH, the automated `make rom` / `make flash` workflow handles everything correctly.
+
+---
+
 ## Credits
 
 - **Original AS9 assembler:** Motorola (circa 1980s)
@@ -542,6 +723,12 @@ make new PROJECT=<project_name>
 # Build project
 make build PROJECT=<project_name>
 
+# Build + create 32KB ROM image (for 28C256 with A14 tied HIGH)
+make rom PROJECT=<project_name>
+
+# Build + flash to EEPROM (requires minipro)
+make flash PROJECT=<project_name>
+
 # Build example
 make example-blinker
 
@@ -551,8 +738,9 @@ make list
 # View listing
 cat build/<project>/main.lst
 
-# ROM file for programmer
-build/<project>/main.s19
+# ROM files
+build/<project>/main.s19        # Standard S-record
+build/<project>/main_32k.bin    # 32KB ROM for 28C256 with A14=HIGH
 
 # Rebuild assembler
 make assembler
