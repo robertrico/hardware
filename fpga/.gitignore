@@ -1,0 +1,47 @@
+# FPGA Build System - Generated Files
+# All generated artifacts from GHDL/Yosys/nextpnr toolchain
+
+# Build directories
+**/work/
+**/build/
+**/reports/
+
+# GHDL compilation artifacts
+*.cf
+e~*.lst
+
+# Simulation files
+sim/*.vcd
+sim/*.ghw
+sim/output.txt
+**/sim/*.vcd
+**/sim/*.ghw
+
+# GTKWave save files (waveform viewer configuration)
+*.gtkw
+**/*.gtkw
+
+# Testbench executables
+*_tb
+**/*_tb
+*_test
+**/*_test
+
+# Environment files (machine-specific configuration)
+.env
+
+# Intermediate synthesis files
+*.v
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+.*.swp
+.*.swo
+
+# Log files
+*.log
+
+# macOS
+.DS_Store

@@ -1,25 +1,19 @@
-# btn_modules FPGA Project Makefile
+# pattern_sequencer FPGA Project Makefile
 # This file defines project-specific configuration and includes common build rules
 
 #==========================================
 # Project Configuration
 #==========================================
 # Top-level entity and testbench names
-TOP_ENTITY = btn_modules_top
-# Default testbench when TEST is not specified
-TB_ENTITY = btn_modules_tb
+TOP_ENTITY = pattern_sequencer
+TB_ENTITY = pattern_sequencer_tb
 
-# RTL Source files (all modules in src/)
-RTL_SOURCES = $(SRC_DIR)/debouncer.vhdl \
-              $(SRC_DIR)/btn_modules.vhdl \
-              $(SRC_DIR)/btn_modules_top.vhdl
+# Source files
+RTL_SOURCES = $(SRC_DIR)/pattern_sequencer_pkg.vhdl \
+			  $(SRC_DIR)/debouncer.vhdl \
+			  $(SRC_DIR)/pattern_sequencer.vhdl
 
-# Default testbench (for backward compatibility)
-TB_SOURCES = $(SIM_DIR)/btn_modules_tb.vhdl
-
-# All available testbenches (for TEST= parameter)
-ALL_TB_SOURCES = $(SIM_DIR)/btn_modules_tb.vhdl \
-                 $(SIM_DIR)/debouncer_test.vhdl
+TB_SOURCES = $(SIM_DIR)/pattern_sequencer_tb.vhdl
 
 #==========================================
 # Optional Overrides
