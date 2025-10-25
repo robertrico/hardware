@@ -1,0 +1,23 @@
+# SDCC Build Artifacts
+*.hex
+*.ihx
+*.lk
+*.lst
+*.map
+*.mem
+*.rel
+*.rst
+*.sym
+*.asm
+*.bin
+
+# Editor/IDE files
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db

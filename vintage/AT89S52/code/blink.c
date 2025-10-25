@@ -80,12 +80,24 @@ void uart_println(const char *str) {
     putchar('\n');
 }
 
+// Receive character via UART (non-blocking)
+// Returns 1 if character received, 0 if not
+unsigned char getchar_nb(char *c) {
+    if (RI) {              // If character received
+        RI = 0;            // Clear receive flag
+        *c = SBUF;         // Read character
+        return 1;          // Character available
+    }
+    return 0;              // No character
+}
+
 void main(void) {
     unsigned int slow_counter = 0;
     unsigned int slow_period = 1000;  // Toggle LED_SLOW every 1000 fast cycles (~1 Hz)
     unsigned int uart_counter = 0;
     unsigned int uart_period = 5000;  // Send UART message every ~5 seconds
     unsigned char switch_prev = 0;    // Previous switch state for edge detection
+    char rx_char;                     // Received UART character
 
     // Initialize UART
     uart_init();
@@ -95,6 +107,7 @@ void main(void) {
     uart_println("AT89S52 Demo Program");
     uart_println("Clock: 11.0592 MHz");
     uart_println("Baud: 9600");
+    uart_println("Commands: 't' = toggle SWITCH LED");
     uart_println("=============================");
 
     // Main loop
@@ -119,6 +132,15 @@ void main(void) {
             uart_println("Switch pressed!");
         }
         switch_prev = SWITCH;  // Remember current state
+
+        // Check for UART commands
+        if (getchar_nb(&rx_char)) {
+            if (rx_char == 't' || rx_char == 'T') {
+                LED_SWITCH = !LED_SWITCH;
+                uart_print("LED_SWITCH toggled via UART: ");
+                uart_println(LED_SWITCH ? "ON" : "OFF");
+            }
+        }
 
         // Send periodic UART status
         uart_counter++;
