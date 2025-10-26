@@ -5,14 +5,15 @@
 # Project Configuration
 #==========================================
 # Top-level entity and testbench names
-TOP_ENTITY = pattern_sequencer
+TOP_ENTITY = pattern_sequencer_top
 TB_ENTITY = pattern_sequencer_tb
 
 # Source files
 RTL_SOURCES = $(SRC_DIR)/pattern_sequencer_pkg.vhdl \
 			  $(SRC_DIR)/debouncer.vhdl \
 			  $(SRC_DIR)/up_down_cylon.vhdl \
-			  $(SRC_DIR)/pattern_sequencer.vhdl
+			  $(SRC_DIR)/pattern_sequencer.vhdl \
+			  $(SRC_DIR)/pattern_sequencer_top.vhdl
 
 TB_SOURCES = $(SIM_DIR)/pattern_sequencer_tb.vhdl
 

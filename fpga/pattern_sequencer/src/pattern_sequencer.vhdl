@@ -45,6 +45,10 @@ architecture rtl of pattern_sequencer is
     signal up_rst : std_logic;
     signal up_leds : std_logic_vector(7 downto 0);
 
+    signal up_enable : std_logic := '0';
+    signal dn_enable : std_logic := '0';
+    signal cylon_enable : std_logic := '0';
+
     component up_down_cylon is
         generic(
             CLK_FREQ : integer;
@@ -53,6 +57,7 @@ architecture rtl of pattern_sequencer is
         port (
             clk : in std_logic;
             rst : in std_logic;
+            enable : in std_logic;
             led : out std_logic_vector(7 downto 0)
         );
     end component;
@@ -99,7 +104,8 @@ begin
         )
         port map(
             clk => clk,
-            rst => inner_rst,
+            rst => rst,
+            enable => cylon_enable,
             led => cylon_leds
         );
 
@@ -110,7 +116,8 @@ begin
         )
         port map(
             clk => clk,
-            rst => dn_rst,
+            rst => rst,
+            enable => dn_enable,
             led => dn_leds
         );
 
@@ -121,7 +128,8 @@ begin
         )
         port map(
             clk => clk,
-            rst => up_rst,
+            rst => rst,
+            enable => up_enable,
             led => up_leds
         );
 
@@ -130,56 +138,70 @@ begin
         variable MAX_COUNT : integer := CLK_FREQ / (2 * 5);
     begin
         if rst = '0' then
-            inner_rst <= '0';
-            dn_rst <= '0';
-            up_rst <= '0';
             speed_change <= '0';
             current_pattern <= all_blink;
             leds_sequence <= (others => '1');
             counter <= 0;
+            up_enable <= '0';
+            dn_enable <= '0';
+            cylon_enable <= '0';
             MAX_COUNT := CLK_FREQ / (2 * 5);
         elsif rising_edge(clk) then
-            if btns_pressed_internal(0) = '1' then
-                speed_change <= not speed_change;
-                if (speed_change = '0') then
-                    MAX_COUNT := CLK_FREQ / (2 * 1);
-                else
-                    MAX_COUNT := CLK_FREQ / (2 * 5);
-                end if;
-            end if;
+            -- Default: disable all components
+            up_enable <= '0';
+            dn_enable <= '0';
+            cylon_enable <= '0';
+
+            -- Handle pattern button
             if btns_pressed_internal(1) = '1' then
                 -- Reset counter for immediate pattern update
                 counter <= 0;
                 case current_pattern is
                     when all_blink =>
-                        up_rst <= '1';
+                        leds_sequence <= (others => '1');
                         current_pattern <= up_blink;
                     when up_blink =>
-                        up_rst <= '0';
-                        dn_rst <= '1';
+                        leds_sequence <= (others => '1');
                         current_pattern <= down_blink;
                     when down_blink =>
-                        dn_rst <= '0';
-                        inner_rst <= '1';
+                        leds_sequence <= (others => '1');
                         current_pattern <= cylon_blink;
                     when cylon_blink =>
-                        inner_rst <= '0';
+                        leds_sequence <= "10101010";
                         current_pattern <= alt_blink;
-                    when others =>
+                    when alt_blink =>
+                        leds_sequence <= (others => '1');
                         current_pattern <= all_blink;
                 end case;
+            -- Handle speed button
+            elsif btns_pressed_internal(0) = '1' then
+                speed_change <= not speed_change;
+                -- Check the OLD value (before toggle) to set new speed and counter
+                if (speed_change = '0') then  -- Currently slow, switching to fast
+                    MAX_COUNT := CLK_FREQ / (2 * 1);
+                    counter <= CLK_FREQ / (2 * 1) - 2;  -- Set to trigger in 2 cycles
+                else  -- Currently fast, switching to slow
+                    MAX_COUNT := CLK_FREQ / (2 * 5);
+                    counter <= CLK_FREQ / (2 * 5) - 2;  -- Set to trigger in 2 cycles
+                end if;
+            -- Handle counter and pattern updates (only if no buttons pressed)
             elsif counter = MAX_COUNT - 1 then
                 -- Pattern update counter reached
                 counter <= 0;
+
+                -- Enable components for one cycle to make them update
                 case current_pattern is
-                    when all_blink =>
-                        leds_sequence <= not leds_sequence;
                     when up_blink =>
+                        up_enable <= '1';
                         leds_sequence <= up_leds;
                     when down_blink =>
+                        dn_enable <= '1';
                         leds_sequence <= dn_leds;
                     when cylon_blink =>
+                        cylon_enable <= '1';
                         leds_sequence <= cylon_leds;
+                    when all_blink =>
+                        leds_sequence <= not leds_sequence;
                     when alt_blink =>
                         leds_sequence(0) <= not leds_sequence(0);
                         leds_sequence(1) <= leds_sequence(0);
