@@ -145,7 +145,7 @@ Control 4 LEDs with 4 buttons. Each button toggles its corresponding LED indepen
 
 ---
 
-## Project 6: LED Pattern Sequencer
+## Project 6: LED Pattern Sequencer 💾 Ready For Hardware
 **Difficulty**: ⭐⭐⭐☆☆
 
 **Description**:
