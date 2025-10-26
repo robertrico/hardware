@@ -140,7 +140,7 @@ int main(int argc, char **argv)
                           }
 
                 if ( Oflag )
-                    fprintf(Objfil,"S9030000FC\n"); /* at least give a decent ending */
+                    fprintf(Objfil,"S9\n"); /* ASSIST09-compatible ending - exits on S9 immediately */
                 }
         exit(Err_count);
 }

@@ -1,25 +1,26 @@
 ; Hello World Data Example
-; Demonstrates storing strings in ROM
+; For ASSIST09 - loads into RAM
 
-        ORG     $C000
+        ORG     $0100           ; Start in RAM (safe area after zero page)
+
+; ASSIST09 SWI function codes
+OUTCH   EQU     1               ; Output character from A register
+PCRLF   EQU     6               ; Output CR/LF
 
 START   LDX     #MSG            ; Point to message
 LOOP    LDA     ,X+             ; Load character
         BEQ     DONE            ; If zero, done
-        JSR     PUTCHAR         ; Output it (placeholder)
+        SWI                     ; Call ASSIST09
+        FCB     OUTCH           ; Function: output character in A
         BRA     LOOP            ; Next char
 
-DONE    SWI                     ; Stop
+DONE    SWI                     ; Call ASSIST09
+        FCB     PCRLF           ; Output newline
+        SWI                     ; Return to monitor
+        FCB     8               ; Function 8: enter monitor
 
-; Placeholder for character output
-PUTCHAR RTS
-
-; Message data in ROM
+; Message data
 MSG     FCC     "HELLO WORLD"
         FCB     0               ; Null terminator
-
-; Reset vector
-        ORG     $FFFE
-        FDB     START
 
         END
