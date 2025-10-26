@@ -22,6 +22,9 @@ OPTIONS   ?= $(ASM_OPTS)
 ROM_CHIP  ?= AT28C256
 ROM_SIZE  = 32768
 
+# Serial port for ASSIST09 loading
+SERIAL_PORT ?= /dev/tty.usbserial-AB0JK5WC
+
 # Colors for output
 BOLD      = \033[1m
 GREEN     = \033[32m
@@ -29,7 +32,7 @@ BLUE      = \033[34m
 YELLOW    = \033[33m
 RESET     = \033[0m
 
-.PHONY: help new build rom flash clean clean-project assembler list examples
+.PHONY: help new build rom flash load clean clean-project assembler list examples
 
 # Default target
 help:
@@ -50,6 +53,10 @@ help:
 	@echo "$(BOLD)ROM Programming:$(RESET)"
 	@echo "  make rom PROJECT=combined         - Create 32KB ROM image"
 	@echo "  make flash PROJECT=combined       - Flash to EEPROM with minipro"
+	@echo ""
+	@echo "$(BOLD)ASSIST09 Loading:$(RESET)"
+	@echo "  make load PROJECT=<name>          - Load S19 to ASSIST09 via serial"
+	@echo "                                      (default port: $(SERIAL_PORT))"
 	@echo ""
 	@echo "$(BOLD)Options:$(RESET)"
 	@echo "  make build PROJECT=test SOURCE=main.asm OPTIONS=\"l s19\""
@@ -204,6 +211,66 @@ flash: rom
 		echo "$(YELLOW)✗ Programming failed$(RESET)"; \
 		exit 1; \
 	fi
+
+# Load S19 file to ASSIST09 via serial port
+load:
+	@if [ -z "$(PROJECT)" ]; then \
+		echo "$(YELLOW)Error: PROJECT name required$(RESET)"; \
+		echo "Usage: make load PROJECT=<name>"; \
+		exit 1; \
+	fi
+	@BASENAME=$$(basename "$(SOURCE)" .asm); \
+	S19_FILE="$(BUILD_DIR)/$(PROJECT)/$${BASENAME}.s19"; \
+	if [ ! -f "$${S19_FILE}" ]; then \
+		echo "$(YELLOW)Error: S19 file not found: $${S19_FILE}$(RESET)"; \
+		echo "Make sure to build with s19 option enabled"; \
+		exit 1; \
+	fi; \
+	if [ ! -e "$(SERIAL_PORT)" ]; then \
+		echo "$(YELLOW)Error: Serial port not found: $(SERIAL_PORT)$(RESET)"; \
+		echo ""; \
+		echo "Available serial ports:"; \
+		ls /dev/tty.* 2>/dev/null | grep -i usb || echo "  (none found)"; \
+		echo ""; \
+		echo "Set SERIAL_PORT: make load PROJECT=$(PROJECT) SERIAL_PORT=/dev/tty.xxx"; \
+		exit 1; \
+	fi; \
+	echo ""; \
+	echo "$(BOLD)╔════════════════════════════════════════════════╗$(RESET)"; \
+	echo "$(BOLD)║         Loading to ASSIST09 via Serial         ║$(RESET)"; \
+	echo "$(BOLD)╚════════════════════════════════════════════════╝$(RESET)"; \
+	echo ""; \
+	echo "$(BOLD)S19 File:$(RESET)     $${S19_FILE}"; \
+	echo "$(BOLD)Serial Port:$(RESET)  $(SERIAL_PORT)"; \
+	echo ""; \
+	echo "$(YELLOW)⚠ Make sure you've typed 'L' in ASSIST09 first!$(RESET)"; \
+	echo ""; \
+	read -p "Press ENTER when ASSIST09 is waiting at 'L' prompt... " dummy; \
+	echo ""; \
+	echo "$(BOLD)Sending S19 data...$(RESET)"; \
+	echo ""; \
+	while IFS= read -r line; do \
+		echo "  → $${line}"; \
+		for ((i=0; i<$${#line}; i++)); do \
+			char="$${line:$$i:1}"; \
+			printf "%s" "$$char" > "$(SERIAL_PORT)"; \
+			sleep 0.01; \
+		done; \
+		if [[ "$$line" != S9* ]]; then \
+			printf "\r" > "$(SERIAL_PORT)"; \
+			sleep 0.1; \
+		else \
+			echo ""; \
+			echo "$(BLUE)  (S9 record - ASSIST09 will exit loader)$(RESET)"; \
+			sleep 0.5; \
+		fi; \
+	done < "$${S19_FILE}"; \
+	echo ""; \
+	echo "$(GREEN)✓ Load complete!$(RESET)"; \
+	echo ""; \
+	echo "$(BOLD)Next steps in ASSIST09:$(RESET)"; \
+	echo "  Type: G 100$(RESET)  (or your program's start address)"; \
+	echo ""
 
 # Example builds
 example-%: $(AS9)
