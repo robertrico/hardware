@@ -145,7 +145,7 @@ Control 4 LEDs with 4 buttons. Each button toggles its corresponding LED indepen
 
 ---
 
-## Project 6: LED Pattern Sequencer 💾 Ready For Hardware
+## Project 6: LED Pattern Sequencer ✅ COMPLETE
 **Difficulty**: ⭐⭐⭐☆☆
 
 **Description**:
@@ -176,7 +176,7 @@ Create multiple LED patterns (blink all, chase, alternate, etc.). One button cyc
 
 ---
 
-## Project 7: Simple Combination Lock
+## Project 7: Simple Combination Lock 🚧 In Progress
 **Difficulty**: ⭐⭐⭐⭐☆
 
 **Description**:

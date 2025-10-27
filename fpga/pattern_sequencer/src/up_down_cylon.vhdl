@@ -15,7 +15,8 @@ entity up_down_cylon is
     -- Ports are the actual input/output pins
     port (
         clk : in std_logic;                       -- Clock input from FPGA oscillator
-        rst : in std_logic;                       -- Reset input from SW1 (GSRN button, active low)
+        rst : in std_logic;                       -- Reset input (active low)
+        enable : in std_logic;                    -- Enable signal (update when '1')
         led : out std_logic_vector(7 downto 0)    -- 8-bit output bus for LEDs (7 down to 0)
     );
 end up_down_cylon;
@@ -62,15 +63,15 @@ begin
     -- State register process: updates current state on clock edge
     state_reg: process(clk, rst)
     begin
-        if rst = '0' then  -- Active low reset (SW1 pressed)
+        if rst = '0' then  -- Active low reset
             if COUNT_MODE = "DOWN" then
                 current_state <= MOVING_LEFT;
-            else 
+            else
                 current_state <= MOVING_RIGHT;
             end if;
             led_position <= (others => '0');
         elsif rising_edge(clk) then
-            if move_tick = '1' then
+            if enable = '1' then
                 current_state <= next_state;
                 led_position <= next_led_position;
             end if;

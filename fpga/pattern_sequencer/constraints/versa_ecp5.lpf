@@ -17,44 +17,44 @@ IOBUF PORT "clk" IO_TYPE=LVDS;
 # ====================================================================================
 
 # LED0 - D25 (Yellow)
-LOCATE COMP "led[0]" SITE "E16";
-IOBUF PORT "led[0]" IO_TYPE=LVCMOS25;
+LOCATE COMP "leds[0]" SITE "E16";
+IOBUF PORT "leds[0]" IO_TYPE=LVCMOS25;
 
 # LED1 - D24 (Yellow)
-LOCATE COMP "led[1]" SITE "D17";
-IOBUF PORT "led[1]" IO_TYPE=LVCMOS25;
+LOCATE COMP "leds[1]" SITE "D17";
+IOBUF PORT "leds[1]" IO_TYPE=LVCMOS25;
 
 # LED2 - D22 (Green)
-LOCATE COMP "led[2]" SITE "D18";
-IOBUF PORT "led[2]" IO_TYPE=LVCMOS25;
+LOCATE COMP "leds[2]" SITE "D18";
+IOBUF PORT "leds[2]" IO_TYPE=LVCMOS25;
 
 # LED3 - D21 (Green)
-LOCATE COMP "led[3]" SITE "E18";
-IOBUF PORT "led[3]" IO_TYPE=LVCMOS25;
+LOCATE COMP "leds[3]" SITE "E18";
+IOBUF PORT "leds[3]" IO_TYPE=LVCMOS25;
 
 # LED4 - D26 (Red)
-LOCATE COMP "led[4]" SITE "F17";
-IOBUF PORT "led[4]" IO_TYPE=LVCMOS25;
+LOCATE COMP "leds[4]" SITE "F17";
+IOBUF PORT "leds[4]" IO_TYPE=LVCMOS25;
 
 # LED5 - D27 (Red)
-LOCATE COMP "led[5]" SITE "F18";
-IOBUF PORT "led[5]" IO_TYPE=LVCMOS25;
+LOCATE COMP "leds[5]" SITE "F18";
+IOBUF PORT "leds[5]" IO_TYPE=LVCMOS25;
 
 # LED6 - D28 (Red)
-LOCATE COMP "led[6]" SITE "E17";
-IOBUF PORT "led[6]" IO_TYPE=LVCMOS25;
+LOCATE COMP "leds[6]" SITE "E17";
+IOBUF PORT "leds[6]" IO_TYPE=LVCMOS25;
 
 # LED7 - D29 (Red)
-LOCATE COMP "led[7]" SITE "F16";
-IOBUF PORT "led[7]" IO_TYPE=LVCMOS25;
+LOCATE COMP "leds[7]" SITE "F16";
+IOBUF PORT "leds[7]" IO_TYPE=LVCMOS25;
 
 # ====================================================================================
 # DIP Switches (SW3) - User Input (Optional)
 # ====================================================================================
 
-# SW3-1 (Bank 7 - 1.5V)
-LOCATE COMP "sw[0]" SITE "H2";
-IOBUF PORT "sw[0]" IO_TYPE=LVCMOS15;
+# SW3-1 (Bank 7 - 1.5V) - Used as Reset
+LOCATE COMP "rst" SITE "H2";
+IOBUF PORT "rst" IO_TYPE=LVCMOS15 PULLMODE=UP;
 
 # SW3-2 (Bank 7 - 1.5V)
 LOCATE COMP "sw[1]" SITE "K3";
@@ -83,6 +83,17 @@ IOBUF PORT "sw[6]" IO_TYPE=LVCMOS25;
 # SW3-8 (Bank 2 - 2.5V)
 LOCATE COMP "sw[7]" SITE "K20";
 IOBUF PORT "sw[7]" IO_TYPE=LVCMOS25;
+
+# ====================================================================================
+# Push Buttons - User Input
+# ====================================================================================
+
+# Button on B19 (Bank 1 - 3.3V) - Active Low (pulled to GND when pressed)
+LOCATE COMP "speed_btn" SITE "B9";
+IOBUF PORT "speed_btn" IO_TYPE=LVCMOS33 PULLMODE=UP;
+
+LOCATE COMP "led_btn" SITE "B19";
+IOBUF PORT "led_btn" IO_TYPE=LVCMOS33 PULLMODE=UP;
 
 # ====================================================================================
 # Configuration
