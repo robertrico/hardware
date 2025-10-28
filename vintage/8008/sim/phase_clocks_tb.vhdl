@@ -20,7 +20,7 @@ architecture sim of phase_clocks_tb is
 
     -- Testbench signals
     signal clk_in : STD_LOGIC := '0';
-    signal reset  : STD_LOGIC := '1';
+    signal reset  : STD_LOGIC := '0';
     signal phi1   : STD_LOGIC;
     signal phi2   : STD_LOGIC;
 
@@ -89,7 +89,7 @@ begin
 
         -- Test 1: Reset behavior
         report "TEST 1: Reset behavior";
-        reset <= '1';
+        reset <= '0';
         wait for 200 ns;
         assert phi1 = '1' report "FAIL: phi1 should be HIGH during reset" severity error;
         assert phi2 = '0' report "FAIL: phi2 should be LOW during reset" severity error;
@@ -97,7 +97,7 @@ begin
 
         -- Test 2: Release reset and observe startup
         report "TEST 2: Reset release and startup";
-        reset <= '0';
+        reset <= '1';
         wait for 100 ns;
         report "PASS: Reset released";
 

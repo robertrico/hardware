@@ -10,42 +10,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity sim8_01_top is
-    generic (
-        -- Clock frequency configuration
-        CLK_FREQ_MHZ : integer := 100;      -- FPGA input clock (100 MHz on ECP5 Versa)
-        CPU_FREQ_KHZ : integer := 500       -- Target 8008 clock frequency (500 kHz or 800 kHz)
-    );
     port (
         -- FPGA Board Inputs
         clk : in std_logic;                 -- 100 MHz FPGA clock
         rst : in std_logic;                 -- Reset (active high)
 
-        -- Intel 8008 CPU Interface - Inputs from 8008
-        cpu_d     : inout std_logic_vector(7 downto 0);  -- 8008 data bus (bidirectional)
-        cpu_s0    : in std_logic;           -- State bit 0
-        cpu_s1    : in std_logic;           -- State bit 1
-        cpu_s2    : in std_logic;           -- State bit 2
-        cpu_sync  : in std_logic;           -- Sync signal (high during T1/T2)
-
-        -- Intel 8008 CPU Interface - Outputs to 8008
+        -- Phase clock outputs (for testing)
         cpu_phi1      : out std_logic;      -- Phase 1 clock
         cpu_phi2      : out std_logic;      -- Phase 2 clock (non-overlapping with phi1)
-        cpu_ready     : out std_logic;      -- Ready signal (for wait states)
-        cpu_interrupt : out std_logic;      -- Interrupt request
-
-        -- Memory Interface (to external RAM/ROM or FPGA block RAM)
-        mem_addr   : out std_logic_vector(13 downto 0);  -- 14-bit address bus
-        mem_data   : inout std_logic_vector(7 downto 0); -- 8-bit data bus
-        mem_read_n : out std_logic;         -- Memory read enable (active low)
-        mem_write_n: out std_logic;         -- Memory write enable (active low)
-        rom_cs_n   : out std_logic;         -- ROM chip select (active low)
-        ram_cs_n   : out std_logic;         -- RAM chip select (active low)
-
-        -- I/O Interface
-        io_addr    : out std_logic_vector(4 downto 0);   -- 5-bit I/O address (32 ports)
-        io_data    : inout std_logic_vector(7 downto 0); -- I/O data bus
-        io_read_n  : out std_logic;         -- I/O read enable (active low)
-        io_write_n : out std_logic;         -- I/O write enable (active low)
 
         -- Debug/Status outputs
         debug_led  : out std_logic_vector(7 downto 0);   -- LED outputs for debugging
@@ -158,33 +130,6 @@ begin
     --         io_write_n=> io_write_n,
     --         ...
     --     );
-
-    --===========================================
-    -- Temporary Assignments (until modules are implemented)
-    --===========================================
-
-    -- Default READY to active (no wait states for now)
-    cpu_ready <= '1';
-
-    -- No interrupts for now
-    cpu_interrupt <= '0';
-
-    -- Disable memory until controller is implemented
-    mem_addr <= (others => '0');
-    mem_read_n <= '1';
-    mem_write_n <= '1';
-    rom_cs_n <= '1';
-    ram_cs_n <= '1';
-
-    -- Disable I/O until controller is implemented
-    io_addr <= (others => '0');
-    io_read_n <= '1';
-    io_write_n <= '1';
-
-    -- Tri-state buses (set to high-Z until controllers are implemented)
-    cpu_d <= (others => 'Z');
-    mem_data <= (others => 'Z');
-    io_data <= (others => 'Z');
 
     --===========================================
     -- Debug Outputs

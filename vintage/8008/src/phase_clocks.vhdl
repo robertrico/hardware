@@ -21,7 +21,7 @@ architecture rtl of phase_clocks is
 begin
     process(clk_in, reset)
     begin
-        if reset = '1' then
+        if reset = '0' then
             counter <= 0;
             phi1 <= '1';
             phi2 <= '0';
