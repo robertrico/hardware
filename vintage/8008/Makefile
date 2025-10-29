@@ -18,7 +18,8 @@ TB_ENTITY = sim8_01_top_tb
 #==========================================
 # List all RTL source files here (order matters for dependencies)
 # phase_clocks must come before sim8_01_top since it's instantiated there
-RTL_SOURCES = $(SRC_DIR)/phase_clocks.vhdl \
+RTL_SOURCES = $(SRC_DIR)/components/ic8263.vhdl \
+              $(SRC_DIR)/phase_clocks.vhdl \
               $(SRC_DIR)/sim8_01_top.vhdl
 # Add glue logic modules as you create them (before sim8_01_top):
 #              $(SRC_DIR)/state_decoder.vhdl \
@@ -31,7 +32,8 @@ RTL_SOURCES = $(SRC_DIR)/phase_clocks.vhdl \
 #              $(SRC_DIR)/ready_generator.vhdl
 
 # List all testbench files here (for make list-tests)
-ALL_TB_SOURCES = $(SIM_DIR)/phase_clocks_tb.vhdl \
+ALL_TB_SOURCES = $(SIM_DIR)/ic8263_tb.vhdl \
+                 $(SIM_DIR)/phase_clocks_tb.vhdl \
                  $(SIM_DIR)/sim8_01_top_tb.vhdl
 # Add testbenches as you create modules:
 #                 $(SIM_DIR)/state_decoder_tb.vhdl \
