@@ -45,13 +45,18 @@ architecture sim of phase_clocks_tb is
     signal dead_time_1 : time := 0 ns;  -- After phi1 falls
     signal dead_time_2 : time := 0 ns;  -- After phi2 falls
 
-    -- Expected values based on code analysis
-    constant CLOCK_DIVIDER : integer := 200;
-    constant DEAD_CLOCK_DIVIDER : integer := 50;
-    constant EXPECTED_PHI_PERIOD : time := (CLOCK_DIVIDER + DEAD_CLOCK_DIVIDER) * CLK_PERIOD;
-    constant EXPECTED_FULL_CYCLE : time := 2 * EXPECTED_PHI_PERIOD;
-    constant EXPECTED_DEAD_TIME : time := DEAD_CLOCK_DIVIDER * CLK_PERIOD;
-    constant EXPECTED_ACTIVE_TIME : time := CLOCK_DIVIDER * CLK_PERIOD;
+    -- Expected values based on Intel 8008 timing constraints
+    -- Timing matches phase_clocks.vhdl implementation
+    constant PHI1_DIVIDER : integer := 80;    -- 0.8 µs PHI1 pulse width
+    constant PHI2_DIVIDER : integer := 60;    -- 0.6 µs PHI2 pulse width
+    constant DEAD_DIVIDER : integer := 40;    -- 0.4 µs dead time
+
+    -- Calculate expected times
+    constant EXPECTED_PHI1_TIME : time := PHI1_DIVIDER * CLK_PERIOD;  -- 800 ns
+    constant EXPECTED_PHI2_TIME : time := PHI2_DIVIDER * CLK_PERIOD;  -- 600 ns
+    constant EXPECTED_DEAD_TIME : time := DEAD_DIVIDER * CLK_PERIOD;  -- 400 ns
+    constant EXPECTED_FULL_CYCLE : time := EXPECTED_PHI1_TIME + EXPECTED_DEAD_TIME +
+                                            EXPECTED_PHI2_TIME + EXPECTED_DEAD_TIME;  -- 2200 ns (2.2 µs)
 
 begin
 
@@ -82,9 +87,10 @@ begin
     begin
         report "=== Phase Clocks Comprehensive Test Starting ===";
         report "Input Clock: 100 MHz (10 ns period)";
-        report "Expected phi1/phi2 frequency: 200 kHz";
+        report "Intel 8008 Timing Constraints: Max cycle 3 µs, Min phi1 0.7 µs, Min phi2 0.55 µs";
         report "Expected full cycle time: " & time'image(EXPECTED_FULL_CYCLE);
-        report "Expected active phase time: " & time'image(EXPECTED_ACTIVE_TIME);
+        report "Expected phi1 active time: " & time'image(EXPECTED_PHI1_TIME);
+        report "Expected phi2 active time: " & time'image(EXPECTED_PHI2_TIME);
         report "Expected dead time: " & time'image(EXPECTED_DEAD_TIME);
 
         -- Test 1: Reset behavior
@@ -133,11 +139,18 @@ begin
         report "  Measured dead time after phi2: " & time'image(dead_time_2);
 
         -- Verify timing within tolerance (allow ±1 clock period)
-        if phi1_high_time >= EXPECTED_ACTIVE_TIME - CLK_PERIOD and
-           phi1_high_time <= EXPECTED_ACTIVE_TIME + CLK_PERIOD then
+        if phi1_high_time >= EXPECTED_PHI1_TIME - CLK_PERIOD and
+           phi1_high_time <= EXPECTED_PHI1_TIME + CLK_PERIOD then
             report "PASS: phi1 active time correct";
         else
             report "FAIL: phi1 active time out of range" severity error;
+        end if;
+
+        if phi2_high_time >= EXPECTED_PHI2_TIME - CLK_PERIOD and
+           phi2_high_time <= EXPECTED_PHI2_TIME + CLK_PERIOD then
+            report "PASS: phi2 active time correct";
+        else
+            report "FAIL: phi2 active time out of range" severity error;
         end if;
 
         if dead_time_1 >= EXPECTED_DEAD_TIME - CLK_PERIOD and
@@ -147,14 +160,21 @@ begin
             report "FAIL: dead time 1 out of range" severity error;
         end if;
 
+        if dead_time_2 >= EXPECTED_DEAD_TIME - CLK_PERIOD and
+           dead_time_2 <= EXPECTED_DEAD_TIME + CLK_PERIOD then
+            report "PASS: dead time 2 correct";
+        else
+            report "FAIL: dead time 2 out of range" severity error;
+        end if;
+
         -- Test 6: Reset during operation
         report "TEST 6: Reset during operation";
-        wait for EXPECTED_PHI_PERIOD / 2;  -- Reset in middle of cycle
-        reset <= '1';
+        wait for EXPECTED_FULL_CYCLE / 2;  -- Reset in middle of cycle
+        reset <= '0';  -- Assert reset (active low)
         wait for 50 ns;
         assert phi1 = '1' report "FAIL: phi1 should be HIGH during reset" severity error;
         assert phi2 = '0' report "FAIL: phi2 should be LOW during reset" severity error;
-        reset <= '0';
+        reset <= '1';  -- Release reset
         wait for 2 * EXPECTED_FULL_CYCLE;
         report "PASS: Reset during operation successful";
 
@@ -237,7 +257,7 @@ begin
 
         if cycle_count = 0 then
             report "First full cycle period: " & time'image(now - cycle_start);
-            if now - cycle_start /= EXPECTED_PHI_PERIOD then
+            if now - cycle_start /= EXPECTED_FULL_CYCLE then
                 report "WARNING: Cycle period differs from expected" severity warning;
             end if;
         end if;
