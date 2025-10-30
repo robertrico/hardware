@@ -1,0 +1,120 @@
+Intel SIM8-01 Recreation Project - VHDL Implementation
+======================================================
+
+Copyright (c) 2025 Robert Rico
+
+This project is a VHDL implementation of the Intel SIM8-01 reference design
+for FPGA, combining VHDL conversions of existing work with original system
+integration and support components.
+
+SOURCES AND DERIVATION
+=======================
+
+i8008 CPU Core (i8008_cpu.vhdl, i8008_alu.vhdl)
+------------------------------------------------
+These components are VHDL conversions/adaptations derived from:
+
+  Original Author: Michael Kohn
+  Original Work: i8008 Verilog implementation
+  Website: https://www.mikekohn.net/
+  License: MIT License
+  Copyright: 2022-2024 Michael Kohn
+
+The VHDL versions follow Kohn's original Verilog architecture, instruction
+decoding, and ALU design. These are adaptations of Kohn's work, not
+independent implementations.
+
+SIM8-01 System Integration and Support Components
+--------------------------------------------------
+Original work by Robert Rico (2025):
+
+- sim8_01_top.vhdl: Silicon interface for real Intel 8008 chip
+- sim8_01_top_softcore.vhdl: Softcore testing environment
+- phase_clocks.vhdl: Two-phase clock generator
+- ic8267.vhdl, ic8263.vhdl, ic3205.vhdl, ic3404.vhdl: Support IC models
+- rom_2kx8.vhdl, ram_1kx8.vhdl: Memory components
+- All testbenches (sim/*.vhdl)
+
+Intel 8008 and SIM8-01 Reference Design
+----------------------------------------
+Original Design: Intel Corporation (1970s)
+
+Documentation referenced:
+- Intel 8008 Datasheet (1972, 1978)
+- Intel 8008 User's Manual
+- Intel SIM8-01 Schematic
+
+Support IC datasheets referenced:
+- Signetics 8267, 8263
+- 74LS138 / 3205 Decoder
+- 74LS373 / 3404 Latch
+
+LICENSE TERMS
+=============
+
+MIT License
+-----------
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this hardware design and associated documentation files (the "Design"),
+to deal in the Design without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Design, and to permit persons to whom the Design is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Design.
+
+THE DESIGN IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHOR OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE DESIGN OR THE USE OR OTHER DEALINGS IN THE
+DESIGN.
+
+NATURE OF THIS WORK
+====================
+
+This project combines:
+
+1. VHDL conversions of Michael Kohn's i8008 Verilog implementation
+2. Original SIM8-01 system integration and glue logic
+3. Functional recreations of vintage support ICs from datasheets
+4. Original memory components and testing infrastructure
+
+The i8008 CPU and ALU are derived from Kohn's Verilog work. The SIM8-01
+system integration, support ICs, and testing infrastructure are original
+implementations by Robert Rico.
+
+DISCLAIMER
+==========
+
+This project is provided for educational and historical preservation purposes.
+Intel, 8008, and SIM8-01 are trademarks of Intel Corporation.
+Signetics is a trademark of Philips/NXP.
+
+This is an independent recreation for educational purposes, not an official
+product of Intel Corporation or any other company.
+
+NO WARRANTY - HARDWARE RISK
+============================
+
+This hardware design is provided "as-is" without warranty of any kind.
+Use at your own risk. The author is not responsible for any damage to
+hardware, including but not limited to vintage Intel 8008 processors or
+other vintage components.
+
+When interfacing with vintage hardware:
+- Verify voltage levels carefully (5V TTL vs. 3.3V FPGA)
+- Test with non-critical hardware first
+- Use appropriate level shifters and protection circuitry
+- Proceed at your own risk
+
+ACKNOWLEDGMENTS
+===============
+
+- Michael Kohn for the original i8008 Verilog implementation
+- Intel Corporation for the original 8008 microprocessor and SIM8-01 design
+- The vintage computing community for preservation of documentation
+- Signetics/Philips/NXP for the original support IC designs
