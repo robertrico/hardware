@@ -69,11 +69,13 @@ architecture rtl of sim8_01_top is
     -- Component: RAM (1K x 8)
     component ram_1kx8 is
         port(
+            CLK : in std_logic;
             ADDR : in std_logic_vector(9 downto 0);
             DATA_IN : in std_logic_vector(7 downto 0);
             DATA_OUT : out std_logic_vector(7 downto 0);
             CS_N : in std_logic;
-            RW_N : in std_logic
+            RW_N : in std_logic;
+            DEBUG_BYTE_0 : out std_logic_vector(7 downto 0)
         );
     end component;
 
@@ -226,11 +228,13 @@ begin
 
     -- Instantiate RAM
     ram: ram_1kx8 port map(
+        CLK => phi1_int,
         ADDR => addr_full(9 downto 0),
         DATA_IN => cpu_data,
         DATA_OUT => ram_data,
         CS_N => ram_cs_n,
-        RW_N => ram_rw_n
+        RW_N => ram_rw_n,
+        DEBUG_BYTE_0 => open  -- Not used in silicon interface
     );
 
     -- Data bus multiplexer (drive CPU data bus during T3 reads)

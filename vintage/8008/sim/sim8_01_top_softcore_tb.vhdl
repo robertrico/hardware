@@ -10,16 +10,17 @@ end sim8_01_top_softcore_tb;
 
 architecture sim of sim8_01_top_softcore_tb is
 
-    component sim8_01_top is
-        port (
-            clk : in std_logic;
-            rst : in std_logic;
-            cpu_phi1 : out std_logic;
-            cpu_phi2 : out std_logic;
-            debug_led : out std_logic_vector(7 downto 0);
-            sw : in std_logic_vector(7 downto 1)
-        );
-    end component;
+    -- Use entity instantiation instead of component for hierarchy access
+    -- component sim8_01_top is
+    --     port (
+    --         clk : in std_logic;
+    --         rst : in std_logic;
+    --         cpu_phi1 : out std_logic;
+    --         cpu_phi2 : out std_logic;
+    --         debug_led : out std_logic_vector(7 downto 0);
+    --         sw : in std_logic_vector(7 downto 1)
+    --     );
+    -- end component;
 
     signal clk_tb : std_logic := '0';
     signal rst_tb : std_logic := '0';
@@ -27,21 +28,27 @@ architecture sim of sim8_01_top_softcore_tb is
     signal cpu_phi2_tb : std_logic;
     signal debug_led_tb : std_logic_vector(7 downto 0);
     signal sw_tb : std_logic_vector(7 downto 1) := (others => '0');
+    signal debug_ram_byte_0_tb : std_logic_vector(7 downto 0);
+    signal debug_mem_addr_tb : std_logic_vector(13 downto 0);
+    signal debug_mem_data_tb : std_logic_vector(7 downto 0);
 
     constant CLK_PERIOD : time := 10 ns;  -- 100 MHz
     signal sim_done : boolean := false;
 
 begin
 
-    -- UUT instantiation
-    uut: sim8_01_top
+    -- UUT instantiation using entity work.sim8_01_top for hierarchy access
+    uut: entity work.sim8_01_top(rtl)
         port map (
             clk => clk_tb,
             rst => rst_tb,
             cpu_phi1 => cpu_phi1_tb,
             cpu_phi2 => cpu_phi2_tb,
             debug_led => debug_led_tb,
-            sw => sw_tb
+            sw => sw_tb,
+            debug_ram_byte_0 => debug_ram_byte_0_tb,
+            debug_mem_addr => debug_mem_addr_tb,
+            debug_mem_data => debug_mem_data_tb
         );
 
     -- Clock generation
@@ -67,31 +74,26 @@ begin
 
         -- Release reset
         rst_tb <= '0';
-        report "Reset released - CPU should execute ROM program";
+        report "Reset released - CPU should execute ADD program with RAM write";
+        report "Program: MVI A,5  MVI B,3  ADD B  MVI H,0x08  MVI L,0x00  MOV M,A  HLT";
+        report "Expected result: RAM[0x0800] = 0x08 after execution";
         wait for 20 ns;
 
-        -- Wait for CPU to execute and halt
-        -- The ROM has: 0x00 (HLT) at address 0
-        -- CPU should fetch 0x00 and halt immediately
+        -- Wait for CPU to execute ADD program with RAM write
+        -- Program:
+        --   0x00: MVI A, 5   (2 bytes: 0x06, 0x05)
+        --   0x02: MVI B, 3   (2 bytes: 0x0E, 0x03)
+        --   0x04: ADD B      (1 byte: 0x81)
+        --   0x05: MVI H, 8   (2 bytes: 0x26, 0x08)
+        --   0x07: MVI L, 0   (2 bytes: 0x2E, 0x00)
+        --   0x09: MOV M, A   (1 byte: 0xF8) - writes to RAM[0x0800]
+        --   0x0A: HLT        (1 byte: 0x00)
+        --
+        -- Each instruction takes multiple cycles:
+        -- MVI needs 2 fetches, ADD/MOV/HLT need 1 fetch each
+        -- With ~2.2us cycle time, need ~40-60us for full execution
 
-        -- Give CPU time to fetch and execute
-        wait for 100 ns;
-        report "After 100ns: halted=" & std_logic'image(debug_led_tb(2));
-
-        wait for 100 ns;
-        report "After 200ns: halted=" & std_logic'image(debug_led_tb(2));
-
-        wait for 200 ns;
-        report "After 400ns: halted=" & std_logic'image(debug_led_tb(2));
-
-        wait for 600 ns;
-        report "After 1us: halted=" & std_logic'image(debug_led_tb(2));
-
-        wait for 1 us;
-        report "After 2us: halted=" & std_logic'image(debug_led_tb(2));
-
-        -- Phase clocks are slow (2.2µs per cycle), need to wait for CPU cycles
-        wait for 3 us;
+        wait for 5 us;
         report "After 5us: halted=" & std_logic'image(debug_led_tb(2));
 
         wait for 5 us;
@@ -100,15 +102,50 @@ begin
         wait for 10 us;
         report "After 20us: halted=" & std_logic'image(debug_led_tb(2));
 
+        wait for 10 us;
+        report "After 30us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 10 us;
+        report "After 40us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 20 us;
+        report "After 60us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 20 us;
+        report "After 80us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 20 us;
+        report "After 100us: halted=" & std_logic'image(debug_led_tb(2));
+
         -- Check if halted (debug_led(2) should be high)
         if debug_led_tb(2) = '1' then
-            report "=== SUCCESS: CPU Halted (debug_led(2)=1) ===";
+            report "=== SUCCESS: CPU executed ADD program and halted (debug_led(2)=1) ===" severity note;
         else
-            report "=== FAILURE: CPU not halted yet ===";
+            report "=== FAILURE: CPU did not halt in time ===" severity error;
         end if;
 
         -- Monitor a bit longer
         wait for 5 us;
+
+        -- READ BACK RAM to verify the write worked
+        -- Access RAM contents through debug output port
+        -- RAM[0] should contain 0x08 (the result of 5+3)
+        report "=== Verifying RAM Contents ===";
+        report "RAM[0x000] (hex) = 0x" & to_hstring(debug_ram_byte_0_tb);
+        report "RAM[0x000] (dec) = " & integer'image(to_integer(unsigned(debug_ram_byte_0_tb)));
+        report "Expected: 0x08 (decimal 8)";
+
+        -- Assert the value is correct
+        assert debug_ram_byte_0_tb = x"08"
+            report "FAIL: RAM[0x0800] = 0x" & to_hstring(debug_ram_byte_0_tb) &
+                   ", expected 0x08"
+            severity error;
+
+        if debug_ram_byte_0_tb = x"08" then
+            report "=== RAM VERIFICATION PASSED: RAM[0x0800] contains 0x08 ===" severity note;
+        else
+            report "=== RAM VERIFICATION FAILED: RAM[0x0800] = 0x" & to_hstring(debug_ram_byte_0_tb) severity error;
+        end if;
 
         report "=== SIM8-01 System Test Complete ===";
         report "Final debug_led state: " & integer'image(to_integer(unsigned(debug_led_tb)));
@@ -116,7 +153,7 @@ begin
         wait;
     end process;
 
-    -- Monitor debug LEDs
+    -- Monitor debug LEDs and RAM
     monitor_process: process(debug_led_tb)
     begin
         report "DEBUG_LED: phi1=" & std_logic'image(debug_led_tb(0)) &
@@ -125,6 +162,24 @@ begin
                " mem_read=" & std_logic'image(debug_led_tb(3)) &
                " mem_write=" & std_logic'image(debug_led_tb(4)) &
                " @" & time'image(now);
+    end process;
+
+    -- Monitor memory writes
+    monitor_writes: process(debug_led_tb(4))
+    begin
+        if debug_led_tb(4) = '1' then
+            report "*** MEMORY WRITE: addr=0x" & to_hstring(debug_mem_addr_tb) &
+                   " data=0x" & to_hstring(debug_mem_data_tb) &
+                   " @" & time'image(now);
+        end if;
+    end process;
+
+    -- Monitor RAM byte 0 changes
+    monitor_ram: process(debug_ram_byte_0_tb)
+    begin
+        if debug_ram_byte_0_tb /= x"00" then
+            report "*** RAM[0] CHANGED to 0x" & to_hstring(debug_ram_byte_0_tb) & " at " & time'image(now);
+        end if;
     end process;
 
 end sim;

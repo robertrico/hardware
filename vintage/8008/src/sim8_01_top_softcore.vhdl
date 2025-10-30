@@ -33,7 +33,14 @@ entity sim8_01_top is
 
         -- Debug/Status outputs
         debug_led  : out std_logic_vector(7 downto 0);   -- LED outputs for debugging
-        sw         : in std_logic_vector(7 downto 1)     -- DIP switches for config
+        sw         : in std_logic_vector(7 downto 1);    -- DIP switches for config
+
+        -- Testbench debug outputs
+        debug_ram_byte_0 : out std_logic_vector(7 downto 0);
+        debug_mem_addr   : out std_logic_vector(13 downto 0);
+        debug_mem_data   : out std_logic_vector(7 downto 0);
+        debug_reg_h      : out std_logic_vector(7 downto 0);
+        debug_reg_l      : out std_logic_vector(7 downto 0)
     );
 end sim8_01_top;
 
@@ -79,11 +86,13 @@ architecture rtl of sim8_01_top is
     -- RAM: 1K x 8
     component ram_1kx8 is
         port(
+            CLK : in std_logic;
             ADDR : in std_logic_vector(9 downto 0);
             DATA_IN : in std_logic_vector(7 downto 0);
             DATA_OUT : out std_logic_vector(7 downto 0);
             RW_N : in std_logic;
-            CS_N : in std_logic
+            CS_N : in std_logic;
+            DEBUG_BYTE_0 : out std_logic_vector(7 downto 0)
         );
     end component;
 
@@ -141,7 +150,7 @@ begin
     -- ROM: 0x0000 - 0x07FF (0-2047)
     -- RAM: 0x0800 - 0x0BFF (2048-3071)
     rom_cs_n <= '0' when (mem_address(13 downto 11) = "000" and mem_read = '1') else '1';
-    ram_cs_n <= '0' when (mem_address(13 downto 11) = "001") else '1';
+    ram_cs_n <= '0' when (mem_address(13 downto 11) = "001" and (mem_read = '1' or mem_write = '1')) else '1';
 
     -- Memory data output mux
     mem_data_out <= rom_data when rom_cs_n = '0' else
@@ -172,11 +181,13 @@ begin
     -- RAM (1K x 8) - Working memory
     ram: ram_1kx8
         port map(
+            CLK => cpu_clk,
             ADDR => mem_address(9 downto 0),
             DATA_IN => mem_data_in,
             DATA_OUT => ram_data,
             RW_N => not mem_write,
-            CS_N => ram_cs_n
+            CS_N => ram_cs_n,
+            DEBUG_BYTE_0 => debug_ram_byte_0
         );
 
     -- TODO: Instantiate additional modules as they are developed
@@ -241,6 +252,10 @@ begin
     debug_led(3) <= mem_read;
     debug_led(4) <= mem_write;
     debug_led(7 downto 5) <= (others => '0');
+
+    -- Debug outputs for testbench
+    debug_mem_addr <= mem_address;
+    debug_mem_data <= mem_data_in;
 
     -- Note: LEDs on ECP5 Versa are active-low, but this is handled in constraints
 

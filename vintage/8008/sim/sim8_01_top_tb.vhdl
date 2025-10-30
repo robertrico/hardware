@@ -251,22 +251,27 @@ begin
         rst_tb <= '0';
         report "Released reset, waiting for CPU to execute...";
 
-        -- Wait for CPU to fetch and decode HLT instruction
-        -- Phase clocks are slow (2.2us cycle), need several cycles
-        -- Instruction fetch takes: T1 + T2 + T3 + T1I + T2I = 5 states
-        -- Each state is one clock cycle (2.2us), so ~11us total
-        wait for 5 us;
-        report "After 5us: halted=" & std_logic'image(debug_led_tb(2));
-
-        wait for 5 us;
-        report "After 10us: halted=" & std_logic'image(debug_led_tb(2));
-
-        wait for 5 us;
-        report "After 15us: halted=" & std_logic'image(debug_led_tb(2));
-
-        -- Wait a bit more for DUT to detect STOPPED state
-        wait for 5 us;
+        -- Wait for CPU to execute ADD program
+        -- Program: MVI A,5  MVI B,3  ADD B  HLT
+        -- Phase clocks are slow (2.2us cycle)
+        -- Multiple instructions each taking several cycles
+        wait for 20 us;
         report "After 20us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 20 us;
+        report "After 40us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 20 us;
+        report "After 60us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 20 us;
+        report "After 80us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 20 us;
+        report "After 100us: halted=" & std_logic'image(debug_led_tb(2));
+
+        wait for 20 us;
+        report "After 120us: halted=" & std_logic'image(debug_led_tb(2));
 
         -- Check if CPU halted (debug_led(2) should be high)
         report "Final check: halted=" & std_logic'image(debug_led_tb(2));

@@ -11,6 +11,9 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity ram_1kx8 is
     port(
+        -- Clock for synchronous writes
+        CLK : in std_logic;
+
         -- 10-bit address (2^10 = 1024)
         ADDR : in std_logic_vector(9 downto 0);
 
@@ -22,7 +25,10 @@ entity ram_1kx8 is
         RW_N : in std_logic;  -- 0 = Write, 1 = Read
 
         -- Chip select (active low)
-        CS_N : in std_logic
+        CS_N : in std_logic;
+
+        -- Debug output for testbench - exposes location 0
+        DEBUG_BYTE_0 : out std_logic_vector(7 downto 0)
     );
 end ram_1kx8;
 
@@ -32,21 +38,30 @@ architecture rtl of ram_1kx8 is
     signal ram : ram_array := (others => x"00");  -- Initialize to zeros
 
 begin
-    process(ADDR, DATA_IN, RW_N, CS_N)
+    -- Synchronous write process
+    write_proc: process(CLK)
     begin
-        if CS_N = '0' then
-            -- Chip selected
-            if RW_N = '0' then
-                -- Write mode
+        if rising_edge(CLK) then
+            if CS_N = '0' and RW_N = '0' then
+                -- Write mode: store data on clock edge
                 ram(to_integer(unsigned(ADDR))) <= DATA_IN;
-            else
-                -- Read mode
-                DATA_OUT <= ram(to_integer(unsigned(ADDR)));
             end if;
+        end if;
+    end process;
+
+    -- Combinational read process
+    read_proc: process(ADDR, CS_N, ram)
+    begin
+        if CS_N = '0' and RW_N = '1' then
+            -- Read mode: output data combinationally
+            DATA_OUT <= ram(to_integer(unsigned(ADDR)));
         else
-            -- Chip not selected, tri-state
+            -- Not selected or writing, tri-state
             DATA_OUT <= (others => 'Z');
         end if;
     end process;
+
+    -- Debug output - always expose location 0
+    DEBUG_BYTE_0 <= ram(0);
 
 end rtl;
