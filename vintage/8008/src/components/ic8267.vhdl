@@ -1,3 +1,11 @@
+-------------------------------------------------------------------------------
+-- Signetics 8267 Quad 2-Input Multiplexer - VHDL Recreation
+-------------------------------------------------------------------------------
+-- Copyright (c) 2025 Robert Rico
+-- Based on Signetics 8267 datasheet specifications
+-- License: MIT (see LICENSE.txt)
+-------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 

@@ -7,11 +7,21 @@
 #==========================================
 # Project Configuration
 #==========================================
-# Top-level entity for the complete SIM8-01 system
-TOP_ENTITY = sim8_01_top
+# Top-level entity - can be overridden on command line:
+#   make                    # Tests silicon interface (default)
+#   make test-softcore      # Tests softcore version
+#   make TOP=sim8_01_top_softcore  # Alternative way
+TOP_ENTITY ?= sim8_01_top
 
-# Default testbench (when no TEST= is specified)
-TB_ENTITY = sim8_01_top_tb
+# Default testbench - automatically matches TOP_ENTITY
+# Can be overridden with TB_ENTITY=name
+ifeq ($(TOP_ENTITY),sim8_01_top_softcore)
+    TB_ENTITY ?= sim8_01_top_softcore_tb
+else ifeq ($(TOP_ENTITY),sim8_01_top)
+    TB_ENTITY ?= sim8_01_top_tb
+else
+    TB_ENTITY ?= $(TOP_ENTITY)_tb
+endif
 
 #==========================================
 # Source Files
@@ -24,17 +34,10 @@ RTL_SOURCES = $(SRC_DIR)/components/ic8263.vhdl \
               $(SRC_DIR)/components/ic3404.vhdl \
               $(SRC_DIR)/components/rom_2kx8.vhdl \
               $(SRC_DIR)/components/ram_1kx8.vhdl \
+              $(SRC_DIR)/components/i8008_alu.vhdl \
+              $(SRC_DIR)/components/i8008_cpu.vhdl \
               $(SRC_DIR)/phase_clocks.vhdl \
-              $(SRC_DIR)/sim8_01_top.vhdl
-# Add glue logic modules as you create them (before sim8_01_top):
-#              $(SRC_DIR)/state_decoder.vhdl \
-#              $(SRC_DIR)/timing_generator.vhdl \
-#              $(SRC_DIR)/address_latch.vhdl \
-#              $(SRC_DIR)/data_bus_buffer.vhdl \
-#              $(SRC_DIR)/memory_controller.vhdl \
-#              $(SRC_DIR)/io_controller.vhdl \
-#              $(SRC_DIR)/interrupt_logic.vhdl \
-#              $(SRC_DIR)/ready_generator.vhdl
+              $(SRC_DIR)/$(TOP_ENTITY).vhdl
 
 # List all testbench files here (for make list-tests)
 ALL_TB_SOURCES = $(SIM_DIR)/ic8263_tb.vhdl \
@@ -43,12 +46,10 @@ ALL_TB_SOURCES = $(SIM_DIR)/ic8263_tb.vhdl \
                  $(SIM_DIR)/ic3404_tb.vhdl \
                  $(SIM_DIR)/rom_2kx8_tb.vhdl \
                  $(SIM_DIR)/ram_1kx8_tb.vhdl \
+                 $(SIM_DIR)/i8008_cpu_tb.vhdl \
                  $(SIM_DIR)/phase_clocks_tb.vhdl \
-                 $(SIM_DIR)/sim8_01_top_tb.vhdl
-# Add testbenches as you create modules:
-#                 $(SIM_DIR)/state_decoder_tb.vhdl \
-#                 $(SIM_DIR)/address_latch_tb.vhdl \
-#                 $(SIM_DIR)/memory_controller_tb.vhdl
+                 $(SIM_DIR)/sim8_01_top_tb.vhdl \
+                 $(SIM_DIR)/sim8_01_top_softcore_tb.vhdl
 
 # Default testbench sources (when TEST= is not specified)
 TB_SOURCES = $(SIM_DIR)/$(TB_ENTITY).vhdl
@@ -62,6 +63,25 @@ TB_SOURCES = $(SIM_DIR)/$(TB_ENTITY).vhdl
 # FPGA_PACKAGE = CABGA381    # Package type (default: CABGA381)
 # FPGA_SPEED = 8             # Speed grade (default: 8)
 # GHDL_FLAGS = --std=08      # GHDL flags (default: --std=08)
+
+#==========================================
+# Convenience Targets
+#==========================================
+.PHONY: test-silicon test-softcore test-both
+
+# Test silicon interface (default)
+test-silicon:
+	@echo "=== Testing Silicon Interface (real 8008 chip) ==="
+	$(MAKE) sim TOP_ENTITY=sim8_01_top TB_ENTITY=sim8_01_top_tb
+
+# Test softcore version
+test-softcore:
+	@echo "=== Testing Softcore Version (VHDL CPU) ==="
+	$(MAKE) sim TOP_ENTITY=sim8_01_top_softcore TB_ENTITY=sim8_01_top_softcore_tb
+
+# Test both versions
+test-both: test-silicon test-softcore
+	@echo "=== Both tests completed ==="
 
 #==========================================
 # Include Common Build Rules

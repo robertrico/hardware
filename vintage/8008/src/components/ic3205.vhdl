@@ -1,3 +1,11 @@
+-------------------------------------------------------------------------------
+-- 3205 / 74LS138 1-of-8 Decoder - VHDL Recreation
+-------------------------------------------------------------------------------
+-- Copyright (c) 2025 Robert Rico
+-- Based on 74LS138 / 3205 decoder datasheet specifications
+-- License: MIT (see LICENSE.txt)
+-------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 

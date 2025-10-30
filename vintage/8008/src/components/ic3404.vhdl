@@ -1,3 +1,11 @@
+-------------------------------------------------------------------------------
+-- 3404 / 74LS373 6-bit Latch - VHDL Recreation
+-------------------------------------------------------------------------------
+-- Copyright (c) 2025 Robert Rico
+-- Based on 74LS373 / 3404 latch datasheet specifications
+-- License: MIT (see LICENSE.txt)
+-------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 

@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- 2K x 8 ROM Memory Component
+-------------------------------------------------------------------------------
+-- Copyright (c) 2025 Robert Rico
+-- License: MIT (see LICENSE.txt)
+-------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -19,12 +26,12 @@ architecture rtl of rom_2kx8 is
     -- ROM storage: 2048 locations x 8 bits
     type rom_array is array(0 to 2047) of std_logic_vector(7 downto 0);
 
-    -- Initialize ROM with some test data (replace with actual program later)
+    -- Initialize ROM with test program
+    -- 0x00 = HLT (00_000_000)
+    -- 0xFF = HLT (11_111_111)
     signal rom : rom_array := (
-        0 => x"00",  -- Example: NOP or your program
-        1 => x"01",
-        2 => x"02",
-        others => x"FF"  -- Fill rest with 0xFF
+        0 => x"00",  -- HLT at address 0
+        others => x"FF"  -- Fill rest with HLT (0xFF)
     );
 
 begin

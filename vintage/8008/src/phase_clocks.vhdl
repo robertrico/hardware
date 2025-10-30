@@ -1,4 +1,18 @@
--- 8008_clock_gen.vhd
+-------------------------------------------------------------------------------
+-- Two-Phase Non-Overlapping Clock Generator for Intel 8008
+-------------------------------------------------------------------------------
+-- Copyright (c) 2025 Robert Rico
+--
+-- Generates PHI1 and PHI2 clock phases with proper timing for Intel 8008:
+--   - PHI1: 0.8 µs pulse width
+--   - Dead time: 0.4 µs
+--   - PHI2: 0.6 µs pulse width
+--   - Dead time: 0.4 µs
+--   - Total cycle: 2.2 µs (within 3 µs max cycle time)
+--
+-- License: MIT (see LICENSE.txt)
+-------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -36,7 +50,7 @@ architecture rtl of phase_clocks is
 begin
     process(clk_in, reset)
     begin
-        if reset = '0' then
+        if reset = '1' then
             counter <= 0;
             phi1 <= '1';
             phi2 <= '0';
