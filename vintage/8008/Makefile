@@ -21,6 +21,7 @@ TB_ENTITY = sim8_01_top_tb
 RTL_SOURCES = $(SRC_DIR)/components/ic8263.vhdl \
               $(SRC_DIR)/components/ic8267.vhdl \
               $(SRC_DIR)/components/ic3205.vhdl \
+              $(SRC_DIR)/components/ic3404.vhdl \
               $(SRC_DIR)/phase_clocks.vhdl \
               $(SRC_DIR)/sim8_01_top.vhdl
 # Add glue logic modules as you create them (before sim8_01_top):
@@ -37,6 +38,7 @@ RTL_SOURCES = $(SRC_DIR)/components/ic8263.vhdl \
 ALL_TB_SOURCES = $(SIM_DIR)/ic8263_tb.vhdl \
                  $(SIM_DIR)/ic8267_tb.vhdl \
                  $(SIM_DIR)/ic3205_tb.vhdl \
+                 $(SIM_DIR)/ic3404_tb.vhdl \
                  $(SIM_DIR)/phase_clocks_tb.vhdl \
                  $(SIM_DIR)/sim8_01_top_tb.vhdl
 # Add testbenches as you create modules:
