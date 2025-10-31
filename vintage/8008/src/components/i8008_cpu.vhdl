@@ -461,6 +461,7 @@ begin
                                     state <= STATE_EXECUTE_WB;
                                 elsif opcode(2 downto 0) = "111" then
                                     mem_address_int <= register_hl;
+                                    mem_read_int <= '1';
                                     state <= STATE_EXECUTE_RD;
                                 else
                                     registers(to_integer(unsigned(opcode(5 downto 3)))) <=
