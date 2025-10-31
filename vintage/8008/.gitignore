@@ -1,5 +1,9 @@
 # Notes
 TODO_*.txt
+# ASM Build 
+*.lst
+*.hex
+*.mem
 # FPGA Build Artifacts
 build/
 work/
