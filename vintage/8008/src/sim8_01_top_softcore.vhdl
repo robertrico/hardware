@@ -40,7 +40,9 @@ entity sim8_01_top is
         debug_mem_addr   : out std_logic_vector(13 downto 0);
         debug_mem_data   : out std_logic_vector(7 downto 0);
         debug_reg_h      : out std_logic_vector(7 downto 0);
-        debug_reg_l      : out std_logic_vector(7 downto 0)
+        debug_reg_l      : out std_logic_vector(7 downto 0);
+        debug_rom_cs_n   : out std_logic;
+        debug_ram_cs_n   : out std_logic
     );
 end sim8_01_top;
 
@@ -60,17 +62,22 @@ architecture rtl of sim8_01_top is
         );
     end component;
 
-    -- i8008 CPU softcore (for testing before connecting real chip)
+    -- i8008 CPU softcore (now with real 8008 interface)
     component i8008_cpu is
         port(
-            clk : in std_logic;
+            phi1 : in std_logic;
+            phi2 : in std_logic;
             reset_n : in std_logic;
-            mem_address : out std_logic_vector(13 downto 0);
-            mem_data_in : out std_logic_vector(7 downto 0);
-            mem_data_out : in std_logic_vector(7 downto 0);
-            mem_read : out std_logic;
-            mem_write : out std_logic;
-            halted : out std_logic
+            data_bus : inout std_logic_vector(7 downto 0);
+            S0 : out std_logic;
+            S1 : out std_logic;
+            S2 : out std_logic;
+            SYNC : out std_logic;
+            READY : in std_logic;
+            INT : in std_logic;
+            halted : out std_logic;
+            debug_reg_h : out std_logic_vector(7 downto 0);
+            debug_reg_l : out std_logic_vector(7 downto 0)
         );
     end component;
 
@@ -105,22 +112,39 @@ architecture rtl of sim8_01_top is
     signal phi2_int   : std_logic;
 
     -- CPU signals
-    signal cpu_clk : std_logic;
     signal cpu_reset_n : std_logic;
     signal cpu_halted : std_logic;
+    signal cpu_data_bus : std_logic_vector(7 downto 0);
 
-    -- Memory bus signals
-    signal mem_address : std_logic_vector(13 downto 0);
-    signal mem_data_in : std_logic_vector(7 downto 0);
-    signal mem_data_out : std_logic_vector(7 downto 0);
-    signal mem_read : std_logic;
-    signal mem_write : std_logic;
+    -- CPU state signals
+    signal cpu_S0 : std_logic;
+    signal cpu_S1 : std_logic;
+    signal cpu_S2 : std_logic;
+    signal cpu_SYNC : std_logic;
+    signal cpu_READY : std_logic;
+    signal cpu_INT : std_logic;
+
+    -- Address demultiplex (captured from bus during T1/T2)
+    signal addr_low : std_logic_vector(7 downto 0);
+    signal addr_high : std_logic_vector(5 downto 0);
+    signal addr_full : std_logic_vector(13 downto 0);
+
+    -- Cycle control
+    signal cycle_type : std_logic_vector(1 downto 0);  -- From D7:D6 during T2
+    signal is_write_cycle : std_logic;
+    signal is_read_cycle : std_logic;
+    signal was_sync : std_logic := '0';  -- Debug: track SYNC capture state
+
+    -- Timing state decode
+    type timing_state_t is (T1, T1I, T2, TWAIT, T3, T4, T5);
+    signal timing_state : timing_state_t;
 
     -- ROM/RAM signals
     signal rom_cs_n : std_logic;
     signal ram_cs_n : std_logic;
     signal rom_data : std_logic_vector(7 downto 0);
     signal ram_data : std_logic_vector(7 downto 0);
+    signal mem_data : std_logic_vector(7 downto 0);
 
 begin
 
@@ -138,54 +162,142 @@ begin
             phi2   => phi2_int
         );
 
-    -- Connect phase clocks to CPU
+    -- Connect phase clocks
     cpu_phi1 <= phi1_int;
     cpu_phi2 <= phi2_int;
-
-    -- Use phi1 as CPU clock for now (can be adjusted)
-    cpu_clk <= phi1_int;
     cpu_reset_n <= not rst;
 
-    -- Address Decoding
+    -- Tie-off control signals (for now - can be connected to switches)
+    cpu_READY <= '1';  -- Always ready (no wait states)
+    cpu_INT <= '0';    -- No interrupts
+
+    --===========================================
+    -- Timing State Decoder (from S0/S1/S2)
+    --===========================================
+    process(cpu_S0, cpu_S1, cpu_S2)
+        variable state_bits : std_logic_vector(2 downto 0);
+    begin
+        state_bits := cpu_S2 & cpu_S1 & cpu_S0;
+        case state_bits is
+            when "000" => timing_state <= T1;
+            when "001" => timing_state <= T1I;
+            when "010" => timing_state <= T2;
+            when "011" => timing_state <= TWAIT;
+            when "100" => timing_state <= T3;
+            when "110" => timing_state <= T4;
+            when "111" => timing_state <= T5;
+            when others => timing_state <= T1;
+        end case;
+    end process;
+
+    --===========================================
+    -- Address Demultiplexing Logic
+    --===========================================
+    -- Capture address from data bus during T1 and T2 states
+    -- Use SYNC to detect T1, then next cycle is T2
+
+    process(phi1_int, cpu_reset_n)
+    begin
+        if cpu_reset_n = '0' then
+            addr_low <= (others => '0');
+            addr_high <= (others => '0');
+            cycle_type <= (others => '0');
+            was_sync <= '0';
+        elsif falling_edge(phi1_int) then
+            -- Sample address on falling edge of phi1 (= start of phi2)
+            -- This gives the CPU's combinatorial bus driver time to update before we sample
+            -- Sampling on falling_edge provides a delta-cycle delay vs rising_edge(phi2)
+            if cpu_SYNC = '1' then
+                -- SYNC high = T1 state, capture lower address
+                addr_low <= cpu_data_bus;
+                was_sync <= '1';
+                report "T1: Captured addr_low=0x" & to_hstring(cpu_data_bus);
+            elsif was_sync = '1' then
+                -- Cycle after SYNC = T2 state, capture upper address + cycle type
+                addr_high <= cpu_data_bus(5 downto 0);
+                cycle_type <= cpu_data_bus(7 downto 6);
+                was_sync <= '0';
+                report "T2: Captured addr_high=0x" & to_hstring(cpu_data_bus(5 downto 0)) & " cycle_type=" & to_string(cpu_data_bus(7 downto 6)) & " full_addr=0x" & to_hstring(cpu_data_bus(5 downto 0) & addr_low);
+            end if;
+        end if;
+    end process;
+
+    -- Assemble full 14-bit address
+    addr_full <= addr_high & addr_low;
+
+    -- Decode cycle type: "10" = write, anything else = read
+    is_read_cycle <= '1' when cycle_type /= "10" else '0';
+    is_write_cycle <= '1' when cycle_type = "10" else '0';
+
+    --===========================================
+    -- Address Decoding for ROM/RAM
+    --===========================================
     -- ROM: 0x0000 - 0x07FF (0-2047)
     -- RAM: 0x0800 - 0x0BFF (2048-3071)
-    rom_cs_n <= '0' when (mem_address(13 downto 11) = "000" and mem_read = '1') else '1';
-    ram_cs_n <= '0' when (mem_address(13 downto 11) = "001" and (mem_read = '1' or mem_write = '1')) else '1';
+    -- Enable ROM for read cycles in ROM address range
+    -- Enable RAM for read or write cycles in RAM address range
+    rom_cs_n <= '0' when (addr_full(13 downto 11) = "000" and is_read_cycle = '1') else '1';
+    ram_cs_n <= '0' when (addr_full(13 downto 11) = "001") else '1';
 
     -- Memory data output mux
-    mem_data_out <= rom_data when rom_cs_n = '0' else
-                    ram_data when ram_cs_n = '0' else
-                    (others => '0');
+    process(rom_cs_n, ram_cs_n, rom_data, ram_data, addr_full)
+    begin
+        if rom_cs_n = '0' then
+            mem_data <= rom_data;
+            report "MEM MUX: Selecting ROM data=0x" & to_hstring(rom_data) & " for addr=0x" & to_hstring(addr_full);
+        elsif ram_cs_n = '0' then
+            mem_data <= ram_data;
+            report "MEM MUX: Selecting RAM data=0x" & to_hstring(ram_data) & " for addr=0x" & to_hstring(addr_full);
+        else
+            mem_data <= (others => '0');
+            report "MEM MUX: No chip selected, returning 0x00 for addr=0x" & to_hstring(addr_full);
+        end if;
+    end process;
 
-    -- i8008 CPU (softcore for testing)
+    -- Drive data bus with memory data during T3 read cycles only
+    -- Use S0/S1/S2 directly: T3 = 100
+    cpu_data_bus <= mem_data when (cpu_S2 = '1' and cpu_S1 = '0' and cpu_S0 = '0' and is_read_cycle = '1') else (others => 'Z');
+
+    --===========================================
+    -- i8008 CPU (softcore with real 8008 interface)
+    --===========================================
     cpu: i8008_cpu
         port map(
-            clk => cpu_clk,
+            phi1 => phi1_int,
+            phi2 => phi2_int,
             reset_n => cpu_reset_n,
-            mem_address => mem_address,
-            mem_data_in => mem_data_in,
-            mem_data_out => mem_data_out,
-            mem_read => mem_read,
-            mem_write => mem_write,
-            halted => cpu_halted
+            data_bus => cpu_data_bus,
+            S0 => cpu_S0,
+            S1 => cpu_S1,
+            S2 => cpu_S2,
+            SYNC => cpu_SYNC,
+            READY => cpu_READY,
+            INT => cpu_INT,
+            halted => cpu_halted,
+            debug_reg_h => debug_reg_h,
+            debug_reg_l => debug_reg_l
         );
 
+    --===========================================
     -- ROM (2K x 8) - Program storage
+    --===========================================
     rom: rom_2kx8
         port map(
-            ADDR => mem_address(10 downto 0),
+            ADDR => addr_full(10 downto 0),
             DATA_OUT => rom_data,
             CS_N => rom_cs_n
         );
 
+    --===========================================
     -- RAM (1K x 8) - Working memory
+    --===========================================
     ram: ram_1kx8
         port map(
-            CLK => cpu_clk,
-            ADDR => mem_address(9 downto 0),
-            DATA_IN => mem_data_in,
+            CLK => phi1_int,
+            ADDR => addr_full(9 downto 0),
+            DATA_IN => cpu_data_bus,  -- Data from CPU during writes
             DATA_OUT => ram_data,
-            RW_N => not mem_write,
+            RW_N => not is_write_cycle,
             CS_N => ram_cs_n,
             DEBUG_BYTE_0 => debug_ram_byte_0
         );
@@ -243,19 +355,23 @@ begin
     -- LED[0] = phi1 clock
     -- LED[1] = phi2 clock
     -- LED[2] = CPU halted
-    -- LED[3] = mem_read
-    -- LED[4] = mem_write
-    -- LED[7:5] = reserved
+    -- LED[3] = was_sync (for debug)
+    -- LED[4] = is_write_cycle
+    -- LED[5] = is_read_cycle
+    -- LED[7:6] = cycle_type
     debug_led(0) <= phi1_int;
     debug_led(1) <= phi2_int;
     debug_led(2) <= cpu_halted;
-    debug_led(3) <= mem_read;
-    debug_led(4) <= mem_write;
-    debug_led(7 downto 5) <= (others => '0');
+    debug_led(3) <= was_sync;  -- Changed from cpu_SYNC for debugging
+    debug_led(4) <= is_write_cycle;
+    debug_led(5) <= is_read_cycle;
+    debug_led(7 downto 6) <= cycle_type;
 
     -- Debug outputs for testbench
-    debug_mem_addr <= mem_address;
-    debug_mem_data <= mem_data_in;
+    debug_mem_addr <= addr_full;
+    debug_mem_data <= cpu_data_bus;
+    debug_rom_cs_n <= rom_cs_n;
+    debug_ram_cs_n <= ram_cs_n;
 
     -- Note: LEDs on ECP5 Versa are active-low, but this is handled in constraints
 

@@ -33,6 +33,8 @@ architecture sim of sim8_01_top_softcore_tb is
     signal debug_mem_data_tb : std_logic_vector(7 downto 0);
     signal debug_reg_h_tb : std_logic_vector(7 downto 0);
     signal debug_reg_l_tb : std_logic_vector(7 downto 0);
+    signal debug_rom_cs_n_tb : std_logic;
+    signal debug_ram_cs_n_tb : std_logic;
 
     constant CLK_PERIOD : time := 10 ns;  -- 100 MHz
     signal sim_done : boolean := false;
@@ -52,7 +54,9 @@ begin
             debug_mem_addr => debug_mem_addr_tb,
             debug_mem_data => debug_mem_data_tb,
             debug_reg_h => debug_reg_h_tb,
-            debug_reg_l => debug_reg_l_tb
+            debug_reg_l => debug_reg_l_tb,
+            debug_rom_cs_n => debug_rom_cs_n_tb,
+            debug_ram_cs_n => debug_ram_cs_n_tb
         );
 
     -- Clock generation
@@ -187,6 +191,50 @@ begin
     begin
         if debug_ram_byte_0_tb /= x"00" then
             report "*** RAM[0] CHANGED to 0x" & to_hstring(debug_ram_byte_0_tb) & " at " & time'image(now);
+        end if;
+    end process;
+
+    -- Monitor SYNC and cycle type
+    monitor_sync: process(debug_led_tb(3))
+    begin
+        if debug_led_tb(3) = '1' then
+            report "*** SYNC HIGH at " & time'image(now);
+        end if;
+    end process;
+
+    -- Monitor is_read_cycle
+    monitor_read: process(debug_led_tb(5))
+    begin
+        report "*** is_read_cycle=" & std_logic'image(debug_led_tb(5)) &
+               " cycle_type=" & integer'image(to_integer(unsigned(debug_led_tb(7 downto 6)))) &
+               " at " & time'image(now);
+    end process;
+
+    -- Monitor address changes
+    monitor_addr: process(debug_mem_addr_tb)
+    begin
+        if debug_mem_addr_tb /= "UUUUUUUUUUUUUU" and debug_mem_addr_tb /= "00000000000000" then
+            report "*** ADDRESS changed to 0x" & to_hstring(debug_mem_addr_tb) &
+                   " at " & time'image(now);
+        end if;
+    end process;
+
+    -- Monitor data bus
+    monitor_data: process(debug_mem_data_tb)
+    begin
+        if debug_mem_data_tb /= "UUUUUUUU" and debug_mem_data_tb /= "ZZZZZZZZ" then
+            report "*** DATA_BUS changed to 0x" & to_hstring(debug_mem_data_tb) &
+                   " at " & time'image(now);
+        end if;
+    end process;
+
+    -- Monitor ROM chip select
+    monitor_rom_cs: process(debug_rom_cs_n_tb)
+    begin
+        if debug_rom_cs_n_tb = '0' then
+            report "*** ROM_CS_N asserted (active) at " & time'image(now);
+        elsif debug_rom_cs_n_tb = '1' then
+            report "*** ROM_CS_N deasserted at " & time'image(now);
         end if;
     end process;
 
