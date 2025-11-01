@@ -108,6 +108,7 @@ architecture rtl of s8008 is
     signal program_counter : unsigned(13 downto 0) := (others => '0');  -- 14-bit PC
     signal data_out : std_logic_vector(7 downto 0) := (others => '0');  -- Data to write
     signal cycle_type_reg : std_logic_vector(1 downto 0) := "00";  -- PCI (instruction fetch)
+    signal pc_should_increment : std_logic := '1';  -- Whether PC should increment after this cycle
 
     -- Data input and instruction registers
     signal data_in : std_logic_vector(7 downto 0);  -- Data read from bus
@@ -200,6 +201,14 @@ architecture rtl of s8008 is
     signal reg_write_addr : integer range 0 to 6;
     signal reg_write_data : std_logic_vector(7 downto 0);
     signal reg_read_data : std_logic_vector(7 downto 0);
+
+    -- Jump/Call/Return address storage
+    signal jump_addr_low : std_logic_vector(7 downto 0);   -- Low byte of jump/call address
+    signal jump_addr_high : std_logic_vector(5 downto 0);  -- High 6 bits (14-bit address total)
+    signal jump_condition : std_logic_vector(1 downto 0);  -- Condition code (00=carry, 01=zero, 10=sign, 11=parity)
+    signal jump_condition_sense : std_logic;                -- '0'=JFc (false), '1'=JTc (true)
+    signal jump_unconditional : std_logic;                  -- '1' for JMP (unconditional), '0' for conditional
+    signal perform_jump : std_logic := '0';                 -- '1' when jump condition is met
 
     -- Variable-length cycle control
     -- Per Intel 8008 datasheet: "Many of the instructions for the 8008 are multi-cycle
@@ -557,6 +566,10 @@ begin
     begin
         opcode := instruction_reg;
 
+        -- DEBUG: Log every decoder invocation
+        report "DECODER: instruction_reg=0x" & to_hstring(unsigned(instruction_reg)) &
+               " bits[7:6]=" & std_logic'image(instruction_reg(7)) & std_logic'image(instruction_reg(6));
+
         -- Default values (all operations disabled)
         is_alu_op <= '0';
         is_load_op <= '0';
@@ -607,8 +620,35 @@ begin
                     end if;
                 end if;
 
+            when "01" =>
+                -- Class 01: Jump, Call, and Return instructions
+                -- All jumps/calls/returns have bits[7:6]="01"
+                -- Per 8008UM.pdf Table: bits[2:0] determine the operation
+                report "Class 01 instruction decoded: opcode=0x" & to_hstring(unsigned(opcode)) &
+                       " bits[2:0]=" & std_logic'image(opcode(2)) & std_logic'image(opcode(1)) & std_logic'image(opcode(0));
+                if opcode(2 downto 0) = "100" then
+                    -- 01 XXX 100 = JMP (unconditional jump)
+                    is_jump_op <= '1';
+                    jump_unconditional <= '1';
+                    report "Decoded as JMP (unconditional)";
+                elsif opcode(2 downto 0) = "000" then
+                    -- 01 SC₄C₃ 000 = Conditional jump (bit[2]=0, bit[1:0]=00)
+                    -- bit[5]=S: 0=JFc (false), 1=JTc (true)
+                    -- bits[4:3]=C₄C₃: condition code
+                    is_jump_op <= '1';
+                    jump_unconditional <= '0';
+                    jump_condition <= opcode(4 downto 3);      -- C4C3: 00=carry, 01=zero, 10=sign, 11=parity
+                    jump_condition_sense <= opcode(5);          -- 0=JFc (false), 1=JTc (true)
+                elsif opcode(2 downto 0) = "110" then
+                    -- 01 XXX 110 = CALL
+                    is_call_op <= '1';
+                elsif opcode(2 downto 0) = "111" then
+                    -- 01 XXX 111 = RET
+                    is_ret_op <= '1';
+                end if;
+
             when "10" =>
-                -- Class 10: ALU operations (register or immediate)
+                -- Class 10: ALU operations (register operand)
                 -- Bits 5-3: ALU function
                 -- Bits 2-0: Source register
                 is_alu_op <= '1';
@@ -622,23 +662,13 @@ begin
                 end if;
 
             when "11" =>
-                -- Class 11: Immediate operations, jumps, calls, returns
-                if opcode(5 downto 3) = "000" then
-                    -- Jump/Call/Return
-                    if opcode(2 downto 0) = "100" then
-                        is_call_op <= '1';
-                    elsif opcode(2 downto 0) = "111" then
-                        is_ret_op <= '1';
-                    else
-                        is_jump_op <= '1';
-                    end if;
-                else
-                    -- Immediate ALU operation
-                    is_alu_op <= '1';
-                    is_immediate <= '1';
-                    alu_command <= opcode(5 downto 3);
-                    dst_reg <= "000";  -- Accumulator
-                end if;
+                -- Class 11: Immediate ALU operations
+                -- Bits 5-3: ALU function
+                -- All have immediate data byte following
+                is_alu_op <= '1';
+                is_immediate <= '1';
+                alu_command <= opcode(5 downto 3);
+                dst_reg <= "000";  -- Accumulator
 
             when others =>
                 -- Other instruction classes
@@ -652,6 +682,7 @@ begin
     -- Orchestrates multi-cycle instruction execution
     -- This is cycle-by-cycle control, NOT behavioral execution
     process(phi1, reset_n)
+        variable condition_met : std_logic;  -- For evaluating jump conditions
     begin
         if reset_n = '0' then
             microcode_state <= FETCH;
@@ -661,6 +692,7 @@ begin
             reg_read_addr <= 0;
             cycle_type_reg <= "00";  -- PCI (instruction fetch)
             skip_exec_states <= '1';  -- Default to 3-state cycles
+            perform_jump <= '0';  -- Initialize jump control
 
         elsif rising_edge(phi1) then
             -- Default: no register writes
@@ -675,6 +707,7 @@ begin
                     when FETCH =>
                         -- Just fetched an instruction (3-state PCI cycle completed)
                         -- PLA control signals are now valid
+                        pc_should_increment <= '1';  -- Default: PC should increment (override for M register ops)
                         if is_halt_op = '1' then
                             -- HLT instruction - stop execution
                             report "HLT instruction detected - entering STOPPED state";
@@ -689,10 +722,12 @@ begin
                                 skip_exec_states <= '1';  -- 3-state cycle for data fetch
                             elsif src_is_memory = '1' then
                                 -- ALU with memory operand - need to read from memory first
+                                --  Use 5-state cycle: T1-T2-T3 for memory read, T4-T5 for execution
                                 cycle_type_reg <= "01";  -- PCR (data read)
                                 microcode_state <= MEM_READ;
-                                skip_exec_states <= '1';  -- 3-state cycle for memory read
-                                report "ALU with M register source - initiating memory read";
+                                skip_exec_states <= '0';  -- 5-state cycle: read M then execute
+                                pc_should_increment <= '0';  -- Don't increment PC for M register read
+                                report "ALU with M register source - initiating 5-state memory read+execute";
                             else
                                 -- ALU with register operand - execute immediately
                                 microcode_state <= EXECUTE;
@@ -709,17 +744,21 @@ begin
                                 report "LrI (Load register Immediate) - fetching immediate byte";
                             elsif src_is_memory = '1' and dst_is_memory = '0' then
                                 -- Load from memory to register (e.g., MOV B,M)
+                                -- Use 5-state cycle for memory read (per Intel 8008: 8 states total = 3 PCI + 5 for load)
                                 cycle_type_reg <= "01";  -- PCR (data read)
                                 microcode_state <= MEM_READ;
-                                skip_exec_states <= '1';  -- 3-state cycle for memory read
-                                report "MOV from memory - initiating memory read";
+                                skip_exec_states <= '0';  -- 5-state cycle for memory read
+                                pc_should_increment <= '0';  -- Don't increment PC for M register read
+                                report "MOV from memory - initiating 5-state memory read";
                             elsif dst_is_memory = '1' and src_is_memory = '0' then
                                 -- Store register to memory (e.g., MOV M,B)
+                                -- Use 5-state cycle for memory write (per Intel 8008: 8 states total = 3 PCI + 5 for store)
                                 cycle_type_reg <= "10";  -- PCW (data write)
                                 microcode_state <= MEM_WRITE;
-                                skip_exec_states <= '1';  -- 3-state cycle for memory write
+                                skip_exec_states <= '0';  -- 5-state cycle for memory write
+                                pc_should_increment <= '0';  -- Don't increment PC for M register write
                                 data_out <= registers(to_integer(unsigned(src_reg)));
-                                report "MOV to memory - initiating memory write";
+                                report "MOV to memory - initiating 5-state memory write";
                             elsif src_is_memory = '1' and dst_is_memory = '1' then
                                 -- M to M is illegal (both can't be memory)
                                 report "ERROR: Illegal M to M operation" severity error;
@@ -732,8 +771,15 @@ begin
                                 skip_exec_states <= '0';  -- 5-state cycle for register transfer
                             end if;
 
+                        elsif is_jump_op = '1' then
+                            -- Jump instruction - need to fetch 2 address bytes
+                            cycle_type_reg <= "01";  -- PCR (data read)
+                            microcode_state <= ADDR_LOW;
+                            skip_exec_states <= '1';  -- 3-state cycle for address fetch
+                            report "Jump instruction - fetching address low byte";
+
                         else
-                            -- Other instructions (jumps, calls, etc.) not yet implemented
+                            -- Other instructions (calls, etc.) not yet implemented
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (next instruction fetch)
                             skip_exec_states <= '1';  -- 3-state cycle
@@ -759,15 +805,25 @@ begin
                         end if;
 
                     when MEM_READ =>
-                        -- Just read data from memory (3-state PCR cycle completed)
+                        -- Just read data from memory
+                        -- For 5-state cycle: data read at T3, execution in T4-T5, microcode runs at T5
+                        -- For 3-state cycle with load: microcode runs at T3
                         -- Data is now in data_in register
                         if is_alu_op = '1' then
-                            -- ALU operation with memory operand - execute in next cycle
-                            microcode_state <= EXECUTE;
-                            skip_exec_states <= '0';  -- 5-state cycle for execution
-                            report "Memory data read: 0x" & to_hstring(unsigned(data_in));
+                            -- ALU operation with memory operand - we're at end of 5-state cycle
+                            -- Write ALU result to accumulator
+                            reg_write_enable <= '1';
+                            reg_write_addr <= REG_A;
+                            reg_write_data <= alu_result(7 downto 0);
+                            report "ALU with M: A <= 0x" & to_hstring(unsigned(alu_result(7 downto 0)));
+                            -- Return to fetch next instruction
+                            microcode_state <= FETCH;
+                            cycle_type_reg <= "00";  -- PCI (instruction fetch)
+                            skip_exec_states <= '1';  -- 3-state cycle for next fetch
+                            pc_should_increment <= '1';  -- Reset for next instruction fetch
                         elsif is_load_op = '1' then
-                            -- MOV from memory to register - write immediately
+                            -- MOV from memory to register - we're at end of 5-state cycle
+                            -- Write data (captured at T3) to destination register
                             reg_write_enable <= '1';
                             reg_write_addr <= to_integer(unsigned(dst_reg));
                             reg_write_data <= data_in;
@@ -777,15 +833,17 @@ begin
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (instruction fetch)
                             skip_exec_states <= '1';  -- 3-state cycle for next fetch
+                            pc_should_increment <= '1';  -- Reset for next instruction fetch
                         end if;
 
                     when MEM_WRITE =>
-                        -- Just wrote data to memory (3-state PCW cycle completed)
+                        -- Just wrote data to memory (5-state PCW cycle completed at T5)
                         report "Memory write: M[0x" & to_hstring(memory_address) & "] <- 0x" & to_hstring(unsigned(data_out));
                         -- Return to fetch next instruction
                         microcode_state <= FETCH;
                         cycle_type_reg <= "00";  -- PCI (instruction fetch)
                         skip_exec_states <= '1';  -- 3-state cycle for next fetch
+                        pc_should_increment <= '1';  -- Reset for next instruction fetch
 
                     when EXECUTE =>
                         -- Execute the instruction (5-state cycle)
@@ -809,6 +867,58 @@ begin
                         cycle_type_reg <= "00";  -- PCI (instruction fetch)
                         skip_exec_states <= '1';  -- 3-state cycle for next fetch
 
+                    when ADDR_LOW =>
+                        -- Just fetched low byte of address (3-state PCR cycle completed)
+                        jump_addr_low <= data_in;
+                        report "Jump address low byte: 0x" & to_hstring(unsigned(data_in));
+                        -- Fetch high byte of address
+                        cycle_type_reg <= "01";  -- PCR (data read)
+                        microcode_state <= ADDR_HIGH;
+                        skip_exec_states <= '1';  -- 3-state cycle for address fetch
+
+                    when ADDR_HIGH =>
+                        -- Just fetched high byte of address (3-state PCR cycle completed)
+                        -- Only use lower 6 bits for 14-bit address (8008 has 14-bit PC)
+                        jump_addr_high <= data_in(5 downto 0);
+                        report "Jump address high byte: 0x" & to_hstring(unsigned(data_in(5 downto 0)));
+
+                        -- Evaluate jump condition
+                        -- Condition codes (C4C3): 00=carry, 01=zero, 10=sign, 11=parity
+                        -- For JMP (unconditional), jump_unconditional='1'
+                        if jump_unconditional = '1' then
+                            -- Unconditional jump (JMP) - always jump
+                            perform_jump <= '1';
+                            report "Unconditional JMP - will jump to 0x" &
+                                   to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                        else
+                            -- Conditional jump (JFc or JTc) - evaluate condition
+                            -- Check the specified condition
+                            case jump_condition is
+                                when "00" => condition_met := flag_carry;   -- Carry flag
+                                when "01" => condition_met := flag_zero;    -- Zero flag
+                                when "10" => condition_met := flag_sign;    -- Sign flag
+                                when "11" => condition_met := flag_parity;  -- Parity flag
+                                when others => condition_met := '0';
+                            end case;
+
+                            -- For JTc (sense='1'): jump if condition is true
+                            -- For JFc (sense='0'): jump if condition is false
+                            if (jump_condition_sense = '1' and condition_met = '1') or
+                               (jump_condition_sense = '0' and condition_met = '0') then
+                                perform_jump <= '1';
+                                report "Conditional jump condition MET - will jump to 0x" &
+                                       to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                            else
+                                perform_jump <= '0';
+                                report "Conditional jump condition NOT MET - continuing sequential execution";
+                            end if;
+                        end if;
+
+                        -- Return to fetch next instruction (3-state PCI cycle)
+                        microcode_state <= FETCH;
+                        cycle_type_reg <= "00";  -- PCI (instruction fetch)
+                        skip_exec_states <= '1';  -- 3-state cycle for next fetch
+
                     when others =>
                         microcode_state <= FETCH;
                         cycle_type_reg <= "00";  -- PCI
@@ -824,22 +934,41 @@ begin
     -- PC increments after each bus cycle
     -- For 3-state cycles: increment at end of T3
     -- For 5-state cycles: increment at end of T5
+    -- For jumps: PC is loaded with jump target address
     process(phi1, reset_n)
     begin
         if reset_n = '0' then
             program_counter <= (others => '0');
         elsif rising_edge(phi1) then
+            -- Check if we should perform a jump (set in ADDR_HIGH state)
+            -- This happens at the start of the next fetch cycle
+            if perform_jump = '1' and timing_state = T1 and clock_phase = '0' then
+                -- Load PC with jump target address (14-bit)
+                program_counter <= unsigned(jump_addr_high) & unsigned(jump_addr_low);
+                report "Jump executed: PC <= 0x" & to_hstring(unsigned(jump_addr_high) & unsigned(jump_addr_low));
+                perform_jump <= '0';  -- Clear jump flag
+
             -- Increment PC at the end of each complete bus cycle
-            -- unless we're halted
-            if clock_phase = '0' and is_halt_op = '0' then
-                -- 3-state cycle: increment at end of T3
-                if timing_state = T3 and skip_exec_states = '1' then
-                    program_counter <= program_counter + 1;
-                    report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (3-state cycle)";
-                -- 5-state cycle: increment at end of T5
-                elsif timing_state = T5 and skip_exec_states = '0' then
-                    program_counter <= program_counter + 1;
-                    report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (5-state cycle)";
+            -- unless we're about to jump
+            elsif clock_phase = '0' then
+                -- Debug: report conditions
+                if timing_state = T3 or timing_state = T5 then
+                    report "PC check: clock_phase=" & std_logic'image(clock_phase) &
+                           " timing_state=" & timing_state_t'image(timing_state) &
+                           " perform_jump=" & std_logic'image(perform_jump) &
+                           " skip_exec=" & std_logic'image(skip_exec_states);
+                end if;
+
+                if timing_state /= STOPPED and perform_jump = '0' and pc_should_increment = '1' then
+                    -- 3-state cycle: increment at end of T3
+                    if timing_state = T3 and skip_exec_states = '1' then
+                        program_counter <= program_counter + 1;
+                        report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (3-state cycle)";
+                    -- 5-state cycle: increment at end of T5
+                    elsif timing_state = T5 and skip_exec_states = '0' then
+                        program_counter <= program_counter + 1;
+                        report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (5-state cycle)";
+                    end if;
                 end if;
             end if;
         end if;

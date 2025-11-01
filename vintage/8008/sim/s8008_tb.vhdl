@@ -67,36 +67,63 @@ architecture sim of s8008_tb is
     -- Provides instruction data during T3 of PCI cycles
     type rom_t is array (0 to 255) of std_logic_vector(7 downto 0);
     signal rom : rom_t := (
-        -- Test program to verify both 3-state and 5-state cycles, plus memory operations
+        -- Comprehensive test program for all implemented 8008 instructions
+        -- Tests: LrI, MOV (register), MOV (memory), ALU (register), ALU (immediate),
+        --        ALU (memory), and JMP (unconditional jump)
+        --
         -- Intel 8008 opcodes:
+        --   LrI (Load Immediate) = 00 DDD 110 + immediate byte
         --   MOV dst,src = 00 DDD SSS (class 00)
-        --   ALU op,src = 10 OOO SSS (class 10, OOO=operation)
-        --   LrI (Load register Immediate) = 00 DDD 110 followed by immediate byte
+        --   ALU op,src = 10 OOO SSS (class 10)
+        --   ALU op,imm = 11 OOO 100 + immediate byte (class 11)
+        --   JMP = 01 XXX 100 + addr_low + addr_high (class 11)
         --   Register encoding: 000=A, 001=B, 010=C, 011=D, 100=E, 101=H, 110=L, 111=M
+        --   ALU operations: 000=ADD, 001=ADC, 010=SUB, 011=SBB, 100=AND, 101=XOR, 110=OR, 111=CMP
 
-        -- Load visible test value into B register
-        0 => x"0E",  -- Address 0: LBI (Load B Immediate) = 00 001 110 (register 1 = B)
-        1 => x"AA",  -- Address 1: Immediate data for B (0xAA - visible test value)
+        -- TEST 1: Load Immediate instructions (LrI)
+        0 => x"06",  -- LrI A,0x12  = 00 000 110  (Load Accumulator Immediate)
+        1 => x"12",  --               immediate data = 0x12
+        2 => x"0E",  -- LrI B,0xAA  = 00 001 110  (Load B Immediate)
+        3 => x"AA",  --               immediate data = 0xAA
+        4 => x"16",  -- LrI C,0x55  = 00 010 110  (Load C Immediate)
+        5 => x"55",  --               immediate data = 0x55
 
-        -- Set up H:L to point to address 0x0010 (H=0x00, L=0x10)
-        2 => x"2E",  -- Address 2: LHI (Load H Immediate) = 00 101 110 (register 5 = H)
-        3 => x"00",  -- Address 3: Immediate data for H (0x00)
-        4 => x"36",  -- Address 4: LLI (Load L Immediate) = 00 110 110 (register 6 = L)
-        5 => x"10",  -- Address 5: Immediate data for L (0x10)
+        -- TEST 2: Register-to-Register MOV
+        6 => x"01",  -- MOV A,B     = 00 000 001  (copy B -> A, result = 0xAA)
 
-        -- Test memory write: MOV M,B (store B register to memory at H:L)
-        6 => x"39",  -- Address 6: MOV M,B (00 111 001) - store to memory, 3-state PCW cycle
+        -- TEST 3: ALU with register operands (ADD B to A)
+        7 => x"81",  -- ADD B       = 10 000 001  (A = A + B = 0xAA + 0xAA = 0x54, with carry)
 
-        -- Test memory read: MOV C,M (load from memory at H:L to C register)
-        7 => x"17",  -- Address 7: MOV C,M (00 010 111) - load from memory, 3-state PCR cycle
+        -- TEST 4: ALU with immediate operand (ADD immediate to A)
+        8 => x"C4",  -- ADI 0x0C    = 11 000 100  (A = A + 0x0C)
+        9 => x"0C",  --               immediate data = 0x0C
 
-        -- Test ALU with memory: ADD M (add memory operand to accumulator)
-        8 => x"87",  -- Address 8: ADD M (10 000 111) - ALU with memory, PCR + EXECUTE cycles
+        -- TEST 5: Set up H:L register pair for memory operations
+        10 => x"2E", -- LrI H,0x00  = 00 101 110  (H = 0x00)
+        11 => x"00", --               immediate data = 0x00
+        12 => x"36", -- LrI L,0x20  = 00 110 110  (L = 0x20, so M points to 0x0020)
+        13 => x"20", --               immediate data = 0x20
 
-        9 => x"00",  -- Address 9: HLT (halt)
+        -- TEST 6: Memory write (MOV M,C - store C to memory at H:L)
+        14 => x"3A", -- MOV M,C     = 00 111 010  (Store C=0x55 to address 0x0020)
 
-        -- Data area at 0x0010
-        16 => x"55", -- Address 0x10: Test data byte
+        -- TEST 7: Memory read (MOV D,M - load from memory at H:L to D)
+        15 => x"1F", -- MOV D,M     = 00 011 111  (Load from address 0x0020 into D)
+
+        -- TEST 8: ALU with memory operand (ADD M to A)
+        16 => x"87", -- ADD M       = 10 000 111  (A = A + M[H:L])
+
+        -- TEST 9: Unconditional jump - JMP to address 0x0015 (infinite loop for halt observation)
+        17 => x"44", -- JMP 0x0015  = 01 000 100  (unconditional jump, bit[2]=1)
+        18 => x"15", --               low byte = 0x15
+        19 => x"00", --               high byte = 0x00 (target = 0x0015)
+
+        -- These instructions at 20-22 should NEVER execute (skipped by jump)
+        20 => x"0E", -- LrI B,0xFF  (should be skipped)
+        21 => x"FF", --               (should be skipped)
+
+        -- Data area for memory operations
+        32 => x"33", -- Address 0x20: Will be overwritten by TEST 6, then read by TEST 7 and 8
 
         others => x"00"  -- Fill rest with HLT/zero
     );
