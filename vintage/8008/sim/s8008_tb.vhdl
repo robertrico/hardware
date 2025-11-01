@@ -113,17 +113,101 @@ architecture sim of s8008_tb is
         -- TEST 8: ALU with memory operand (ADD M to A)
         16 => x"87", -- ADD M       = 10 000 111  (A = A + M[H:L])
 
-        -- TEST 9: Unconditional jump - JMP to address 0x0015 (infinite loop for halt observation)
-        17 => x"44", -- JMP 0x0015  = 01 000 100  (unconditional jump, bit[2]=1)
-        18 => x"15", --               low byte = 0x15
-        19 => x"00", --               high byte = 0x00 (target = 0x0015)
+        -- TEST 9: Unconditional jump - JMP to address 0x0019 (skip over unreachable code)
+        17 => x"44", -- JMP 0x0019  = 01 000 100  (unconditional jump)
+        18 => x"19", --               low byte = 0x19
+        19 => x"00", --               high byte = 0x00 (target = 0x0019)
 
         -- These instructions at 20-22 should NEVER execute (skipped by jump)
         20 => x"0E", -- LrI B,0xFF  (should be skipped)
         21 => x"FF", --               (should be skipped)
+        22 => x"0E", -- LrI B,0xEE  (should be skipped)
+        23 => x"EE", --               (should be skipped)
+        24 => x"00", -- HLT         (should be skipped)
+
+        -- TEST 10: CALL/RET - Test subroutine call and return (jump lands here at 0x0019)
+        25 => x"46", -- CALL 0x0030 = 01 000 110  (call subroutine at address 0x0030)
+        26 => x"30", --               low byte = 0x30
+        27 => x"00", --               high byte = 0x00 (target = 0x0030)
+
+        -- After RET, execution continues here
+        28 => x"06", -- LrI A,0x99  = 00 000 110  (Load A with 0x99 to verify return)
+        29 => x"99", --               immediate data = 0x99
+
+        -- TEST 11: Nested CALL - Call subroutine that calls another subroutine
+        30 => x"46", -- CALL 0x0050 = 01 000 110  (call first-level subroutine)
+        31 => x"50", --               low byte = 0x50 (decimal 80)
+        32 => x"00", --               high byte = 0x00
+
+        -- After nested CALLs return, verify registers
+        33 => x"06", -- LrI A,0xAA  = 00 000 110  (Load A with 0xAA to verify return)
+        34 => x"AA", --               immediate data = 0xAA
+
+        -- TEST 12: Stack depth test - Multiple nested CALLs to test stack levels
+        35 => x"46", -- CALL 0x0070 = 01 000 110  (call stack depth test routine)
+        36 => x"70", --               low byte = 0x70 (decimal 112)
+        37 => x"00", --               high byte = 0x00
+
+        -- After stack depth test returns
+        38 => x"16", -- LrI C,0xCC  = 00 010 110  (Load C with 0xCC to verify return)
+        39 => x"CC", --               immediate data = 0xCC
+
+        -- TEST 13: HLT - Stop execution
+        40 => x"00", -- HLT         = 00 000 000  (halt execution)
 
         -- Data area for memory operations
-        32 => x"33", -- Address 0x20: Will be overwritten by TEST 6, then read by TEST 7 and 8
+        45 => x"33", -- Address 0x2D: Data area
+
+        -- First simple subroutine at address 0x0030 (decimal 48) - from original test
+        48 => x"0E", -- LrI B,0x88  = 00 001 110  (Load B with 0x88 in subroutine)
+        49 => x"88", --               immediate data = 0x88
+        50 => x"47", -- RET         = 01 000 111  (return from subroutine)
+
+        -- Nested CALL test: First-level subroutine at 0x0050 (decimal 80)
+        -- This subroutine calls another subroutine to test nested CALLs
+        80 => x"1E", -- LrI D,0x11  = 00 011 110  (Load D with 0x11)
+        81 => x"11", --               immediate data = 0x11
+        82 => x"46", -- CALL 0x0060 = 01 000 110  (call second-level subroutine)
+        83 => x"60", --               low byte = 0x60 (decimal 96)
+        84 => x"00", --               high byte = 0x00
+        85 => x"26", -- LrI E,0x22  = 00 100 110  (Load E with 0x22 after nested call returns)
+        86 => x"22", --               immediate data = 0x22
+        87 => x"47", -- RET         = 01 000 111  (return from first-level subroutine)
+
+        -- Nested CALL test: Second-level subroutine at 0x0060 (decimal 96)
+        96 => x"2E", -- LrI H,0x33  = 00 101 110  (Load H with 0x33)
+        97 => x"33", --               immediate data = 0x33
+        98 => x"36", -- LrI L,0x44  = 00 110 110  (Load L with 0x44)
+        99 => x"44", --               immediate data = 0x44
+        100 => x"47", -- RET        = 01 000 111  (return from second-level subroutine)
+
+        -- Stack depth test: Multiple nested CALLs at 0x0070 (decimal 112)
+        -- Tests stack levels 2, 3, 4 (we're already at level 1 from main)
+        112 => x"06", -- LrI A,0x01 = 00 000 110  (Mark stack level 2)
+        113 => x"01", --              immediate data = 0x01
+        114 => x"46", -- CALL 0x0080 = 01 000 110  (call level 3)
+        115 => x"80", --              low byte = 0x80 (decimal 128)
+        116 => x"00", --              high byte = 0x00
+        117 => x"06", -- LrI A,0xF1 = 00 000 110  (After return, mark completion)
+        118 => x"F1", --              immediate data = 0xF1
+        119 => x"47", -- RET        = 01 000 111  (return from level 2)
+
+        -- Stack depth test: Level 3 at 0x0080 (decimal 128)
+        128 => x"0E", -- LrI B,0x02 = 00 001 110  (Mark stack level 3)
+        129 => x"02", --              immediate data = 0x02
+        130 => x"46", -- CALL 0x0090 = 01 000 110  (call level 4)
+        131 => x"90", --              low byte = 0x90 (decimal 144)
+        132 => x"00", --              high byte = 0x00
+        133 => x"0E", -- LrI B,0xF2 = 00 001 110  (After return, mark completion)
+        134 => x"F2", --              immediate data = 0xF2
+        135 => x"47", -- RET        = 01 000 111  (return from level 3)
+
+        -- Stack depth test: Level 4 (deepest) at 0x0090 (decimal 144)
+        144 => x"16", -- LrI C,0x03 = 00 010 110  (Mark stack level 4)
+        145 => x"03", --              immediate data = 0x03
+        146 => x"1E", -- LrI D,0x04 = 00 011 110  (Another operation at deepest level)
+        147 => x"04", --              immediate data = 0x04
+        148 => x"47", -- RET        = 01 000 111  (return from level 4)
 
         others => x"00"  -- Fill rest with HLT/zero
     );
@@ -418,7 +502,7 @@ begin
 
         -- Verify we see both 3-state and 5-state cycles
         report "TEST 8: Observing mixed 3-state and 5-state cycles...";
-        wait for 100 us;  -- Run for a while to see multiple cycles
+        wait for 2000 us;  -- Run long enough for all CALL/RET edge case tests (nested calls, stack depth)
 
         -- End of tests
         report "=== All Tests Completed Successfully ===";

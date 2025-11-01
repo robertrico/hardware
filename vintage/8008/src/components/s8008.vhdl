@@ -708,6 +708,7 @@ begin
                         -- Just fetched an instruction (3-state PCI cycle completed)
                         -- PLA control signals are now valid
                         pc_should_increment <= '1';  -- Default: PC should increment (override for M register ops)
+                        perform_jump <= '0';  -- Reset jump flag (will be set if jump/call/ret occurs)
                         if is_halt_op = '1' then
                             -- HLT instruction - stop execution
                             report "HLT instruction detected - entering STOPPED state";
@@ -732,6 +733,7 @@ begin
                                 -- ALU with register operand - execute immediately
                                 microcode_state <= EXECUTE;
                                 skip_exec_states <= '0';  -- 5-state cycle for execution
+                                pc_should_increment <= '0';  -- Don't increment PC during EXECUTE (already incremented when fetching instruction)
                             end if;
 
                         elsif is_load_op = '1' then
@@ -769,6 +771,7 @@ begin
                                 -- Regular register-to-register move
                                 microcode_state <= EXECUTE;
                                 skip_exec_states <= '0';  -- 5-state cycle for register transfer
+                                pc_should_increment <= '0';  -- Don't increment PC during EXECUTE (already incremented when fetching instruction)
                             end if;
 
                         elsif is_jump_op = '1' then
@@ -778,8 +781,30 @@ begin
                             skip_exec_states <= '1';  -- 3-state cycle for address fetch
                             report "Jump instruction - fetching address low byte";
 
+                        elsif is_call_op = '1' then
+                            -- CALL instruction - need to fetch 2 address bytes, then push PC
+                            cycle_type_reg <= "01";  -- PCR (data read)
+                            microcode_state <= ADDR_LOW;
+                            skip_exec_states <= '1';  -- 3-state cycle for address fetch
+                            report "CALL instruction - fetching address low byte";
+
+                        elsif is_ret_op = '1' then
+                            -- RET instruction - pop PC from stack
+                            -- Load jump address from stack (convert unsigned to std_logic_vector)
+                            jump_addr_low <= std_logic_vector(address_stack(to_integer(stack_pointer))(7 downto 0));
+                            jump_addr_high <= std_logic_vector(address_stack(to_integer(stack_pointer))(13 downto 8));
+                            stack_pointer <= stack_pointer - 1;
+                            perform_jump <= '1';  -- Use jump mechanism to load PC
+                            report "RET: Popping PC from stack[" & integer'image(to_integer(stack_pointer)) &
+                                   "] = 0x" & to_hstring(address_stack(to_integer(stack_pointer)));
+                            -- Return to fetch next instruction at popped address
+                            microcode_state <= FETCH;
+                            cycle_type_reg <= "00";  -- PCI (next instruction fetch)
+                            skip_exec_states <= '1';  -- 3-state cycle
+
                         else
-                            -- Other instructions (calls, etc.) not yet implemented
+                            -- Other instructions not yet implemented
+                            report "WARNING: Unimplemented instruction" severity warning;
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (next instruction fetch)
                             skip_exec_states <= '1';  -- 3-state cycle
@@ -791,6 +816,7 @@ begin
                             -- ALU immediate operation - execute in next cycle
                             microcode_state <= EXECUTE;
                             skip_exec_states <= '0';  -- 5-state cycle for execution
+                            pc_should_increment <= '0';  -- Don't increment PC during EXECUTE (already incremented when fetching instruction and immediate)
                         elsif is_load_op = '1' then
                             -- LrI (Load register Immediate) - write immediate to register
                             reg_write_enable <= '1';
@@ -866,11 +892,15 @@ begin
                         microcode_state <= FETCH;
                         cycle_type_reg <= "00";  -- PCI (instruction fetch)
                         skip_exec_states <= '1';  -- 3-state cycle for next fetch
+                        pc_should_increment <= '1';  -- Reset for next instruction fetch
 
                     when ADDR_LOW =>
                         -- Just fetched low byte of address (3-state PCR cycle completed)
                         jump_addr_low <= data_in;
                         report "Jump address low byte: 0x" & to_hstring(unsigned(data_in));
+                        -- Prevent PC increment at end of NEXT cycle (ADDR_HIGH)
+                        -- PC WILL increment at end of THIS cycle (ADDR_LOW) using the current '1' value
+                        pc_should_increment <= '0';  -- Takes effect next cycle (at ADDR_HIGH)
                         -- Fetch high byte of address
                         cycle_type_reg <= "01";  -- PCR (data read)
                         microcode_state <= ADDR_HIGH;
@@ -880,37 +910,52 @@ begin
                         -- Just fetched high byte of address (3-state PCR cycle completed)
                         -- Only use lower 6 bits for 14-bit address (8008 has 14-bit PC)
                         jump_addr_high <= data_in(5 downto 0);
-                        report "Jump address high byte: 0x" & to_hstring(unsigned(data_in(5 downto 0)));
+                        report "Address high byte: 0x" & to_hstring(unsigned(data_in(5 downto 0)));
 
-                        -- Evaluate jump condition
-                        -- Condition codes (C4C3): 00=carry, 01=zero, 10=sign, 11=parity
-                        -- For JMP (unconditional), jump_unconditional='1'
-                        if jump_unconditional = '1' then
-                            -- Unconditional jump (JMP) - always jump
+                        -- Check if this is a CALL or a JMP
+                        if is_call_op = '1' then
+                            -- CALL instruction - push current PC to stack, then jump
+                            -- Push PC to stack (PC currently points to next instruction after CALL)
+                            stack_pointer <= stack_pointer + 1;
+                            address_stack(to_integer(stack_pointer + 1)) <= program_counter;
+                            report "CALL: Pushing PC=0x" & to_hstring(program_counter) &
+                                   " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
+                            -- Always jump for CALL (unconditional)
                             perform_jump <= '1';
-                            report "Unconditional JMP - will jump to 0x" &
-                                   to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
-                        else
-                            -- Conditional jump (JFc or JTc) - evaluate condition
-                            -- Check the specified condition
-                            case jump_condition is
-                                when "00" => condition_met := flag_carry;   -- Carry flag
-                                when "01" => condition_met := flag_zero;    -- Zero flag
-                                when "10" => condition_met := flag_sign;    -- Sign flag
-                                when "11" => condition_met := flag_parity;  -- Parity flag
-                                when others => condition_met := '0';
-                            end case;
+                            report "CALL target: 0x" & to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
 
-                            -- For JTc (sense='1'): jump if condition is true
-                            -- For JFc (sense='0'): jump if condition is false
-                            if (jump_condition_sense = '1' and condition_met = '1') or
-                               (jump_condition_sense = '0' and condition_met = '0') then
+                        elsif is_jump_op = '1' then
+                            -- Jump instruction (JMP or conditional)
+                            -- Evaluate jump condition
+                            -- Condition codes (C4C3): 00=carry, 01=zero, 10=sign, 11=parity
+                            -- For JMP (unconditional), jump_unconditional='1'
+                            if jump_unconditional = '1' then
+                                -- Unconditional jump (JMP) - always jump
                                 perform_jump <= '1';
-                                report "Conditional jump condition MET - will jump to 0x" &
+                                report "Unconditional JMP - will jump to 0x" &
                                        to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
                             else
-                                perform_jump <= '0';
-                                report "Conditional jump condition NOT MET - continuing sequential execution";
+                                -- Conditional jump (JFc or JTc) - evaluate condition
+                                -- Check the specified condition
+                                case jump_condition is
+                                    when "00" => condition_met := flag_carry;   -- Carry flag
+                                    when "01" => condition_met := flag_zero;    -- Zero flag
+                                    when "10" => condition_met := flag_sign;    -- Sign flag
+                                    when "11" => condition_met := flag_parity;  -- Parity flag
+                                    when others => condition_met := '0';
+                                end case;
+
+                                -- For JTc (sense='1'): jump if condition is true
+                                -- For JFc (sense='0'): jump if condition is false
+                                if (jump_condition_sense = '1' and condition_met = '1') or
+                                   (jump_condition_sense = '0' and condition_met = '0') then
+                                    perform_jump <= '1';
+                                    report "Conditional jump condition MET - will jump to 0x" &
+                                           to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                else
+                                    perform_jump <= '0';
+                                    report "Conditional jump condition NOT MET - continuing sequential execution";
+                                end if;
                             end if;
                         end if;
 
@@ -940,13 +985,21 @@ begin
         if reset_n = '0' then
             program_counter <= (others => '0');
         elsif rising_edge(phi1) then
-            -- Check if we should perform a jump (set in ADDR_HIGH state)
-            -- This happens at the start of the next fetch cycle
-            if perform_jump = '1' and timing_state = T1 and clock_phase = '0' then
+            -- Debug: Log all conditions at T1 to diagnose jump issue
+            if timing_state = T1 then
+                report "PC jump check at T1: perform_jump=" & std_logic'image(perform_jump) &
+                       " clock_phase=" & std_logic'image(clock_phase) &
+                       " timing_state=" & timing_state_t'image(timing_state);
+            end if;
+
+            -- Check if we should perform a jump (set in ADDR_HIGH or RET state)
+            -- Execute at T3->T1 transition (when T3 ends with clock_phase='1', about to enter T1)
+            -- This ensures PC is loaded before T1 outputs the address on the bus
+            if perform_jump = '1' and timing_state = T3 and clock_phase = '1' then
                 -- Load PC with jump target address (14-bit)
                 program_counter <= unsigned(jump_addr_high) & unsigned(jump_addr_low);
                 report "Jump executed: PC <= 0x" & to_hstring(unsigned(jump_addr_high) & unsigned(jump_addr_low));
-                perform_jump <= '0';  -- Clear jump flag
+                -- NOTE: perform_jump is cleared in the Microcode Sequencer process in the next FETCH state
 
             -- Increment PC at the end of each complete bus cycle
             -- unless we're about to jump
@@ -960,6 +1013,7 @@ begin
                 end if;
 
                 if timing_state /= STOPPED and perform_jump = '0' and pc_should_increment = '1' then
+                    -- PC increments when pc_should_increment='1' (controlled by microcode sequencer)
                     -- 3-state cycle: increment at end of T3
                     if timing_state = T3 and skip_exec_states = '1' then
                         program_counter <= program_counter + 1;
