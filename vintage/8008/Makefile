@@ -11,6 +11,7 @@ TB_ENTITY ?= s8008_tb
 # Source Files
 #==========================================
 RTL_SOURCES = $(SRC_DIR)/components/i8008_alu.vhdl \
+              $(SRC_DIR)/components/phase_clocks.vhdl \
               $(SRC_DIR)/components/s8008.vhdl
 TB_SOURCES = $(SIM_DIR)/s8008_tb.vhdl
 

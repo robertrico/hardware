@@ -132,7 +132,8 @@ elaborate: analyze-tb
 	@echo "Elaborating $(ACTIVE_TB_ENTITY)..."
 	$(GHDL) -e $(GHDL_FLAGS) --workdir=$(WORK_DIR) $(ACTIVE_TB_ENTITY)
 
-# Run simulation, generate GHW, and open GTKWave
+# Run simulation, generate GHW, and optionally open GTKWave
+# Use WAVE=1 to launch GTKWave after simulation: make sim WAVE=1
 .PHONY: sim
 sim: elaborate | create-reports-dir
 	@echo "Running simulation with GHW output..."
@@ -153,20 +154,16 @@ sim: elaborate | create-reports-dir
 		echo "✓ SIMULATION PASSED - No assertion violations" | tee -a $(SIM_REPORT); \
 		echo "GHW file saved to $(WAVE_FILE)"; \
 		echo "Report saved to $(SIM_REPORT)"; \
-		echo "Opening waveform in GTKWave..."; \
-		if [ -f "$(GTKW_FILE)" ]; then \
-			nohup $(GTKWAVE) $(GTKW_FILE) > /dev/null 2>&1 & \
-		else \
-			nohup $(GTKWAVE) $(WAVE_FILE) > /dev/null 2>&1 & \
+		if [ "$(WAVE)" = "1" ]; then \
+			echo "Launching GTKWave..."; \
+			$(GTKWAVE) $(WAVE_FILE) $(GTKW_FILE) & \
 		fi; \
 	else \
 		echo "✗ SIMULATION FAILED - Assertion violations detected!" | tee -a $(SIM_REPORT); \
 		echo "Report saved to $(SIM_REPORT)"; \
-		echo "Opening waveform in GTKWave to inspect failure..."; \
-		if [ -f "$(GTKW_FILE)" ]; then \
-			nohup $(GTKWAVE) $(GTKW_FILE) > /dev/null 2>&1 & \
-		else \
-			nohup $(GTKWAVE) $(WAVE_FILE) > /dev/null 2>&1 & \
+		if [ "$(WAVE)" = "1" ]; then \
+			echo "Launching GTKWave for debugging..."; \
+			$(GTKWAVE) $(WAVE_FILE) $(GTKW_FILE) & \
 		fi; \
 		exit $$SIM_EXIT; \
 	fi
