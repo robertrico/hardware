@@ -66,7 +66,19 @@ entity s8008 is
 
         -- Interrupt request input
         -- When INT=1 during T1, CPU performs interrupt acknowledge (T1I)
-        INT : in std_logic
+        INT : in std_logic;
+
+        -- Debug outputs (for testbench verification)
+        -- These expose internal state for testing purposes
+        debug_reg_A : out std_logic_vector(7 downto 0);
+        debug_reg_B : out std_logic_vector(7 downto 0);
+        debug_reg_C : out std_logic_vector(7 downto 0);
+        debug_reg_D : out std_logic_vector(7 downto 0);
+        debug_reg_E : out std_logic_vector(7 downto 0);
+        debug_reg_H : out std_logic_vector(7 downto 0);
+        debug_reg_L : out std_logic_vector(7 downto 0);
+        debug_pc : out std_logic_vector(13 downto 0);
+        debug_flags : out std_logic_vector(3 downto 0)  -- {parity, sign, zero, carry}
     );
 end s8008;
 
@@ -113,6 +125,7 @@ architecture rtl of s8008 is
     -- Data input and instruction registers
     signal data_in : std_logic_vector(7 downto 0);  -- Data read from bus
     signal instruction_reg : std_logic_vector(7 downto 0);  -- Captured opcode
+    signal immediate_data : std_logic_vector(7 downto 0);  -- Captured immediate byte for ALU/LrI instructions
 
     -- Register File (Intel 8008 has 7 8-bit registers)
     -- Per Intel 8008 datasheet, registers are addressed as:
@@ -217,9 +230,46 @@ architecture rtl of s8008 is
     -- respect to the cycle length."
     -- When skip_exec_states='1', T3 transitions directly to T1 (3-state cycle)
     -- When skip_exec_states='0', T3 transitions to T4->T5->T1 (5-state cycle)
-    signal skip_exec_states : std_logic := '1';  -- Default to short cycles
+    signal skip_exec_states : std_logic := '1';  -- Runtime control: is current cycle 3-state or 5-state?
+
+    -- SILICON-ACCURATE: Separate combinatorial decode signal
+    -- In real 8008, PLA decoder determines cycle length combinatorially
+    -- This signal represents the PLA output that feeds the timing state machine
+    signal instruction_needs_execute : std_logic;  -- Combinatorial: does decoded instruction need 5-state EXECUTE?
 
 begin
+
+    --===========================================
+    -- Instruction Cycle Length Decoder (SILICON-ACCURATE)
+    --===========================================
+    -- This represents the PLA decoder logic in the real 8008
+    -- It's purely combinatorial - output changes immediately when instruction_reg changes
+    -- Determines if the current instruction needs a 5-state EXECUTE cycle
+    --
+    -- IMPORTANT: This mimics real 8008 hardware where the PLA decoder outputs
+    -- directly control the timing state machine cycle length decision
+    --
+    -- CRITICAL: Only decode during INSTRUCTION fetch (PCI cycle), NOT during data reads
+    -- The instruction_reg may contain DATA bytes during IMMEDIATE/MEM_READ cycles
+    process(instruction_reg, microcode_state, cycle_type_reg, is_load_op, is_alu_op, is_immediate,
+            src_is_memory, dst_is_memory)
+    begin
+        -- Default: no execute cycle needed (3-state operations)
+        instruction_needs_execute <= '0';
+
+        -- Only decode during FETCH state AND instruction fetch cycle (PCI)
+        -- This prevents decoding of DATA bytes that temporarily occupy instruction_reg
+        if microcode_state = FETCH and cycle_type_reg = "00" then
+            -- Check if this is a register-to-register MOV
+            if is_load_op = '1' and is_immediate = '0' and
+               src_is_memory = '0' and dst_is_memory = '0' then
+                instruction_needs_execute <= '1';  -- MOV Rx,Ry needs 5-state EXECUTE
+            -- Check if this is a register-operand ALU operation
+            elsif is_alu_op = '1' and is_immediate = '0' and src_is_memory = '0' then
+                instruction_needs_execute <= '1';  -- ALU Rx needs 5-state EXECUTE
+            end if;
+        end if;
+    end process;
 
     --===========================================
     -- ALU Instantiation
@@ -337,12 +387,27 @@ begin
                     when T3 =>
                         -- Variable-length cycles per Intel 8008 datasheet
                         -- Most instructions don't need T4/T5 execution states
-                        if skip_exec_states = '1' then
-                            timing_state <= T1;
-                            report "T3 -> T1 (3-state cycle)";
+                        --
+                        -- SILICON-ACCURATE: Use combinatorial decoder output during FETCH
+                        -- In real 8008, PLA decoder directly drives timing state machine
+                        if microcode_state = FETCH then
+                            -- Instruction just fetched - use combinatorial decode
+                            if instruction_needs_execute = '1' then
+                                timing_state <= T4;
+                                report "T3 -> T4 (5-state cycle - instruction needs EXECUTE)";
+                            else
+                                timing_state <= T1;
+                                report "T3 -> T1 (3-state cycle - no EXECUTE needed)";
+                            end if;
                         else
-                            timing_state <= T4;
-                            report "T3 -> T4 (5-state cycle)";
+                            -- Other microcode states - use runtime tracking
+                            if skip_exec_states = '1' then
+                                timing_state <= T1;
+                                report "T3 -> T1 (3-state cycle)";
+                            else
+                                timing_state <= T4;
+                                report "T3 -> T4 (5-state cycle)";
+                            end if;
                         end if;
 
                     when T4 =>
@@ -483,16 +548,18 @@ begin
     -- ALU Operand Multiplexing
     --===========================================
     -- Connect register file, immediate data, and memory data to ALU inputs
-    process(registers, src_reg, data_in, is_immediate, src_is_memory)
+    process(registers, src_reg, data_in, immediate_data, is_immediate, src_is_memory)
     begin
         -- Operand 0 is always the accumulator
         alu_data_0 <= registers(REG_A);
 
         -- Operand 1 comes from source register, immediate data, or memory
-        if is_immediate = '1' or src_is_memory = '1' then
-            alu_data_1 <= data_in;  -- Immediate byte or memory data
+        if is_immediate = '1' then
+            alu_data_1 <= immediate_data;  -- Use saved immediate byte
+        elsif src_is_memory = '1' then
+            alu_data_1 <= data_in;  -- Memory data from bus
         else
-            alu_data_1 <= registers(to_integer(unsigned(src_reg)));
+            alu_data_1 <= registers(to_integer(unsigned(src_reg)));  -- Register operand
         end if;
     end process;
 
@@ -698,11 +765,39 @@ begin
             -- Default: no register writes
             reg_write_enable <= '0';
 
+            -- Debug: log state at every phi1 edge during T5
+            if timing_state = T5 then
+                report "At T5 phi1 edge: clock_phase=" & std_logic'image(clock_phase) &
+                       " skip_exec=" & std_logic'image(skip_exec_states) &
+                       " microcode=" & microcode_state_t'image(microcode_state);
+            end if;
+
             -- Microcode state transitions happen at end of cycle
-            -- For 3-state cycles: end of T3 (when skip_exec_states='1')
-            -- For 5-state cycles: end of T5 (when skip_exec_states='0')
-            if (timing_state = T3 and clock_phase = '0' and skip_exec_states = '1') or
+            -- For 3-state cycles: end of T3
+            -- For 5-state cycles: end of T5
+            --
+            -- IMPORTANT: We need to handle BOTH cases:
+            --   1. End of T3 with skip_exec='1' --> microcode transition (3-state cycle done)
+            --   2. End of T3 with skip_exec='0' --> NO transition, go to T4 (5-state cycle continues)
+            --
+            -- The timing state machine handles T3->T4 vs T3->T1 based on skip_exec_states
+            -- Here we only need to handle microcode transitions at END of complete cycles
+            -- Microcode state transitions happen at end of cycle
+            -- Original logic was: "if timing_state = T3 and skip_exec_states = '1'"
+            -- But this creates chicken-egg problem: we can't set skip_exec_states until we decode,
+            -- but the condition requires it to be '1' to enter the decode logic!
+            --
+            -- FIX: Always enter at T3 end during FETCH, set skip_exec_states INSIDE based on decode
+            --      Also enter at T5 end for 5-state cycles that need to complete
+            if (timing_state = T3 and clock_phase = '0' and microcode_state = FETCH) or
+               (timing_state = T3 and clock_phase = '0' and skip_exec_states = '1' and microcode_state /= FETCH) or
                (timing_state = T5 and clock_phase = '0' and skip_exec_states = '0') then
+
+                report "Microcode handler entered: timing_state=" & timing_state_t'image(timing_state) &
+                       " clock_phase=" & std_logic'image(clock_phase) &
+                       " skip_exec=" & std_logic'image(skip_exec_states) &
+                       " microcode_state=" & microcode_state_t'image(microcode_state);
+
                 case microcode_state is
                     when FETCH =>
                         -- Just fetched an instruction (3-state PCI cycle completed)
@@ -740,6 +835,8 @@ begin
                             -- MOV/LrI operation - check for immediate or memory references
                             if is_immediate = '1' then
                                 -- LrI (Load register Immediate) - fetch immediate byte
+                                --  PC should increment after fetching instruction, then again after fetching immediate
+                                pc_should_increment <= '1';  -- Allow PC to increment now (for instruction fetch)
                                 cycle_type_reg <= "01";  -- PCR (data read)
                                 microcode_state <= IMMEDIATE;
                                 skip_exec_states <= '1';  -- 3-state cycle for immediate fetch
@@ -769,6 +866,7 @@ begin
                                 skip_exec_states <= '1';  -- 3-state cycle
                             else
                                 -- Regular register-to-register move
+                                report "MOV register-to-register detected - setting skip_exec='0' for 5-state EXECUTE";
                                 microcode_state <= EXECUTE;
                                 skip_exec_states <= '0';  -- 5-state cycle for register transfer
                                 pc_should_increment <= '0';  -- Don't increment PC during EXECUTE (already incremented when fetching instruction)
@@ -812,11 +910,19 @@ begin
 
                     when IMMEDIATE =>
                         -- Just fetched immediate data (3-state PCR cycle completed)
+                        -- IMPORTANT: Save immediate byte now before data_in changes!
+                        immediate_data <= data_in;
+                        report "IMMEDIATE: Captured immediate byte 0x" & to_hstring(unsigned(data_in));
+
                         if is_alu_op = '1' then
                             -- ALU immediate operation - execute in next cycle
+                            -- IMPORTANT: Do NOT set cycle_type_reg here! Leave it as "01" (PCR) from IMMEDIATE fetch.
+                            -- Setting it to "00" (PCI) would cause instruction_reg to be overwritten during EXECUTE,
+                            -- making the CPU decode the wrong instruction when EXECUTE handler runs.
                             microcode_state <= EXECUTE;
                             skip_exec_states <= '0';  -- 5-state cycle for execution
                             pc_should_increment <= '0';  -- Don't increment PC during EXECUTE (already incremented when fetching instruction and immediate)
+                            report "ADI operation - transitioning to EXECUTE (5-state cycle)";
                         elsif is_load_op = '1' then
                             -- LrI (Load register Immediate) - write immediate to register
                             reg_write_enable <= '1';
@@ -873,6 +979,7 @@ begin
 
                     when EXECUTE =>
                         -- Execute the instruction (5-state cycle)
+                        report "EXECUTE state handler running at end of 5-state cycle";
                         if is_alu_op = '1' then
                             -- Write ALU result to accumulator
                             reg_write_enable <= '1';
@@ -885,7 +992,8 @@ begin
                             reg_write_addr <= to_integer(unsigned(dst_reg));
                             reg_write_data <= registers(to_integer(unsigned(src_reg)));
                             report "MOV R" & integer'image(to_integer(unsigned(dst_reg))) &
-                                   " <- R" & integer'image(to_integer(unsigned(src_reg)));
+                                   " <- R" & integer'image(to_integer(unsigned(src_reg))) &
+                                   " (setting reg_write_enable=1, data=0x" & to_hstring(unsigned(registers(to_integer(unsigned(src_reg))))) & ")";
                         end if;
 
                         -- Return to fetch next instruction (3-state PCI cycle)
@@ -1012,14 +1120,20 @@ begin
                            " skip_exec=" & std_logic'image(skip_exec_states);
                 end if;
 
-                if timing_state /= STOPPED and perform_jump = '0' and pc_should_increment = '1' then
-                    -- PC increments when pc_should_increment='1' (controlled by microcode sequencer)
-                    -- 3-state cycle: increment at end of T3
+                -- PC increment logic:
+                -- - FETCH state at T3 end: always increment PC after fetching instruction (unless jumping)
+                -- - IMMEDIATE state at T3 end: always increment PC after fetching immediate byte
+                -- - Other states at T5 end: use pc_should_increment signal for 5-state cycles
+                if timing_state /= STOPPED and perform_jump = '0' then
+                    -- 3-state cycles (T1-T2-T3): increment at end of T3
                     if timing_state = T3 and skip_exec_states = '1' then
-                        program_counter <= program_counter + 1;
-                        report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (3-state cycle)";
-                    -- 5-state cycle: increment at end of T5
-                    elsif timing_state = T5 and skip_exec_states = '0' then
+                        -- Always increment for FETCH (instruction fetch) and IMMEDIATE (data fetch)
+                        if microcode_state = FETCH or microcode_state = IMMEDIATE or pc_should_increment = '1' then
+                            program_counter <= program_counter + 1;
+                            report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (3-state cycle)";
+                        end if;
+                    -- 5-state cycles (T1-T2-T3-T4-T5): increment at end of T5 if pc_should_increment='1'
+                    elsif timing_state = T5 and skip_exec_states = '0' and pc_should_increment = '1' then
                         program_counter <= program_counter + 1;
                         report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (5-state cycle)";
                     end if;
@@ -1027,5 +1141,19 @@ begin
             end if;
         end if;
     end process;
+
+    --===========================================
+    -- Debug Outputs
+    --===========================================
+    -- Continuous assignment of internal state to debug outputs
+    debug_reg_A <= registers(REG_A);
+    debug_reg_B <= registers(REG_B);
+    debug_reg_C <= registers(REG_C);
+    debug_reg_D <= registers(REG_D);
+    debug_reg_E <= registers(REG_E);
+    debug_reg_H <= registers(REG_H);
+    debug_reg_L <= registers(REG_L);
+    debug_pc <= std_logic_vector(program_counter);
+    debug_flags <= flag_parity & flag_sign & flag_zero & flag_carry;
 
 end rtl;
