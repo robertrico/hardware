@@ -141,6 +141,13 @@ architecture rtl of i8008_cpu is
     signal mem_is_instruction_fetch : std_logic := '1';  -- Flag set by execution SM (init to '1' for first fetch)
     signal mem_cycle_done : std_logic := '0';  -- Set by timing SM when T3 completes
 
+    -- Clock phase counter for two-clock-period states
+    -- Per Intel 8008 datasheet: "Two clock periods are required for each state"
+    -- One clock period = phi1_rise → phi1_fall → dead → phi2_rise → phi2_fall → dead → phi1_rise (2.2µs)
+    -- Therefore each state (T1, T2, T3, T4, T5) spans TWO phi1 rising edges (4.4µs)
+    -- Initialize to '1' so first phi1 edge toggles to '0' and executes first-cycle actions
+    signal clock_phase : std_logic := '1';
+
     -- Lower 6 bits of instruction (opcode)
     signal opcode : std_logic_vector(5 downto 0);
 
@@ -212,8 +219,13 @@ begin
         end case;
     end process;
 
-    -- SYNC is high during T1 and T1I
-    SYNC <= '1' when (timing_state = T1 or timing_state = T1I) else '0';
+    -- SYNC per Intel 8008 datasheet Figure 15:
+    -- SYNC is HIGH during first clock period of ANY state (when clock_phase='0')
+    -- SYNC is LOW during second clock period of ANY state (when clock_phase='1')
+    -- This makes SYNC a true "divide by two" signal that distinguishes between
+    -- the two clock periods within EVERY state (T1, T2, T3, T4, T5)
+    -- SYNC = NOT clock_phase
+    SYNC <= not clock_phase;
 
     --===========================================
     -- Bus Multiplexing (Address/Data)
@@ -301,6 +313,7 @@ begin
     -- Each memory access requires a full T1-T2-T3 sequence
 
     process(phi1, reset_n)
+        variable next_clock_phase : std_logic;
     begin
         if reset_n = '0' then
             timing_state <= T1;
@@ -310,9 +323,17 @@ begin
             bus_address <= (others => '0');
             bus_data_out <= (others => '0');
             data_sample_enable <= '0';
+            clock_phase <= '1';  -- Start at '1' so first edge toggles to '0' (first-cycle actions)
 
         elsif rising_edge(phi1) then
-            -- Update processor state for S0/S1/S2 encoding
+            -- Toggle clock phase on every phi1 edge
+            -- This creates the two-clock-period state timing
+            -- Use a variable to get the new value immediately
+            next_clock_phase := not clock_phase;
+            clock_phase <= next_clock_phase;
+            report "Clock phase toggled to " & std_logic'image(next_clock_phase) & " at " & time'image(now);
+
+            -- Update processor state for S0/S1/S2 encoding (always, regardless of phase)
             case timing_state is
                 when T1    => proc_state <= PS_T1;
                 when T1I   => proc_state <= PS_T1I;
@@ -323,32 +344,64 @@ begin
                 when T5    => proc_state <= PS_T5;
             end case;
 
-            -- Timing state transitions
-            case timing_state is
-                when T1 =>
-                    -- Always capture request state in T1, even if no request yet
-                    mem_cycle_active <= mem_read_req or mem_write_req;
-                    bus_address <= mem_address_int(13 downto 0);
-                    mem_is_write <= mem_write_req;
-                    report "T1: Loaded bus_address=0x" & to_hstring(mem_address_int(13 downto 0)) & " from mem_address_int";
+            -- Timing state transitions and actions
+            -- Per datasheet: Each state lasts TWO clock periods
+            -- clock_phase starts at '1', first phi1 edge toggles to '0'
+            -- - clock_phase='0': First clock period - setup actions for the state
+            -- - clock_phase='1': Second clock period - transition to next state
+            -- Use next_clock_phase (variable) to get immediate toggle result
 
-                    -- Determine cycle type
-                    if mem_write_req = '1' then
-                        cycle_type <= PCC;  -- Memory write
-                        bus_data_out <= mem_data_to_bus;
-                        report "T1: Write request detected";
-                    elsif mem_read_req = '1' then
-                        if mem_is_instruction_fetch = '1' then
-                            cycle_type <= PCI;  -- Instruction fetch
-                            report "T1: Instruction fetch request detected";
+            if next_clock_phase = '0' then
+                -- First clock period of each state: perform setup actions
+                case timing_state is
+                    when T1 =>
+                        -- Always capture request state in T1, even if no request yet
+                        mem_cycle_active <= mem_read_req or mem_write_req;
+                        bus_address <= mem_address_int(13 downto 0);
+                        mem_is_write <= mem_write_req;
+                        report "T1-CP0: Loaded bus_address=0x" & to_hstring(mem_address_int(13 downto 0)) & " from mem_address_int";
+
+                        -- Determine cycle type
+                        if mem_write_req = '1' then
+                            cycle_type <= PCC;  -- Memory write
+                            bus_data_out <= mem_data_to_bus;
+                            report "T1-CP0: Write request detected";
+                        elsif mem_read_req = '1' then
+                            if mem_is_instruction_fetch = '1' then
+                                cycle_type <= PCI;  -- Instruction fetch
+                                report "T1-CP0: Instruction fetch request detected";
+                            else
+                                cycle_type <= PCR;  -- Memory read
+                                report "T1-CP0: Read request detected";
+                            end if;
                         else
-                            cycle_type <= PCR;  -- Memory read
-                            report "T1: Read request detected";
+                            report "T1-CP0: No memory request (idle cycle)";
                         end if;
-                    else
-                        report "T1: No memory request (idle cycle)";
-                    end if;
 
+                    when T3 =>
+                        -- Data transfer state - enable sampling on phi2 for read cycles
+                        if mem_cycle_active = '1' and cycle_type /= PCC then
+                            -- Active read cycle: enable data sampling
+                            data_sample_enable <= '1';
+                            report "T3-CP0: Enabled data sampling";
+                        elsif mem_cycle_active = '1' then
+                            report "T3-CP0: Write cycle, no sampling";
+                        else
+                            report "T3-CP0: Idle cycle, no transfer";
+                        end if;
+                        mem_cycle_active <= '0';
+
+                    when T4 =>
+                        data_sample_enable <= '0';  -- Clear sample enable
+
+                    when others =>
+                        null;  -- No first-cycle actions for T1I, T2, TWAIT, T5
+                end case;
+
+            elsif next_clock_phase = '1' then
+                -- Second clock period of each state: transition to next state
+                case timing_state is
+                when T1 =>
                     -- Always transition to T2 (or T1I for interrupts)
                     if INT = '1' then
                         timing_state <= T1I;
@@ -374,37 +427,23 @@ begin
                     end if;
 
                 when T3 =>
-                    -- Data transfer state - enable sampling on phi2 for read cycles
-                    if mem_cycle_active = '1' and cycle_type /= PCC then
-                        -- Active read cycle: enable data sampling
-                        data_sample_enable <= '1';
-                        report "T3: Enabled data sampling";
-                    elsif mem_cycle_active = '1' then
-                        report "T3: Write cycle, no sampling";
-                    else
-                        report "T3: Idle cycle, no transfer";
-                    end if;
-                    mem_cycle_active <= '0';
                     timing_state <= T4;
 
                 when T4 =>
-                    data_sample_enable <= '0';  -- Clear sample enable
                     timing_state <= T5;
 
                 when T5 =>
-                    -- Return to T1 only if there's a pending memory request
-                    -- This prevents spurious idle cycles that can sample stale data
+                    -- Real 8008: Always return to T1 (free-running cycles)
+                    -- Glue logic sees continuous SYNC pulses even when idle
                     if state = STATE_HALTED then
                         proc_state <= PS_STOPPED;
                         -- Stay in T5 when halted
-                    elsif mem_read_req = '1' or mem_write_req = '1' then
-                        timing_state <= T1;
                     else
-                        -- No pending request, stay in T5 (idle)
-                        null;
+                        timing_state <= T1;  -- Always return to T1 for cycle-accuracy
                     end if;
-            end case;
-        end if;
+                end case;
+            end if;  -- clock_phase = '1'
+        end if;  -- rising_edge(phi1)
     end process;
 
     --===========================================
@@ -413,6 +452,13 @@ begin
     -- The real 8008 samples data on phi2, not phi1
     -- This ensures the bus has stabilized after external logic responds to S0/S1/S2
     -- Also signals cycle completion to the execution SM (which runs on phi2)
+    --
+    -- IMPORTANT: With free-running T1-T5 cycles, mem_cycle_active distinguishes:
+    --   - Active cycles: Execution SM requested a transfer (mem_cycle_done signals completion)
+    --   - Idle cycles: No request pending (free-running SYNC pulses, no completion signal)
+    --
+    -- This matches real 8008 behavior: continuous SYNC pulses, but only active cycles
+    -- trigger data sampling and completion signaling to the execution state machine.
     process(phi2, reset_n)
         variable cycle_was_active : std_logic := '0';
     begin
@@ -421,7 +467,7 @@ begin
             mem_cycle_done <= '0';
             cycle_was_active := '0';
         elsif rising_edge(phi2) then
-            -- Sample data during T3
+            -- Sample data during T3 (only for active read cycles)
             if data_sample_enable = '1' then
                 mem_data_from_bus <= bus_data_in;
                 report "CPU sampled data from bus: 0x" & to_hstring(bus_data_in);
@@ -432,7 +478,8 @@ begin
                 cycle_was_active := '1';
             end if;
 
-            -- Signal completion at T4 (on phi2) if a cycle was active
+            -- Signal completion at T4 (on phi2) ONLY if a cycle was active
+            -- Idle cycles (free-running SYNC pulses) do NOT signal completion
             if timing_state = T4 and cycle_was_active = '1' then
                 mem_cycle_done <= '1';
                 cycle_was_active := '0';  -- Clear for next cycle

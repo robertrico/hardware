@@ -42,7 +42,8 @@ entity sim8_01_top is
         debug_reg_h      : out std_logic_vector(7 downto 0);
         debug_reg_l      : out std_logic_vector(7 downto 0);
         debug_rom_cs_n   : out std_logic;
-        debug_ram_cs_n   : out std_logic
+        debug_ram_cs_n   : out std_logic;
+        debug_sync       : out std_logic  -- SYNC signal for observation
     );
 end sim8_01_top;
 
@@ -194,31 +195,73 @@ begin
     -- Address Demultiplexing Logic
     --===========================================
     -- Capture address from data bus during T1 and T2 states
-    -- Use SYNC to detect T1, then next cycle is T2
+    -- Real 8008 compatible: Handle free-running SYNC pulses
+    -- Latch address on SYNC rising edge, hold until next SYNC rising edge
 
-    process(phi1_int, cpu_reset_n)
+    process(phi2_int, cpu_reset_n)
+        variable prev_sync : std_logic := '0';
+        type latch_state_t is (IDLE, WAIT_T2, HOLD_CYCLE);
+        variable latch_state : latch_state_t := IDLE;
+        variable sync_edge_count : integer range 0 to 7 := 0;
     begin
         if cpu_reset_n = '0' then
             addr_low <= (others => '0');
             addr_high <= (others => '0');
             cycle_type <= (others => '0');
             was_sync <= '0';
-        elsif falling_edge(phi1_int) then
-            -- Sample address on falling edge of phi1 (= start of phi2)
-            -- This gives the CPU's combinatorial bus driver time to update before we sample
-            -- Sampling on falling_edge provides a delta-cycle delay vs rising_edge(phi2)
-            if cpu_SYNC = '1' then
-                -- SYNC high = T1 state, capture lower address
-                addr_low <= cpu_data_bus;
-                was_sync <= '1';
-                report "T1: Captured addr_low=0x" & to_hstring(cpu_data_bus);
-            elsif was_sync = '1' then
-                -- Cycle after SYNC = T2 state, capture upper address + cycle type
-                addr_high <= cpu_data_bus(5 downto 0);
-                cycle_type <= cpu_data_bus(7 downto 6);
-                was_sync <= '0';
-                report "T2: Captured addr_high=0x" & to_hstring(cpu_data_bus(5 downto 0)) & " cycle_type=" & to_string(cpu_data_bus(7 downto 6)) & " full_addr=0x" & to_hstring(cpu_data_bus(5 downto 0) & addr_low);
-            end if;
+            prev_sync := '0';
+            latch_state := IDLE;
+            sync_edge_count := 0;
+        elsif rising_edge(phi2_int) then
+            -- Sample on phi2 rising edge when bus data is stable
+            -- Real 8008: SYNC goes high during phi2, address is valid throughout phi1+phi2
+
+            -- State machine to latch address and hold it stable through the cycle
+            -- With corrected SYNC timing (toggles every clock period), we need to:
+            -- - Latch addr_low on first SYNC rising edge (T1)
+            -- - Latch addr_high+cycle_type on next SYNC falling edge (T2)
+            -- - Ignore next 3 SYNC rising edges (T3, T4, T5)
+            -- - Accept 4th SYNC rising edge as new cycle's T1
+            case latch_state is
+                when IDLE =>
+                    -- Wait for SYNC rising edge to start new cycle
+                    if cpu_SYNC = '1' and prev_sync = '0' then
+                        -- SYNC rising edge: Latch lower address byte, enter WAIT_T2
+                        addr_low <= cpu_data_bus;
+                        latch_state := WAIT_T2;
+                        report "T1: Captured addr_low=0x" & to_hstring(cpu_data_bus);
+                    end if;
+
+                when WAIT_T2 =>
+                    -- Wait for SYNC falling edge (T2 state)
+                    if cpu_SYNC = '0' and prev_sync = '1' then
+                        -- SYNC falling edge: T2 state, latch upper address + cycle type
+                        addr_high <= cpu_data_bus(5 downto 0);
+                        cycle_type <= cpu_data_bus(7 downto 6);
+                        latch_state := HOLD_CYCLE;  -- Hold values through T3/T4/T5
+                        sync_edge_count := 0;  -- Reset counter
+                        report "T2: Captured addr_high=0x" & to_hstring(cpu_data_bus(5 downto 0)) & " cycle_type=" & to_string(cpu_data_bus(7 downto 6)) & " full_addr=0x" & to_hstring(cpu_data_bus(5 downto 0) & addr_low);
+                    end if;
+
+                when HOLD_CYCLE =>
+                    -- Hold latched values stable through T3/T4/T5
+                    -- Count SYNC rising edges and start new cycle on the 4th one
+                    if cpu_SYNC = '1' and prev_sync = '0' then
+                        sync_edge_count := sync_edge_count + 1;
+                        report "HOLD_CYCLE: SYNC rising edge #" & integer'image(sync_edge_count);
+
+                        if sync_edge_count >= 3 then
+                            -- 4th SYNC rising edge: new cycle's T1
+                            addr_low <= cpu_data_bus;
+                            latch_state := WAIT_T2;
+                            sync_edge_count := 0;
+                            report "T1 (new cycle after hold): Captured addr_low=0x" & to_hstring(cpu_data_bus);
+                        end if;
+                    end if;
+            end case;
+
+            -- Track SYNC for edge detection on next phi2
+            prev_sync := cpu_SYNC;
         end if;
     end process;
 
@@ -372,6 +415,7 @@ begin
     debug_mem_data <= cpu_data_bus;
     debug_rom_cs_n <= rom_cs_n;
     debug_ram_cs_n <= ram_cs_n;
+    debug_sync <= cpu_SYNC;
 
     -- Note: LEDs on ECP5 Versa are active-low, but this is handled in constraints
 

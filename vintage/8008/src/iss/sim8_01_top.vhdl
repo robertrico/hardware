@@ -206,18 +206,22 @@ begin
     addr_full <= addr_high & addr_low;
 
     -- Address decoding for memory
-    -- ROM: 0x0000 - 0x07FF (2K)
-    -- RAM: 0x0800 - 0x0BFF (1K)
+    -- ROM: 0x0000 - 0x07FF (2K) - responds to PCI (instruction fetch) and PCR (data read)
+    -- RAM: 0x0800 - 0x0BFF (1K) - responds to PCR (data read) and PCC (data write)
+    --
+    -- cycle_type: 00=PCI(fetch), 01=PCR(read), 10=PCC(write), 11=PCW(I/O)
     rom_cs_n <= '0' when (addr_full(13 downto 11) = "000" and
                           cycle_type(1) = '0') -- PCI or PCR cycles
                     else '1';
 
-    ram_cs_n <= '0' when (addr_full(13 downto 10) = "0010") -- 0x0800-0x0BFF
+    -- RAM chip select: activate for PCR (read) or PCC (write) cycles in RAM address range
+    ram_cs_n <= '0' when (addr_full(13 downto 10) = "0010" and  -- 0x0800-0x0BFF
+                          (cycle_type = "01" or cycle_type = "10") and  -- PCR or PCC
+                          current_state = T3)  -- Only during T3 (data transfer state)
                     else '1';
 
-    -- RAM Read/Write control
-    -- cycle_type: 00=PCI(read), 01=PCR(read), 10=PCC(I/O), 11=PCW(write)
-    ram_rw_n <= '0' when (cycle_type = "11") else '1'; -- Write when PCW
+    -- RAM Read/Write control: Write=0 when PCC, Read=1 otherwise
+    ram_rw_n <= '0' when (cycle_type = "10") else '1'; -- Write when PCC
 
     -- Instantiate ROM
     rom: rom_2kx8 port map(

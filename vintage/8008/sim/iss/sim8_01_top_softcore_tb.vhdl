@@ -35,6 +35,7 @@ architecture sim of sim8_01_top_softcore_tb is
     signal debug_reg_l_tb : std_logic_vector(7 downto 0);
     signal debug_rom_cs_n_tb : std_logic;
     signal debug_ram_cs_n_tb : std_logic;
+    signal debug_sync_tb : std_logic;
 
     constant CLK_PERIOD : time := 10 ns;  -- 100 MHz
     signal sim_done : boolean := false;
@@ -56,7 +57,8 @@ begin
             debug_reg_h => debug_reg_h_tb,
             debug_reg_l => debug_reg_l_tb,
             debug_rom_cs_n => debug_rom_cs_n_tb,
-            debug_ram_cs_n => debug_ram_cs_n_tb
+            debug_ram_cs_n => debug_ram_cs_n_tb,
+            debug_sync => debug_sync_tb
         );
 
     -- Clock generation
@@ -194,12 +196,10 @@ begin
         end if;
     end process;
 
-    -- Monitor SYNC and cycle type
-    monitor_sync: process(debug_led_tb(3))
+    -- Monitor SYNC signal (from CPU)
+    monitor_sync: process(debug_sync_tb)
     begin
-        if debug_led_tb(3) = '1' then
-            report "*** SYNC HIGH at " & time'image(now);
-        end if;
+        report "*** SYNC=" & std_logic'image(debug_sync_tb) & " at " & time'image(now);
     end process;
 
     -- Monitor is_read_cycle
