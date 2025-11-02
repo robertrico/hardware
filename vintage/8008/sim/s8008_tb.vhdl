@@ -130,14 +130,14 @@ architecture sim of s8008_tb is
         -- TEST 5: Set up H:L register pair for memory operations
         10 => x"2E", -- LrI H,0x00  = 00 101 110  (H = 0x00)
         11 => x"00", --               immediate data = 0x00
-        12 => x"36", -- LrI L,0x20  = 00 110 110  (L = 0x20, so M points to 0x0020)
-        13 => x"20", --               immediate data = 0x20
+        12 => x"36", -- LrI L,0xF0  = 00 110 110  (L = 0xF0, so M points to 0x00F0)
+        13 => x"F0", --               immediate data = 0xF0
 
         -- TEST 6: Memory write (MOV M,C - store C to memory at H:L)
-        14 => x"3A", -- MOV M,C     = 00 111 010  (Store C=0x55 to address 0x0020)
+        14 => x"3A", -- MOV M,C     = 00 111 010  (Store C=0x55 to address 0x00F0)
 
         -- TEST 7: Memory read (MOV D,M - load from memory at H:L to D)
-        15 => x"1F", -- MOV D,M     = 00 011 111  (Load from address 0x0020 into D)
+        15 => x"1F", -- MOV D,M     = 00 011 111  (Load from address 0x00F0 into D)
 
         -- TEST 8: ALU with memory operand (ADD M to A)
         16 => x"87", -- ADD M       = 10 000 111  (A = A + M[H:L])
@@ -154,89 +154,112 @@ architecture sim of s8008_tb is
         23 => x"EE", --               (should be skipped)
         24 => x"00", -- HLT         (should be skipped)
 
-        -- TEST 10: CALL/RET - Test subroutine call and return (jump lands here at 0x0019)
-        25 => x"46", -- CALL 0x0030 = 01 000 110  (call subroutine at address 0x0030)
-        26 => x"30", --               low byte = 0x30
-        27 => x"00", --               high byte = 0x00 (target = 0x0030)
+        -- Extended ADI and MOV Tests at addresses 25-48 (decimal 0x19-0x30)
+        -- Jump lands here at 0x0019 - these tests stress the immediate_data register and MOV register combinations
+        25 => x"C4", -- TEST 20: ADI 0x00 (add zero - A=0xB5 + 0x00 = 0xB5, no change)
+        26 => x"00", --               immediate = 0x00
+        27 => x"C4", -- TEST 21: ADI 0xFF (test overflow/carry - A=0xB5 + 0xFF = 0x1B4 -> 0xB4, carry=1)
+        28 => x"FF", --               immediate = 0xFF
+        29 => x"C4", -- TEST 22: ADI 0x01 (A=0xB4 + 0x01 = 0xB5)
+        30 => x"01", --               immediate = 0x01
+        31 => x"10", -- TEST 23: MOV C,A = 00 010 000 (C should = 0xB5 from previous ADI)
+        32 => x"1A", -- TEST 24: MOV D,C = 00 011 010
+        33 => x"23", -- TEST 25: MOV E,D = 00 100 011
+        34 => x"2C", -- TEST 26: MOV H,E = 00 101 100
+        35 => x"24", -- TEST 27: MOV E,H = 00 100 101 (E should = 0xB5)
+        36 => x"03", -- TEST 28: MOV A,D = 00 000 011 (A should = 0xB5, complete circle)
+        37 => x"08", -- TEST 29: MOV B,A = 00 001 000
+        38 => x"C4", -- TEST 30: Chain ADI #1 - ADI 0x10 (A=0xB5 + 0x10 = 0xC5)
+        39 => x"10", --               immediate = 0x10
+        40 => x"C4", -- TEST 31: Chain ADI #2 - ADI 0x20 (A=0xC5 + 0x20 = 0xE5)
+        41 => x"20", --               immediate = 0x20
+        42 => x"C4", -- TEST 32: Chain ADI #3 - ADI 0x30 (A=0xE5 + 0x30 = 0x115 -> 0x15, carry=1)
+        43 => x"30", --               immediate = 0x30
+        44 => x"08", -- TEST 33: Interleaved - MOV B,A = 00 001 000 (B = 0x15)
+        45 => x"C4", -- TEST 34: Interleaved - ADI 0x05 (A=0x15 + 0x05 = 0x1A)
+        46 => x"05", --               immediate = 0x05
+        47 => x"10", -- TEST 35: Interleaved - MOV C,A = 00 010 000 (C = 0x1A)
+
+        -- TEST 10: CALL/RET - Test subroutine call and return
+        48 => x"46", -- TEST 36: CALL 0x0060 = 01 000 110  (call subroutine at address 0x0060)
+        49 => x"60", --               low byte = 0x60
+        50 => x"00", --               high byte = 0x00 (target = 0x0060)
 
         -- After RET, execution continues here
-        28 => x"06", -- LrI A,0x99  = 00 000 110  (Load A with 0x99 to verify return)
-        29 => x"99", --               immediate data = 0x99
+        51 => x"06", -- TEST 37: LrI A,0x99  = 00 000 110  (Load A with 0x99 to verify return)
+        52 => x"99", --               immediate data = 0x99
 
         -- TEST 11: Nested CALL - Call subroutine that calls another subroutine
-        30 => x"46", -- CALL 0x0050 = 01 000 110  (call first-level subroutine)
-        31 => x"50", --               low byte = 0x50 (decimal 80)
-        32 => x"00", --               high byte = 0x00
+        53 => x"46", -- TEST 38: CALL 0x0080 = 01 000 110  (call first-level subroutine)
+        54 => x"80", --               low byte = 0x80 (decimal 128)
+        55 => x"00", --               high byte = 0x00
 
         -- After nested CALLs return, verify registers
-        33 => x"06", -- LrI A,0xAA  = 00 000 110  (Load A with 0xAA to verify return)
-        34 => x"AA", --               immediate data = 0xAA
+        56 => x"06", -- TEST 39: LrI A,0xAA  = 00 000 110  (Load A with 0xAA to verify return)
+        57 => x"AA", --               immediate data = 0xAA
 
         -- TEST 12: Stack depth test - Multiple nested CALLs to test stack levels
-        35 => x"46", -- CALL 0x0070 = 01 000 110  (call stack depth test routine)
-        36 => x"70", --               low byte = 0x70 (decimal 112)
-        37 => x"00", --               high byte = 0x00
+        58 => x"46", -- TEST 40: CALL 0x00A0 = 01 000 110  (call stack depth test routine)
+        59 => x"A0", --               low byte = 0xA0 (decimal 160)
+        60 => x"00", --               high byte = 0x00
 
         -- After stack depth test returns
-        38 => x"16", -- LrI C,0xCC  = 00 010 110  (Load C with 0xCC to verify return)
-        39 => x"CC", --               immediate data = 0xCC
+        61 => x"16", -- TEST 41: LrI C,0xCC  = 00 010 110  (Load C with 0xCC to verify return)
+        62 => x"CC", --               immediate data = 0xCC
 
-        -- TEST 13: HLT - Stop execution
-        40 => x"00", -- HLT         = 00 000 000  (halt execution)
+        -- Final HLT
+        63 => x"00", -- TEST 42: HLT - Stop execution
 
-        -- Data area for memory operations
-        45 => x"33", -- Address 0x2D: Data area
+        -- First simple subroutine at address 0x0060 (decimal 96)
+        96 => x"0E", -- LrI B,0x88  = 00 001 110  (Load B with 0x88 in subroutine)
+        97 => x"88", --               immediate data = 0x88
+        98 => x"47", -- RET         = 01 000 111  (return from subroutine)
 
-        -- First simple subroutine at address 0x0030 (decimal 48) - from original test
-        48 => x"0E", -- LrI B,0x88  = 00 001 110  (Load B with 0x88 in subroutine)
-        49 => x"88", --               immediate data = 0x88
-        50 => x"47", -- RET         = 01 000 111  (return from subroutine)
-
-        -- Nested CALL test: First-level subroutine at 0x0050 (decimal 80)
+        -- Nested CALL test: First-level subroutine at 0x0080 (decimal 128)
         -- This subroutine calls another subroutine to test nested CALLs
-        80 => x"1E", -- LrI D,0x11  = 00 011 110  (Load D with 0x11)
-        81 => x"11", --               immediate data = 0x11
-        82 => x"46", -- CALL 0x0060 = 01 000 110  (call second-level subroutine)
-        83 => x"60", --               low byte = 0x60 (decimal 96)
-        84 => x"00", --               high byte = 0x00
-        85 => x"26", -- LrI E,0x22  = 00 100 110  (Load E with 0x22 after nested call returns)
-        86 => x"22", --               immediate data = 0x22
-        87 => x"47", -- RET         = 01 000 111  (return from first-level subroutine)
+        128 => x"1E", -- LrI D,0x11  = 00 011 110  (Load D with 0x11)
+        129 => x"11", --               immediate data = 0x11
+        130 => x"46", -- CALL 0x0090 = 01 000 110  (call second-level subroutine)
+        131 => x"90", --               low byte = 0x90 (decimal 144)
+        132 => x"00", --               high byte = 0x00
+        133 => x"26", -- LrI E,0x22  = 00 100 110  (Load E with 0x22 after nested call returns)
+        134 => x"22", --               immediate data = 0x22
+        135 => x"47", -- RET         = 01 000 111  (return from first-level subroutine)
 
-        -- Nested CALL test: Second-level subroutine at 0x0060 (decimal 96)
-        96 => x"2E", -- LrI H,0x33  = 00 101 110  (Load H with 0x33)
-        97 => x"33", --               immediate data = 0x33
-        98 => x"36", -- LrI L,0x44  = 00 110 110  (Load L with 0x44)
-        99 => x"44", --               immediate data = 0x44
-        100 => x"47", -- RET        = 01 000 111  (return from second-level subroutine)
+        -- Nested CALL test: Second-level subroutine at 0x0090 (decimal 144)
+        144 => x"2E", -- LrI H,0x33  = 00 101 110  (Load H with 0x33)
+        145 => x"33", --               immediate data = 0x33
+        146 => x"36", -- LrI L,0x44  = 00 110 110  (Load L with 0x44)
+        147 => x"44", --               immediate data = 0x44
+        148 => x"47", -- RET        = 01 000 111  (return from second-level subroutine)
 
-        -- Stack depth test: Multiple nested CALLs at 0x0070 (decimal 112)
+        -- Stack depth test: Multiple nested CALLs at 0x00A0 (decimal 160)
         -- Tests stack levels 2, 3, 4 (we're already at level 1 from main)
-        112 => x"06", -- LrI A,0x01 = 00 000 110  (Mark stack level 2)
-        113 => x"01", --              immediate data = 0x01
-        114 => x"46", -- CALL 0x0080 = 01 000 110  (call level 3)
-        115 => x"80", --              low byte = 0x80 (decimal 128)
-        116 => x"00", --              high byte = 0x00
-        117 => x"06", -- LrI A,0xF1 = 00 000 110  (After return, mark completion)
-        118 => x"F1", --              immediate data = 0xF1
-        119 => x"47", -- RET        = 01 000 111  (return from level 2)
+        160 => x"06", -- LrI A,0x01 = 00 000 110  (Mark stack level 2)
+        161 => x"01", --              immediate data = 0x01
+        162 => x"46", -- CALL 0x00B0 = 01 000 110  (call level 3)
+        163 => x"B0", --              low byte = 0xB0 (decimal 176)
+        164 => x"00", --              high byte = 0x00
+        165 => x"06", -- LrI A,0xF1 = 00 000 110  (After return, mark completion)
+        166 => x"F1", --              immediate data = 0xF1
+        167 => x"47", -- RET        = 01 000 111  (return from level 2)
 
-        -- Stack depth test: Level 3 at 0x0080 (decimal 128)
-        128 => x"0E", -- LrI B,0x02 = 00 001 110  (Mark stack level 3)
-        129 => x"02", --              immediate data = 0x02
-        130 => x"46", -- CALL 0x0090 = 01 000 110  (call level 4)
-        131 => x"90", --              low byte = 0x90 (decimal 144)
-        132 => x"00", --              high byte = 0x00
-        133 => x"0E", -- LrI B,0xF2 = 00 001 110  (After return, mark completion)
-        134 => x"F2", --              immediate data = 0xF2
-        135 => x"47", -- RET        = 01 000 111  (return from level 3)
+        -- Stack depth test: Level 3 at 0x00B0 (decimal 176)
+        176 => x"0E", -- LrI B,0x02 = 00 001 110  (Mark stack level 3)
+        177 => x"02", --              immediate data = 0x02
+        178 => x"46", -- CALL 0x00C0 = 01 000 110  (call level 4)
+        179 => x"C0", --              low byte = 0xC0 (decimal 192)
+        180 => x"00", --              high byte = 0x00
+        181 => x"0E", -- LrI B,0xF2 = 00 001 110  (After return, mark completion)
+        182 => x"F2", --              immediate data = 0xF2
+        183 => x"47", -- RET        = 01 000 111  (return from level 3)
 
-        -- Stack depth test: Level 4 (deepest) at 0x0090 (decimal 144)
-        144 => x"16", -- LrI C,0x03 = 00 010 110  (Mark stack level 4)
-        145 => x"03", --              immediate data = 0x03
-        146 => x"1E", -- LrI D,0x04 = 00 011 110  (Another operation at deepest level)
-        147 => x"04", --              immediate data = 0x04
-        148 => x"47", -- RET        = 01 000 111  (return from level 4)
+        -- Stack depth test: Level 4 (deepest) at 0x00C0 (decimal 192)
+        192 => x"16", -- LrI C,0x03 = 00 010 110  (Mark stack level 4)
+        193 => x"03", --              immediate data = 0x03
+        194 => x"1E", -- LrI D,0x04 = 00 011 110  (Another operation at deepest level)
+        195 => x"04", --              immediate data = 0x04
+        196 => x"47", -- RET        = 01 000 111  (return from level 4)
 
         others => x"00"  -- Fill rest with HLT/zero
     );
@@ -456,7 +479,7 @@ begin
         wait for 5 us;    -- Should transition to T1I
         INT_tb <= '0';    -- Deassert interrupt
         report "PASS: INT deasserted";
-        wait for 50 us;
+        wait for 5 us;
 
         -- Test 6: Verify variable-length cycle sequencing
         report "TEST 6: Variable-length cycle verification";
@@ -522,7 +545,7 @@ begin
 
         -- Wait for a MOV instruction to be fetched (address 0: MOV B,B = 0xC0)
         -- This will trigger: 3-state PCI fetch, then 5-state EXECUTE cycle
-        wait for 50 us;  -- Allow time for instruction to be fetched and decoded
+        wait for 5 us;  -- Allow time for instruction to be fetched and decoded
 
         -- Now wait for T4 state (should occur during EXECUTE cycle)
         report "Waiting for T4 state during execution cycle...";
@@ -541,7 +564,7 @@ begin
 
         -- Verify we see both 3-state and 5-state cycles
         report "TEST 8: Observing mixed 3-state and 5-state cycles...";
-        wait for 50 us;  -- Allow initial cycles
+        wait for 5 us;  -- Allow initial cycles
 
         report "======================================================================";
         report "=== TIMING TESTS COMPLETE - RESETTING FOR INSTRUCTION TESTS ===";
@@ -633,43 +656,46 @@ begin
         -- TEST 15: Verify LrI H,0x00
         report "TEST 15: Verifying LrI H,0x00";
         wait until unsigned(debug_pc_tb) = to_unsigned(12, 14);
-        wait for 50 us;
+        wait for 5 us;
         assert debug_reg_H_tb = x"00"
             report "FAIL: After LrI H,0x00, H=" & to_hstring(unsigned(debug_reg_H_tb)) & " (expected 0x00)"
             severity error;
         report "PASS: LrI H,0x00 - H=0x" & to_hstring(unsigned(debug_reg_H_tb));
 
-        -- TEST 16: Verify LrI L,0x20
-        report "TEST 16: Verifying LrI L,0x20";
+        -- TEST 16: Verify LrI L,0xF0
+        report "TEST 16: Verifying LrI L,0xF0";
         wait until unsigned(debug_pc_tb) = to_unsigned(14, 14);
-        wait for 50 us;
-        assert debug_reg_L_tb = x"20"
-            report "FAIL: After LrI L,0x20, L=" & to_hstring(unsigned(debug_reg_L_tb)) & " (expected 0x20)"
+        wait for 5 us;
+        assert debug_reg_L_tb = x"F0"
+            report "FAIL: After LrI L,0xF0, L=" & to_hstring(unsigned(debug_reg_L_tb)) & " (expected 0xF0)"
             severity error;
-        report "PASS: LrI L,0x20 - L=0x" & to_hstring(unsigned(debug_reg_L_tb));
+        report "PASS: LrI L,0xF0 - L=0x" & to_hstring(unsigned(debug_reg_L_tb));
 
-        -- TEST 17: Verify MOV M,C (memory write: RAM[0x20] = C = 0x55)
+        -- TEST 17: Verify MOV M,C (memory write: RAM[0xF0] = C = 0x55)
+        -- MOV M,C is a 5-state memory write operation - needs 22-24µs
         report "TEST 17: Verifying MOV M,C";
         wait until unsigned(debug_pc_tb) = to_unsigned(15, 14);
-        wait for 50 us;
-        assert ram(16#20#) = x"55"
-            report "FAIL: After MOV M,C, RAM[0x20]=" & to_hstring(unsigned(ram(16#20#))) & " (expected 0x55)"
+        wait for 24 us;  -- Wait for 5-state PCW memory write cycle
+        assert ram(16#F0#) = x"55"
+            report "FAIL: After MOV M,C, RAM[0xF0]=" & to_hstring(unsigned(ram(16#F0#))) & " (expected 0x55)"
             severity error;
-        report "PASS: MOV M,C - RAM[0x20]=0x" & to_hstring(unsigned(ram(16#20#)));
+        report "PASS: MOV M,C - RAM[0xF0]=0x" & to_hstring(unsigned(ram(16#F0#)));
 
-        -- TEST 18: Verify MOV D,M (memory read: D = RAM[0x20] = 0x55)
+        -- TEST 18: Verify MOV D,M (memory read: D = RAM[0xF0] = 0x55)
+        -- MOV D,M is a 5-state memory read operation - needs 22-24µs
         report "TEST 18: Verifying MOV D,M";
         wait until unsigned(debug_pc_tb) = to_unsigned(16, 14);
-        wait for 50 us;
+        wait for 24 us;  -- Wait for 5-state PCR memory read cycle + register write
         assert debug_reg_D_tb = x"55"
             report "FAIL: After MOV D,M, D=" & to_hstring(unsigned(debug_reg_D_tb)) & " (expected 0x55)"
             severity error;
         report "PASS: MOV D,M - D=0x" & to_hstring(unsigned(debug_reg_D_tb));
 
-        -- TEST 19: Verify ADD M (A=0x60 + RAM[0x20]=0x55 = 0xB5)
+        -- TEST 19: Verify ADD M (A=0x60 + RAM[0xF0]=0x55 = 0xB5)
+        -- ADD M is a 5-state memory read + ALU operation - needs 22-24µs
         report "TEST 19: Verifying ADD M";
         wait until unsigned(debug_pc_tb) = to_unsigned(17, 14);
-        wait for 50 us;
+        wait for 24 us;  -- Wait for 5-state PCR memory read + ALU execute + register write
         assert debug_reg_A_tb = x"B5"
             report "FAIL: After ADD M, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xB5)"
             severity error;
@@ -678,218 +704,369 @@ begin
         -- TEST 20: Verify JMP 0x0019 (unconditional jump, PC should jump to 25)
         report "TEST 20: Verifying JMP 0x0019";
         wait until unsigned(debug_pc_tb) = to_unsigned(25, 14);
-        wait for 50 us;
+        wait for 5 us;
         -- B should still be 0xAA (skipped code at PC 20-24 should NOT execute)
         assert debug_reg_B_tb = x"AA"
             report "FAIL: After JMP, B=" & to_hstring(unsigned(debug_reg_B_tb)) & " (should be 0xAA, not 0xFF/0xEE)"
             severity error;
         report "PASS: JMP 0x0019 - B=0x" & to_hstring(unsigned(debug_reg_B_tb)) & " (skipped code not executed)";
 
-        -- TEST 21: Verify CALL 0x0030 and execution in subroutine
-        report "TEST 21: Verifying CALL 0x0030 (entering subroutine)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(48, 14);  -- Subroutine entry at 0x30 = 48
-        wait for 50 us;
-        report "PASS: CALL 0x0030 - jumped to subroutine at PC=48";
+        -- Extended ADI and MOV Tests - Now execute immediately after JMP
+        -- TEST 21: ADI 0x00 (A=0xB5 + 0x00 = 0xB5, no change)
+        report "TEST 21: Verifying ADI 0x00 (add zero)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(27, 14);
+        wait for 24 us;
+        assert debug_reg_A_tb = x"B5"
+            report "FAIL: After ADI 0x00, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: ADI 0x00 - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
 
-        -- TEST 22: Verify subroutine execution (LrI B,0x88)
-        report "TEST 22: Verifying subroutine execution (LrI B,0x88)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(50, 14);
-        wait for 50 us;
+        -- TEST 22: ADI 0xFF (A=0xB5 + 0xFF = 0x1B4 -> 0xB4, carry=1)
+        report "TEST 22: Verifying ADI 0xFF (test overflow/carry)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(29, 14);
+        wait for 24 us;
+        assert debug_reg_A_tb = x"B4"
+            report "FAIL: After ADI 0xFF, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xB4)"
+            severity error;
+        assert debug_flags_tb(0) = '1'
+            report "FAIL: After ADI 0xFF, carry=" & std_logic'image(debug_flags_tb(0)) & " (expected '1')"
+            severity error;
+        report "PASS: ADI 0xFF - A=0x" & to_hstring(unsigned(debug_reg_A_tb)) & " carry=" & std_logic'image(debug_flags_tb(0));
+
+        -- TEST 23: ADI 0x01 (A=0xB4 + 0x01 = 0xB5)
+        report "TEST 23: Verifying ADI 0x01";
+        wait until unsigned(debug_pc_tb) = to_unsigned(31, 14);
+        wait for 24 us;
+        assert debug_reg_A_tb = x"B5"
+            report "FAIL: After ADI 0x01, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: ADI 0x01 - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
+
+        -- TEST 24: MOV C,A (C should get 0xB5)
+        report "TEST 24: Verifying MOV C,A";
+        wait until unsigned(debug_pc_tb) = to_unsigned(32, 14);  -- PC after MOV C,A is fetched
+        wait for 22 us;  -- Wait for full 5-state EXECUTE cycle
+        assert debug_reg_C_tb = x"B5"
+            report "FAIL: After MOV C,A, C=" & to_hstring(unsigned(debug_reg_C_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: MOV C,A - C=0x" & to_hstring(unsigned(debug_reg_C_tb));
+
+        -- TEST 25: MOV D,C
+        report "TEST 25: Verifying MOV D,C";
+        wait until unsigned(debug_pc_tb) = to_unsigned(33, 14);
+        wait for 22 us;
+        assert debug_reg_D_tb = x"B5"
+            report "FAIL: After MOV D,C, D=" & to_hstring(unsigned(debug_reg_D_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: MOV D,C - D=0x" & to_hstring(unsigned(debug_reg_D_tb));
+
+        -- TEST 26: MOV E,D
+        report "TEST 26: Verifying MOV E,D";
+        wait until unsigned(debug_pc_tb) = to_unsigned(34, 14);
+        wait for 22 us;
+        assert debug_reg_E_tb = x"B5"
+            report "FAIL: After MOV E,D, E=" & to_hstring(unsigned(debug_reg_E_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: MOV E,D - E=0x" & to_hstring(unsigned(debug_reg_E_tb));
+
+        -- TEST 27: MOV H,E
+        report "TEST 27: Verifying MOV H,E";
+        wait until unsigned(debug_pc_tb) = to_unsigned(35, 14);
+        wait for 22 us;
+        assert debug_reg_H_tb = x"B5"
+            report "FAIL: After MOV H,E, H=" & to_hstring(unsigned(debug_reg_H_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: MOV H,E - H=0x" & to_hstring(unsigned(debug_reg_H_tb));
+
+        -- TEST 28: MOV E,H
+        report "TEST 28: Verifying MOV E,H";
+        wait until unsigned(debug_pc_tb) = to_unsigned(36, 14);
+        wait for 22 us;
+        assert debug_reg_E_tb = x"B5"
+            report "FAIL: After MOV E,H, E=" & to_hstring(unsigned(debug_reg_E_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: MOV E,H - E=0x" & to_hstring(unsigned(debug_reg_E_tb));
+
+        -- TEST 29: MOV A,D (circle complete via D instead of L)
+        report "TEST 29: Verifying MOV A,D (circle complete)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(37, 14);
+        wait for 22 us;
+        assert debug_reg_A_tb = x"B5"
+            report "FAIL: After MOV A,D, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: MOV A,D - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
+
+        -- TEST 30: MOV B,A
+        report "TEST 30: Verifying MOV B,A";
+        wait until unsigned(debug_pc_tb) = to_unsigned(38, 14);
+        wait for 22 us;
+        assert debug_reg_B_tb = x"B5"
+            report "FAIL: After MOV B,A, B=" & to_hstring(unsigned(debug_reg_B_tb)) & " (expected 0xB5)"
+            severity error;
+        report "PASS: MOV B,A - B=0x" & to_hstring(unsigned(debug_reg_B_tb));
+
+        -- TEST 31: Chain ADI #1 (A=0xB5 + 0x10 = 0xC5)
+        report "TEST 31: Verifying chain ADI #1 (ADI 0x10)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(40, 14);
+        wait for 24 us;
+        assert debug_reg_A_tb = x"C5"
+            report "FAIL: After ADI 0x10, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xC5)"
+            severity error;
+        report "PASS: Chain ADI #1 - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
+
+        -- TEST 32: Chain ADI #2 (A=0xC5 + 0x20 = 0xE5)
+        report "TEST 32: Verifying chain ADI #2 (ADI 0x20)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(42, 14);
+        wait for 24 us;
+        assert debug_reg_A_tb = x"E5"
+            report "FAIL: After ADI 0x20, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xE5)"
+            severity error;
+        report "PASS: Chain ADI #2 - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
+
+        -- TEST 33: Chain ADI #3 (A=0xE5 + 0x30 = 0x115 -> 0x15, carry=1)
+        report "TEST 33: Verifying chain ADI #3 (ADI 0x30)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(44, 14);
+        wait for 24 us;
+        assert debug_reg_A_tb = x"15"
+            report "FAIL: After ADI 0x30, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0x15)"
+            severity error;
+        assert debug_flags_tb(0) = '1'
+            report "FAIL: After ADI 0x30, carry=" & std_logic'image(debug_flags_tb(0)) & " (expected '1')"
+            severity error;
+        report "PASS: Chain ADI #3 - A=0x" & to_hstring(unsigned(debug_reg_A_tb)) & " carry=" & std_logic'image(debug_flags_tb(0));
+
+        -- TEST 34: Interleaved MOV B,A (B=0x15)
+        report "TEST 34: Verifying interleaved MOV B,A";
+        wait until unsigned(debug_pc_tb) = to_unsigned(45, 14);
+        wait for 22 us;
+        assert debug_reg_B_tb = x"15"
+            report "FAIL: After MOV B,A, B=" & to_hstring(unsigned(debug_reg_B_tb)) & " (expected 0x15)"
+            severity error;
+        report "PASS: Interleaved MOV B,A - B=0x" & to_hstring(unsigned(debug_reg_B_tb));
+
+        -- TEST 35: Interleaved ADI 0x05 (A=0x15 + 0x05 = 0x1A)
+        report "TEST 35: Verifying interleaved ADI 0x05";
+        wait until unsigned(debug_pc_tb) = to_unsigned(47, 14);
+        wait for 24 us;
+        assert debug_reg_A_tb = x"1A"
+            report "FAIL: After ADI 0x05, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0x1A)"
+            severity error;
+        report "PASS: Interleaved ADI 0x05 - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
+
+        -- TEST 36: Interleaved MOV C,A (C=0x1A)
+        report "TEST 36: Verifying interleaved MOV C,A";
+        wait until unsigned(debug_pc_tb) = to_unsigned(48, 14);
+        wait for 22 us;  -- MOV C,A is 5-state cycle = 11us, need margin for verification
+        assert debug_reg_C_tb = x"1A"
+            report "FAIL: After MOV C,A, C=" & to_hstring(unsigned(debug_reg_C_tb)) & " (expected 0x1A)"
+            severity error;
+        report "PASS: Interleaved MOV C,A - C=0x" & to_hstring(unsigned(debug_reg_C_tb));
+
+        -- Now CALL/RET tests begin
+        -- TEST 37: Verify CALL 0x0060 and execution in subroutine
+        report "TEST 37: Verifying CALL 0x0060 (entering subroutine)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(96, 14);  -- Subroutine entry at 0x60 = 96
+        wait for 5 us;
+        report "PASS: CALL 0x0060 - jumped to subroutine at PC=96";
+
+        -- TEST 38: Verify subroutine execution (LrI B,0x88)
+        report "TEST 38: Verifying subroutine execution (LrI B,0x88)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(98, 14);
+        wait for 5 us;
         assert debug_reg_B_tb = x"88"
             report "FAIL: After LrI B,0x88 in subroutine, B=" & to_hstring(unsigned(debug_reg_B_tb)) & " (expected 0x88)"
             severity error;
         report "PASS: Subroutine LrI B,0x88 - B=0x" & to_hstring(unsigned(debug_reg_B_tb));
 
-        -- TEST 23: Verify RET (return from subroutine to PC=28)
-        report "TEST 23: Verifying RET (return from subroutine)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(28, 14);
-        wait for 50 us;
-        report "PASS: RET - returned to PC=28 (after CALL)";
+        -- TEST 39: Verify RET (return from subroutine to PC=51)
+        report "TEST 39: Verifying RET (return from subroutine)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(51, 14);
+        wait for 5 us;
+        report "PASS: RET - returned to PC=51 (after CALL)";
 
-        -- TEST 24: Verify post-return execution (LrI A,0x99)
-        report "TEST 24: Verifying post-return execution (LrI A,0x99)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(30, 14);
-        wait for 50 us;
+        -- TEST 40: Verify post-return execution (LrI A,0x99)
+        report "TEST 40: Verifying post-return execution (LrI A,0x99)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(53, 14);
+        wait for 5 us;
         assert debug_reg_A_tb = x"99"
             report "FAIL: After RET and LrI A,0x99, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0x99)"
             severity error;
         report "PASS: Post-RET LrI A,0x99 - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
 
-        -- TEST 25: Verify nested CALL (level 1) - CALL 0x0050
-        report "TEST 25: Verifying nested CALL 0x0050 (level 1)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(80, 14);  -- First-level subroutine at 0x50 = 80
-        wait for 50 us;
-        report "PASS: Nested CALL level 1 - jumped to PC=80";
+        -- TEST 41: Verify nested CALL (level 1) - CALL 0x0080
+        report "TEST 41: Verifying nested CALL 0x0080 (level 1)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(128, 14);  -- First-level subroutine at 0x80 = 128
+        wait for 5 us;
+        report "PASS: Nested CALL level 1 - jumped to PC=128";
 
-        -- TEST 26: Verify level 1 execution (LrI D,0x11)
-        report "TEST 26: Verifying level 1 execution (LrI D,0x11)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(82, 14);
-        wait for 50 us;
+        -- TEST 42: Verify level 1 execution (LrI D,0x11)
+        report "TEST 42: Verifying level 1 execution (LrI D,0x11)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(130, 14);
+        wait for 5 us;
         assert debug_reg_D_tb = x"11"
             report "FAIL: After LrI D,0x11 in level 1, D=" & to_hstring(unsigned(debug_reg_D_tb)) & " (expected 0x11)"
             severity error;
         report "PASS: Nested level 1 LrI D,0x11 - D=0x" & to_hstring(unsigned(debug_reg_D_tb));
 
-        -- TEST 27: Verify nested CALL (level 2) - CALL 0x0060
-        report "TEST 27: Verifying nested CALL 0x0060 (level 2)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(96, 14);  -- Second-level subroutine at 0x60 = 96
-        wait for 50 us;
-        report "PASS: Nested CALL level 2 - jumped to PC=96";
+        -- TEST 43: Verify nested CALL (level 2) - CALL 0x0090
+        report "TEST 43: Verifying nested CALL 0x0090 (level 2)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(144, 14);  -- Second-level subroutine at 0x90 = 144
+        wait for 5 us;
+        report "PASS: Nested CALL level 2 - jumped to PC=144";
 
-        -- TEST 28: Verify level 2 execution (LrI H,0x33)
-        report "TEST 28: Verifying level 2 execution (LrI H,0x33)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(98, 14);
-        wait for 50 us;
+        -- TEST 44: Verify level 2 execution (LrI H,0x33)
+        report "TEST 44: Verifying level 2 execution (LrI H,0x33)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(146, 14);
+        wait for 5 us;
         assert debug_reg_H_tb = x"33"
             report "FAIL: After LrI H,0x33 in level 2, H=" & to_hstring(unsigned(debug_reg_H_tb)) & " (expected 0x33)"
             severity error;
         report "PASS: Nested level 2 LrI H,0x33 - H=0x" & to_hstring(unsigned(debug_reg_H_tb));
 
-        -- TEST 29: Verify level 2 execution (LrI L,0x44)
-        report "TEST 29: Verifying level 2 execution (LrI L,0x44)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(100, 14);
-        wait for 50 us;
+        -- TEST 45: Verify level 2 execution (LrI L,0x44)
+        report "TEST 45: Verifying level 2 execution (LrI L,0x44)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(148, 14);
+        wait for 5 us;
         assert debug_reg_L_tb = x"44"
             report "FAIL: After LrI L,0x44 in level 2, L=" & to_hstring(unsigned(debug_reg_L_tb)) & " (expected 0x44)"
             severity error;
         report "PASS: Nested level 2 LrI L,0x44 - L=0x" & to_hstring(unsigned(debug_reg_L_tb));
 
-        -- TEST 30: Verify RET from level 2 (back to level 1 at PC=85)
-        report "TEST 30: Verifying RET from level 2";
-        wait until unsigned(debug_pc_tb) = to_unsigned(85, 14);
-        wait for 50 us;
-        report "PASS: RET from level 2 - returned to PC=85";
+        -- TEST 46: Verify RET from level 2 (back to level 1 at PC=133)
+        report "TEST 46: Verifying RET from level 2";
+        wait until unsigned(debug_pc_tb) = to_unsigned(133, 14);
+        wait for 5 us;
+        report "PASS: RET from level 2 - returned to PC=133";
 
-        -- TEST 31: Verify level 1 post-nested execution (LrI E,0x22)
-        report "TEST 31: Verifying level 1 post-nested execution (LrI E,0x22)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(87, 14);
-        wait for 50 us;
+        -- TEST 47: Verify level 1 post-nested execution (LrI E,0x22)
+        report "TEST 47: Verifying level 1 post-nested execution (LrI E,0x22)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(135, 14);
+        wait for 5 us;
         assert debug_reg_E_tb = x"22"
             report "FAIL: After LrI E,0x22 in level 1, E=" & to_hstring(unsigned(debug_reg_E_tb)) & " (expected 0x22)"
             severity error;
         report "PASS: Nested level 1 post-RET LrI E,0x22 - E=0x" & to_hstring(unsigned(debug_reg_E_tb));
 
-        -- TEST 32: Verify RET from level 1 (back to main at PC=33)
-        report "TEST 32: Verifying RET from level 1";
-        wait until unsigned(debug_pc_tb) = to_unsigned(33, 14);
-        wait for 50 us;
-        report "PASS: RET from level 1 - returned to PC=33";
+        -- TEST 48: Verify RET from level 1 (back to main at PC=56)
+        report "TEST 48: Verifying RET from level 1";
+        wait until unsigned(debug_pc_tb) = to_unsigned(56, 14);
+        wait for 5 us;
+        report "PASS: RET from level 1 - returned to PC=56";
 
-        -- TEST 33: Verify post-nested execution (LrI A,0xAA)
-        report "TEST 33: Verifying post-nested execution (LrI A,0xAA)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(35, 14);
-        wait for 50 us;
+        -- TEST 49: Verify post-nested execution (LrI A,0xAA)
+        report "TEST 49: Verifying post-nested execution (LrI A,0xAA)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(58, 14);
+        wait for 5 us;
         assert debug_reg_A_tb = x"AA"
             report "FAIL: After nested CALLs and LrI A,0xAA, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xAA)"
             severity error;
         report "PASS: Post-nested-CALL LrI A,0xAA - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
 
-        -- TEST 34-40: Stack depth test (4-level nested calls)
-        report "TEST 34: Verifying stack depth CALL 0x0070 (level 1)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(112, 14);
-        wait for 50 us;
-        report "PASS: Stack depth test level 1 - jumped to PC=112";
+        -- TEST 50-56: Stack depth test (4-level nested calls)
+        report "TEST 50: Verifying stack depth CALL 0x00A0 (level 1)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(160, 14);
+        wait for 5 us;
+        report "PASS: Stack depth test level 1 - jumped to PC=160";
 
-        report "TEST 35: Verifying stack depth level 1 (LrI A,0x01)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(114, 14);
-        wait for 50 us;
+        report "TEST 51: Verifying stack depth level 1 (LrI A,0x01)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(162, 14);
+        wait for 5 us;
         assert debug_reg_A_tb = x"01"
             report "FAIL: Stack depth level 1, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0x01)"
             severity error;
         report "PASS: Stack depth L1 LrI A,0x01 - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
 
-        report "TEST 36: Verifying stack depth CALL 0x0080 (level 2)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(128, 14);
-        wait for 50 us;
-        report "PASS: Stack depth test level 2 - jumped to PC=128";
+        report "TEST 52: Verifying stack depth CALL 0x00B0 (level 2)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(176, 14);
+        wait for 5 us;
+        report "PASS: Stack depth test level 2 - jumped to PC=176";
 
-        report "TEST 37: Verifying stack depth level 2 (LrI B,0x02)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(130, 14);
-        wait for 50 us;
+        report "TEST 53: Verifying stack depth level 2 (LrI B,0x02)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(178, 14);
+        wait for 5 us;
         assert debug_reg_B_tb = x"02"
             report "FAIL: Stack depth level 2, B=" & to_hstring(unsigned(debug_reg_B_tb)) & " (expected 0x02)"
             severity error;
         report "PASS: Stack depth L2 LrI B,0x02 - B=0x" & to_hstring(unsigned(debug_reg_B_tb));
 
-        report "TEST 38: Verifying stack depth CALL 0x0090 (level 3)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(144, 14);
-        wait for 50 us;
-        report "PASS: Stack depth test level 3 - jumped to PC=144";
+        report "TEST 54: Verifying stack depth CALL 0x00C0 (level 3)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(192, 14);
+        wait for 5 us;
+        report "PASS: Stack depth test level 3 - jumped to PC=192";
 
-        report "TEST 39: Verifying stack depth level 3 (LrI C,0x03)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(146, 14);
-        wait for 50 us;
+        report "TEST 55: Verifying stack depth level 3 (LrI C,0x03)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(194, 14);
+        wait for 5 us;
         assert debug_reg_C_tb = x"03"
             report "FAIL: Stack depth level 3, C=" & to_hstring(unsigned(debug_reg_C_tb)) & " (expected 0x03)"
             severity error;
         report "PASS: Stack depth L3 LrI C,0x03 - C=0x" & to_hstring(unsigned(debug_reg_C_tb));
 
-        report "TEST 40: Verifying stack depth level 3 (LrI D,0x04)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(148, 14);
-        wait for 50 us;
+        report "TEST 56: Verifying stack depth level 3 (LrI D,0x04)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(196, 14);
+        wait for 5 us;
         assert debug_reg_D_tb = x"04"
             report "FAIL: Stack depth level 3, D=" & to_hstring(unsigned(debug_reg_D_tb)) & " (expected 0x04)"
             severity error;
         report "PASS: Stack depth L3 LrI D,0x04 - D=0x" & to_hstring(unsigned(debug_reg_D_tb));
 
         -- Verify RETs unwind the stack correctly
-        report "TEST 41: Verifying RET from level 3";
-        wait until unsigned(debug_pc_tb) = to_unsigned(133, 14);
-        wait for 50 us;
-        report "PASS: RET from level 3 - returned to PC=133";
+        report "TEST 57: Verifying RET from level 3";
+        wait until unsigned(debug_pc_tb) = to_unsigned(181, 14);
+        wait for 5 us;
+        report "PASS: RET from level 3 - returned to PC=181";
 
-        report "TEST 42: Verifying stack depth level 2 post-RET (LrI B,0xF2)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(135, 14);
-        wait for 50 us;
+        report "TEST 58: Verifying stack depth level 2 post-RET (LrI B,0xF2)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(183, 14);
+        wait for 5 us;
         assert debug_reg_B_tb = x"F2"
             report "FAIL: Stack depth L2 post-RET, B=" & to_hstring(unsigned(debug_reg_B_tb)) & " (expected 0xF2)"
             severity error;
         report "PASS: Stack depth L2 post-RET LrI B,0xF2 - B=0x" & to_hstring(unsigned(debug_reg_B_tb));
 
-        report "TEST 43: Verifying RET from level 2";
-        wait until unsigned(debug_pc_tb) = to_unsigned(117, 14);
-        wait for 50 us;
-        report "PASS: RET from level 2 - returned to PC=117";
+        report "TEST 59: Verifying RET from level 2";
+        wait until unsigned(debug_pc_tb) = to_unsigned(165, 14);
+        wait for 5 us;
+        report "PASS: RET from level 2 - returned to PC=165";
 
-        report "TEST 44: Verifying stack depth level 1 post-RET (LrI A,0xF1)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(119, 14);
-        wait for 50 us;
+        report "TEST 60: Verifying stack depth level 1 post-RET (LrI A,0xF1)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(167, 14);
+        wait for 5 us;
         assert debug_reg_A_tb = x"F1"
             report "FAIL: Stack depth L1 post-RET, A=" & to_hstring(unsigned(debug_reg_A_tb)) & " (expected 0xF1)"
             severity error;
         report "PASS: Stack depth L1 post-RET LrI A,0xF1 - A=0x" & to_hstring(unsigned(debug_reg_A_tb));
 
-        report "TEST 45: Verifying RET from level 1";
-        wait until unsigned(debug_pc_tb) = to_unsigned(38, 14);
-        wait for 50 us;
-        report "PASS: RET from level 1 - returned to PC=38";
+        report "TEST 61: Verifying RET from level 1";
+        wait until unsigned(debug_pc_tb) = to_unsigned(61, 14);
+        wait for 5 us;
+        report "PASS: RET from level 1 - returned to PC=61";
 
-        report "TEST 46: Verifying post-stack-depth execution (LrI C,0xCC)";
-        wait until unsigned(debug_pc_tb) = to_unsigned(40, 14);
-        wait for 50 us;
+        report "TEST 62: Verifying post-stack-depth execution (LrI C,0xCC)";
+        wait until unsigned(debug_pc_tb) = to_unsigned(63, 14);
+        wait for 5 us;
         assert debug_reg_C_tb = x"CC"
             report "FAIL: Post-stack-depth test, C=" & to_hstring(unsigned(debug_reg_C_tb)) & " (expected 0xCC)"
             severity error;
         report "PASS: Post-stack-depth LrI C,0xCC - C=0x" & to_hstring(unsigned(debug_reg_C_tb));
 
-        -- TEST 47: Verify HLT instruction
-        report "TEST 47: Verifying HLT instruction";
-        wait for 50 us;  -- Allow HLT to execute
+        -- TEST 63: HLT instruction at address 63
+        report "TEST 63: Verifying final HLT instruction";
+        wait for 15 us;  -- Need time for HLT to execute (3-state cycle = ~6.6us) plus margin
         assert S2_tb = '1' and S1_tb = '0' and S0_tb = '1'
-            report "FAIL: After HLT, state should be STOPPED (S2=1,S1=0,S0=1) but is S2=" &
-                   std_logic'image(S2_tb) & " S1=" & std_logic'image(S1_tb) & " S0=" & std_logic'image(S0_tb)
+            report "FAIL: After HLT, state should be STOPPED (S2=1,S1=0,S0=1)"
             severity error;
-        report "PASS: HLT instruction - CPU in STOPPED state";
+        report "PASS: Final HLT - CPU in STOPPED state";
 
         report "======================================================================";
-        report "=== ALL 47 INSTRUCTION TESTS PASSED ===";
+        report "=== ALL 63 INSTRUCTION TESTS PASSED ===";
         report "======================================================================";
         report "Summary of tested instructions:";
         report "  - LrI (Load register Immediate): 9 tests PASS";
-        report "  - MOV (register-to-register): 1 test PASS";
+        report "  - MOV (register-to-register): 11 tests PASS";
         report "  - MOV with memory (M register): 2 tests PASS";
         report "  - ADD (register operand): 1 test PASS";
-        report "  - ADI (immediate operand): 1 test PASS";
+        report "  - ADI (immediate operand): 7 tests PASS";
         report "  - ADD M (memory operand): 1 test PASS";
         report "  - JMP (unconditional jump): 1 test PASS";
         report "  - CALL/RET (simple): 4 tests PASS";

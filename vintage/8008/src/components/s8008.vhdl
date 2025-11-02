@@ -392,7 +392,10 @@ begin
                         -- In real 8008, PLA decoder directly drives timing state machine
                         if microcode_state = FETCH then
                             -- Instruction just fetched - use combinatorial decode
-                            if instruction_needs_execute = '1' then
+                            if is_halt_op = '1' then
+                                timing_state <= STOPPED;
+                                report "T3 -> STOPPED (HLT instruction)";
+                            elsif instruction_needs_execute = '1' then
                                 timing_state <= T4;
                                 report "T3 -> T4 (5-state cycle - instruction needs EXECUTE)";
                             else
@@ -1022,11 +1025,12 @@ begin
 
                         -- Check if this is a CALL or a JMP
                         if is_call_op = '1' then
-                            -- CALL instruction - push current PC to stack, then jump
-                            -- Push PC to stack (PC currently points to next instruction after CALL)
+                            -- CALL instruction - push current PC+1 to stack (return address), then jump
+                            -- PC currently points to the high byte of CALL address (last byte of 3-byte CALL instruction)
+                            -- Return address should be PC+1 (next instruction after CALL)
                             stack_pointer <= stack_pointer + 1;
-                            address_stack(to_integer(stack_pointer + 1)) <= program_counter;
-                            report "CALL: Pushing PC=0x" & to_hstring(program_counter) &
+                            address_stack(to_integer(stack_pointer + 1)) <= program_counter + 1;
+                            report "CALL: Pushing PC+1=0x" & to_hstring(program_counter + 1) &
                                    " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
                             -- Always jump for CALL (unconditional)
                             perform_jump <= '1';
@@ -1101,9 +1105,10 @@ begin
             end if;
 
             -- Check if we should perform a jump (set in ADDR_HIGH or RET state)
-            -- Execute at T3->T1 transition (when T3 ends with clock_phase='1', about to enter T1)
-            -- This ensures PC is loaded before T1 outputs the address on the bus
-            if perform_jump = '1' and timing_state = T3 and clock_phase = '1' then
+            -- Execute at T1 with clock_phase='1' (after ADDR_HIGH completes and sets perform_jump)
+            -- We're at T1 but clock_phase='1' means we're about to transition to the next phase
+            -- The address will not be latched yet, so updating PC here takes effect for T1 address output
+            if perform_jump = '1' and timing_state = T1 and clock_phase = '1' then
                 -- Load PC with jump target address (14-bit)
                 program_counter <= unsigned(jump_addr_high) & unsigned(jump_addr_low);
                 report "Jump executed: PC <= 0x" & to_hstring(unsigned(jump_addr_high) & unsigned(jump_addr_low));
@@ -1121,10 +1126,11 @@ begin
                 end if;
 
                 -- PC increment logic:
-                -- - FETCH state at T3 end: always increment PC after fetching instruction (unless jumping)
+                -- - FETCH state at T3 end: always increment PC after fetching instruction
                 -- - IMMEDIATE state at T3 end: always increment PC after fetching immediate byte
-                -- - Other states at T5 end: use pc_should_increment signal for 5-state cycles
-                if timing_state /= STOPPED and perform_jump = '0' then
+                -- - Other states at T3/T5 end: use pc_should_increment signal
+                -- Note: Jump address fetch cycles (ADDR_LOW/ADDR_HIGH) control PC increment via pc_should_increment
+                if timing_state /= STOPPED then
                     -- 3-state cycles (T1-T2-T3): increment at end of T3
                     if timing_state = T3 and skip_exec_states = '1' then
                         -- Always increment for FETCH (instruction fetch) and IMMEDIATE (data fetch)
