@@ -100,6 +100,12 @@ architecture rtl of s8008 is
     end component;
 
     --===========================================
+    -- Debug Configuration
+    --===========================================
+    -- Set to false to reduce simulation noise (hides clock toggle messages)
+    constant DEBUG_VERBOSE : boolean := false;
+
+    --===========================================
     -- Internal Signals
     --===========================================
 
@@ -299,7 +305,9 @@ begin
             clock_phase <= '1';  -- Reset to '1' so SYNC starts at '0'
         elsif rising_edge(phi1) then
             clock_phase <= not clock_phase;
-            report "Clock phase toggled to " & std_logic'image(not clock_phase) & " at " & time'image(now);
+            if DEBUG_VERBOSE then
+                report "Clock phase toggled to " & std_logic'image(not clock_phase) & " at " & time'image(now);
+            end if;
         end if;
     end process;
 
