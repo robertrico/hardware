@@ -242,6 +242,11 @@ architecture rtl of s8008 is
     signal call_condition_sense : std_logic;                -- '0'=CFc (false), '1'=CTc (true)
     signal call_unconditional : std_logic;                  -- '1' for CALL (unconditional), '0' for conditional
 
+    -- Conditional RET signals
+    signal ret_condition : std_logic_vector(1 downto 0);   -- Condition code for RET (00=carry, 01=zero, 10=sign, 11=parity)
+    signal ret_condition_sense : std_logic;                 -- '0'=RFc (false), '1'=RTc (true)
+    signal ret_unconditional : std_logic;                   -- '1' for RET (unconditional), '0' for conditional
+
     -- Variable-length cycle control
     -- Per Intel 8008 datasheet: "Many of the instructions for the 8008 are multi-cycle
     -- and do not require the two execution states, T4 and T5. As a result, these states
@@ -731,6 +736,9 @@ begin
         call_unconditional <= '0';
         call_condition <= "00";
         call_condition_sense <= '0';
+        ret_unconditional <= '0';
+        ret_condition <= "00";
+        ret_condition_sense <= '0';
 
         -- Decode opcode
         -- Intel 8008 instruction format:
@@ -767,8 +775,22 @@ begin
                     is_immediate <= '1';
                     alu_command <= opcode(5 downto 3);
                     dst_reg <= "000";  -- Accumulator is destination
+                elsif opcode(2 downto 0) = "111" then
+                    -- 00 XXX 111 = RET (unconditional return)
+                    is_ret_op <= '1';
+                    ret_unconditional <= '1';
+                    report "Decoded as RET (unconditional)";
+                elsif opcode(2 downto 0) = "011" then
+                    -- 00 CCC 011 = Conditional RET
+                    -- Bits 5:3=CCC: condition code with sense bit
+                    -- Same encoding as conditional jumps: bit[5]=sense, bits[4:3]=condition
+                    is_ret_op <= '1';
+                    ret_unconditional <= '0';
+                    ret_condition <= opcode(4 downto 3);      -- C4C3: 00=carry, 01=zero, 10=sign, 11=parity
+                    ret_condition_sense <= opcode(5);          -- 0=RFc (false), 1=RTc (true)
+                    report "Decoded as conditional RET (CCC=" &
+                           std_logic'image(opcode(5)) & std_logic'image(opcode(4)) & std_logic'image(opcode(3)) & ")";
                 end if;
-                -- NOTE: Conditional Returns (RTC, RTZ, etc.) will be implemented here later
                 -- NOTE: Inc/Dec operations will be implemented here later
 
             when "01" =>
@@ -1009,15 +1031,45 @@ begin
                             report "CALL instruction - fetching address low byte";
 
                         elsif is_ret_op = '1' then
-                            -- RET instruction - pop PC from stack
-                            -- Load jump address from stack (convert unsigned to std_logic_vector)
-                            jump_addr_low <= std_logic_vector(address_stack(to_integer(stack_pointer))(7 downto 0));
-                            jump_addr_high <= std_logic_vector(address_stack(to_integer(stack_pointer))(13 downto 8));
-                            stack_pointer <= stack_pointer - 1;
-                            perform_jump <= '1';  -- Use jump mechanism to load PC
-                            report "RET: Popping PC from stack[" & integer'image(to_integer(stack_pointer)) &
-                                   "] = 0x" & to_hstring(address_stack(to_integer(stack_pointer)));
-                            -- Return to fetch next instruction at popped address
+                            -- RET instruction (unconditional or conditional)
+                            -- Check if this is conditional or unconditional RET
+                            if ret_unconditional = '1' then
+                                -- Unconditional RET - always pop and return
+                                jump_addr_low <= std_logic_vector(address_stack(to_integer(stack_pointer))(7 downto 0));
+                                jump_addr_high <= std_logic_vector(address_stack(to_integer(stack_pointer))(13 downto 8));
+                                stack_pointer <= stack_pointer - 1;
+                                perform_jump <= '1';  -- Use jump mechanism to load PC
+                                report "RET (unconditional): Popping PC from stack[" & integer'image(to_integer(stack_pointer)) &
+                                       "] = 0x" & to_hstring(address_stack(to_integer(stack_pointer)));
+                            else
+                                -- Conditional RET - evaluate condition
+                                -- Condition codes (C4C3): 00=carry, 01=zero, 10=sign, 11=parity
+                                case ret_condition is
+                                    when "00" => condition_met := flag_carry;   -- Carry flag
+                                    when "01" => condition_met := flag_zero;    -- Zero flag
+                                    when "10" => condition_met := flag_sign;    -- Sign flag
+                                    when "11" => condition_met := flag_parity;  -- Parity flag
+                                    when others => condition_met := '0';
+                                end case;
+
+                                -- For RTc (sense='1'): return if condition is true
+                                -- For RFc (sense='0'): return if condition is false
+                                if (ret_condition_sense = '1' and condition_met = '1') or
+                                   (ret_condition_sense = '0' and condition_met = '0') then
+                                    -- Condition met - pop and return
+                                    jump_addr_low <= std_logic_vector(address_stack(to_integer(stack_pointer))(7 downto 0));
+                                    jump_addr_high <= std_logic_vector(address_stack(to_integer(stack_pointer))(13 downto 8));
+                                    stack_pointer <= stack_pointer - 1;
+                                    perform_jump <= '1';
+                                    report "Conditional RET condition MET - popping PC from stack[" & integer'image(to_integer(stack_pointer)) &
+                                           "] = 0x" & to_hstring(address_stack(to_integer(stack_pointer)));
+                                else
+                                    -- Condition not met - do nothing, continue execution
+                                    perform_jump <= '0';
+                                    report "Conditional RET condition NOT MET - continuing execution";
+                                end if;
+                            end if;
+                            -- Return to fetch next instruction (at popped address if jumped, or next sequential if not)
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (next instruction fetch)
                             skip_exec_states <= '1';  -- 3-state cycle
