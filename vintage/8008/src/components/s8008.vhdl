@@ -255,6 +255,14 @@ architecture rtl of s8008 is
     signal ret_condition_sense : std_logic;                 -- '0'=RFc (false), '1'=RTc (true)
     signal ret_unconditional : std_logic;                   -- '1' for RET (unconditional), '0' for conditional
 
+    -- Inc/Dec operation signals
+    signal is_inc_op : std_logic := '0';  -- '1' when INR instruction decoded
+    signal is_dec_op : std_logic := '0';  -- '1' when DCR instruction decoded
+
+    -- RST instruction signals
+    signal is_rst_op : std_logic := '0';  -- '1' when RST instruction decoded
+    signal rst_vector : std_logic_vector(2 downto 0);  -- AAA bits for RST address (0-7)
+
     -- I/O operation signals
     signal is_inp_op : std_logic := '0';                    -- '1' when INP instruction decoded
     signal is_out_op : std_logic := '0';                    -- '1' when OUT instruction decoded
@@ -752,6 +760,10 @@ begin
         ret_unconditional <= '0';
         ret_condition <= "00";
         ret_condition_sense <= '0';
+        is_inc_op <= '0';
+        is_dec_op <= '0';
+        is_rst_op <= '0';
+        rst_vector <= "000";
         is_inp_op <= '0';
         is_out_op <= '0';
         io_port_addr <= "00000";
@@ -791,6 +803,20 @@ begin
                     is_immediate <= '1';
                     alu_command <= opcode(5 downto 3);
                     dst_reg <= "000";  -- Accumulator is destination
+                elsif opcode(2 downto 0) = "000" and opcode(5 downto 3) /= "000" then
+                    -- 00 DDD 000 = INR (Increment Register)
+                    -- DDD ≠ 000 (no INR A in 8008)
+                    is_inc_op <= '1';
+                    dst_reg <= opcode(5 downto 3);
+                    report "Decoded as INR (register=" &
+                           integer'image(to_integer(unsigned(opcode(5 downto 3)))) & ")";
+                elsif opcode(2 downto 0) = "001" and opcode(5 downto 3) /= "000" then
+                    -- 00 DDD 001 = DCR (Decrement Register)
+                    -- DDD ≠ 000 (no DCR A in 8008)
+                    is_dec_op <= '1';
+                    dst_reg <= opcode(5 downto 3);
+                    report "Decoded as DCR (register=" &
+                           integer'image(to_integer(unsigned(opcode(5 downto 3)))) & ")";
                 elsif opcode(2 downto 0) = "111" then
                     -- 00 XXX 111 = RET (unconditional return)
                     is_ret_op <= '1';
@@ -806,8 +832,14 @@ begin
                     ret_condition_sense <= opcode(5);          -- 0=RFc (false), 1=RTc (true)
                     report "Decoded as conditional RET (CCC=" &
                            std_logic'image(opcode(5)) & std_logic'image(opcode(4)) & std_logic'image(opcode(3)) & ")";
+                elsif opcode(2 downto 0) = "101" then
+                    -- 00 AAA 101 = RST (Restart)
+                    -- Bits 5:3=AAA: restart vector (0-7)
+                    -- Target address = AAA * 8 (AAA shifted left 3 bits)
+                    is_rst_op <= '1';
+                    rst_vector <= opcode(5 downto 3);
+                    report "Decoded as RST " & integer'image(to_integer(unsigned(opcode(5 downto 3))));
                 end if;
-                -- NOTE: Inc/Dec operations will be implemented here later
 
             when "01" =>
                 -- Class 01: Jump, Call, and Return instructions
@@ -910,6 +942,8 @@ begin
     -- This is cycle-by-cycle control, NOT behavioral execution
     process(phi1, reset_n)
         variable condition_met : std_logic;  -- For evaluating jump conditions
+        variable reg_value : unsigned(7 downto 0);  -- For INR/DCR operations
+        variable inc_dec_result : unsigned(7 downto 0);  -- For INR/DCR result
     begin
         if reset_n = '0' then
             microcode_state <= FETCH;
@@ -984,6 +1018,39 @@ begin
                                    " A=0x" & to_hstring(unsigned(registers(REG_A))) &
                                    " -> 0x" & to_hstring(unsigned(rotate_result)) &
                                    " carry=" & std_logic'image(rotate_carry);
+
+                        elsif is_inc_op = '1' or is_dec_op = '1' then
+                            -- Increment/Decrement Register
+                            -- Single-byte instruction, executes in 3-state cycle
+                            -- Affects Zero, Sign, Parity flags (NOT Carry!)
+                            reg_value := unsigned(registers(to_integer(unsigned(dst_reg))));
+
+                            if is_inc_op = '1' then
+                                inc_dec_result := reg_value + 1;
+                                report "INR: R" & integer'image(to_integer(unsigned(dst_reg))) &
+                                       " <- 0x" & to_hstring(inc_dec_result) & " (was 0x" & to_hstring(reg_value) & ")";
+                            else
+                                inc_dec_result := reg_value - 1;
+                                report "DCR: R" & integer'image(to_integer(unsigned(dst_reg))) &
+                                       " <- 0x" & to_hstring(inc_dec_result) & " (was 0x" & to_hstring(reg_value) & ")";
+                            end if;
+
+                            -- Write result back to register
+                            reg_write_enable <= '1';
+                            reg_write_addr <= to_integer(unsigned(dst_reg));
+                            reg_write_data <= std_logic_vector(inc_dec_result);
+
+                            -- Update flags (NOT including Carry!)
+                            flag_zero <= '1' when inc_dec_result = x"00" else '0';
+                            flag_sign <= inc_dec_result(7);  -- MSB
+                            flag_parity <= not (inc_dec_result(7) xor inc_dec_result(6) xor inc_dec_result(5) xor inc_dec_result(4) xor
+                                                inc_dec_result(3) xor inc_dec_result(2) xor inc_dec_result(1) xor inc_dec_result(0));
+                            -- Carry flag is NOT modified by INR/DCR
+
+                            -- Continue to next instruction
+                            microcode_state <= FETCH;
+                            cycle_type_reg <= "00";  -- PCI
+                            skip_exec_states <= '1';  -- 3-state cycle
 
                         elsif is_alu_op = '1' then
                             if is_immediate = '1' then
@@ -1103,6 +1170,32 @@ begin
                             -- Return to fetch next instruction (at popped address if jumped, or next sequential if not)
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (next instruction fetch)
+                            skip_exec_states <= '1';  -- 3-state cycle
+
+                        elsif is_rst_op = '1' then
+                            -- RST instruction - push PC and jump to restart vector
+                            -- Single-byte instruction, executes in 3-state cycle
+                            -- Target address = rst_vector * 8 (AAA shifted left 3 bits)
+
+                            -- Push PC+1 onto stack (address of next instruction)
+                            stack_pointer <= stack_pointer + 1;
+                            address_stack(to_integer(stack_pointer + 1)) <= program_counter + 1;
+
+                            -- Calculate target address: rst_vector * 8
+                            -- rst_vector is 3 bits (0-7), multiply by 8 = shift left 3 bits
+                            jump_addr_low <= std_logic_vector(to_unsigned(
+                                to_integer(unsigned(rst_vector)) * 8, 8));
+                            jump_addr_high <= "000000";  -- Upper 6 bits always 0 for RST
+                            perform_jump <= '1';
+
+                            report "RST " & integer'image(to_integer(unsigned(rst_vector))) &
+                                   ": Pushing PC+1=0x" & to_hstring(program_counter + 1) &
+                                   " to stack[" & integer'image(to_integer(stack_pointer + 1)) &
+                                   "], jumping to 0x" &
+                                   to_hstring(to_unsigned(to_integer(unsigned(rst_vector)) * 8, 14));
+
+                            microcode_state <= FETCH;
+                            cycle_type_reg <= "00";  -- PCI
                             skip_exec_states <= '1';  -- 3-state cycle
 
                         elsif is_inp_op = '1' then

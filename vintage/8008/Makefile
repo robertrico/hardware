@@ -39,6 +39,8 @@ STOP_TIME_s8008_alu_tb = 1400us
 STOP_TIME_s8008_io_tb = 600us
 STOP_TIME_s8008_rotate_tb = 400us
 STOP_TIME_s8008_stack_tb = 200us
+STOP_TIME_s8008_inc_dec_tb = 1000us
+STOP_TIME_s8008_rst_tb = 800us
 
 # Get stop time for active test, or use default
 SIM_STOP_TIME ?= $(or $(STOP_TIME_$(ACTIVE_TB_ENTITY)),1ms)
@@ -84,7 +86,7 @@ test-all: test test-units
 	@echo "========================================"
 
 # Quick shortcuts for specific unit tests
-.PHONY: test-conditional test-conditional-call test-conditional-ret test-call-ret test-alu test-io test-rotate test-stack
+.PHONY: test-conditional test-conditional-call test-conditional-ret test-call-ret test-alu test-io test-rotate test-stack test-inc-dec test-rst
 test-conditional:
 	@$(MAKE) sim TEST=s8008_conditional_tb
 
@@ -108,3 +110,9 @@ test-rotate:
 
 test-stack:
 	@$(MAKE) sim TEST=s8008_stack_tb
+
+test-inc-dec:
+	@$(MAKE) sim TEST=s8008_inc_dec_tb
+
+test-rst:
+	@$(MAKE) sim TEST=s8008_rst_tb
