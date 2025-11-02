@@ -70,7 +70,8 @@ SYNTH_REPORT = $(REPORTS_DIR)/synthesis.txt
 PNR_REPORT = $(REPORTS_DIR)/pnr.txt
 TIMING_REPORT = $(REPORTS_DIR)/timing.txt
 UTILIZATION_REPORT = $(REPORTS_DIR)/utilization.txt
-SIM_REPORT = $(REPORTS_DIR)/simulation.txt
+# Simulation report uses the active testbench name (set after ACTIVE_TB_ENTITY is determined)
+SIM_REPORT = $(REPORTS_DIR)/sim_$(ACTIVE_TB_ENTITY).txt
 
 #==========================================
 # Simulation parameters
@@ -94,7 +95,7 @@ endif
 # Default fallback if not specified
 SIM_STOP_TIME ?= 1ms
 SIM_OUTPUT = $(SIM_DIR)/output.txt
-WAVE_FILE = $(SIM_DIR)/$(ACTIVE_TB_ENTITY).ghw
+WAVE_FILE = $(REPORTS_DIR)/$(ACTIVE_TB_ENTITY).ghw
 GTKW_FILE = $(SIM_DIR)/$(ACTIVE_TB_ENTITY).gtkw
 GHDL_FLAGS ?= --std=08
 
@@ -257,11 +258,15 @@ list-tests:
 		echo "  - $(TB_ENTITY) (default)"; \
 	fi
 
-# View simulation report
+# View simulation report (for last run test, or specify TEST=name)
 .PHONY: sim-report
 sim-report:
 	@if [ ! -f "$(SIM_REPORT)" ]; then \
-		echo "No simulation report found. Run 'make sim' first."; \
+		echo "No simulation report found for $(ACTIVE_TB_ENTITY)."; \
+		echo "Available reports:"; \
+		ls -1 $(REPORTS_DIR)/sim_*.txt 2>/dev/null | sed 's/.*sim_/  - /' | sed 's/.txt//' || echo "  (none)"; \
+		echo ""; \
+		echo "Run 'make sim' or 'make sim TEST=<name>' first."; \
 		exit 1; \
 	fi
 	@cat $(SIM_REPORT)
@@ -288,7 +293,10 @@ reports:
 		echo ""; \
 	fi
 	@echo "Full reports available at:"
-	@echo "  Simulation:   $(SIM_REPORT)"
+	@echo "  Simulation Reports:"
+	@ls -1 $(REPORTS_DIR)/sim_*.txt 2>/dev/null | sed 's|$(REPORTS_DIR)/|    |' || echo "    (no simulation reports)"
+	@echo "  Waveform Files:"
+	@ls -1 $(REPORTS_DIR)/*.ghw 2>/dev/null | sed 's|$(REPORTS_DIR)/|    |' || echo "    (no waveform files)"
 	@echo "  Synthesis:    $(SYNTH_REPORT)"
 	@echo "  PnR:          $(PNR_REPORT)"
 	@echo "  Timing:       $(TIMING_REPORT)"
@@ -303,6 +311,7 @@ clean:
 	@rm -f $(TB_ENTITY) $(ACTIVE_TB_ENTITY)
 	@rm -f *.cf
 	@rm -f $(SIM_DIR)/*.vcd $(SIM_DIR)/*.ghw
+	@rm -f $(REPORTS_DIR)/*.ghw
 
 # Clean everything including FPGA build
 .PHONY: clean-all distclean

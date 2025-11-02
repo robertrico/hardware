@@ -995,10 +995,13 @@ begin
                         -- Execute the instruction (5-state cycle)
                         report "EXECUTE state handler running at end of 5-state cycle";
                         if is_alu_op = '1' then
-                            -- Write ALU result to accumulator
-                            reg_write_enable <= '1';
-                            reg_write_addr <= REG_A;
-                            reg_write_data <= alu_result(7 downto 0);
+                            -- Write ALU result to accumulator (except for CMP which only sets flags)
+                            -- CMP/CPI have alu_command = "111" and should NOT modify accumulator
+                            if alu_command /= "111" then
+                                reg_write_enable <= '1';
+                                reg_write_addr <= REG_A;
+                                reg_write_data <= alu_result(7 downto 0);
+                            end if;
                             report "ALU operation: 0x" & to_hstring(unsigned(alu_result(7 downto 0)));
                         elsif is_load_op = '1' then
                             -- MOV: write source register to destination register

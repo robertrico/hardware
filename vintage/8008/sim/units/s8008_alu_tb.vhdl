@@ -228,28 +228,23 @@ architecture behavior of s8008_alu_tb is
         -- ========================================
         -- TEST 15: CMP (register) - 10 111 SSS
         -- ========================================
-        -- NOTE: CMP has a bug - it modifies A when it shouldn't
-        -- Skipping CMP test until bug is fixed
-        -- 61 => x"06", -- LrI A,0x50
-        -- 62 => x"50",
-        -- 63 => x"0E", -- LrI B,0x30
-        -- 64 => x"30",
-        -- 65 => x"B8", -- CMP B (should compare 0x50 - 0x30, A should stay 0x50, but bug writes result)
+        61 => x"06", -- LrI A,0x50
+        62 => x"50",
+        63 => x"0E", -- LrI B,0x30
+        64 => x"30",
+        65 => x"B8", -- CMP B (compare 0x50 - 0x30 = 0x20, A should stay 0x50)
 
         -- ========================================
         -- TEST 16: CPI (immediate) - 11 111 100
         -- ========================================
-        -- NOTE: CPI has same bug as CMP - it modifies A when it shouldn't
-        -- Skipping CPI test until bug is fixed
-        -- 67 => x"06", -- LrI A,0x42
-        -- 68 => x"42",
-        -- 69 => x"FC", -- CPI 0x42 (should compare equal, A should stay 0x42, but bug writes result)
+        66 => x"FC", -- CPI 0x50 (compare 0x50 - 0x50 = 0, A should stay 0x50)
+        67 => x"50",
 
         -- Final verification values
-        61 => x"06", -- LrI A,0x55  (last successful ALU result from ORI)
-        62 => x"55",
+        68 => x"06", -- LrI A,0x50  (verify A still has 0x50 after CMP/CPI)
+        69 => x"50",
 
-        63 => x"00", -- HLT - all non-CMP tests passed
+        70 => x"00", -- HLT - all 16 ALU tests passed
 
         others => x"00"
     );
@@ -369,13 +364,13 @@ begin
             severity error;
 
         -- Verify ALU operation results
-        -- Final A value should be 0x55 from last LrI instruction
-        assert debug_reg_A_tb = x"55"
-            report "FAIL: A should be 0x55 (final value from ORI test)"
+        -- Final A value should be 0x50 from last LrI instruction (after CMP/CPI tests)
+        assert debug_reg_A_tb = x"50"
+            report "FAIL: A should be 0x50 (verifies CMP/CPI didn't modify A)"
             severity error;
 
         report "========================================";
-        report "=== ALU Tests PASSED (14/16) ===";
+        report "=== ALU Tests PASSED (16/16) ===";
         report "  - ADD (register): PASS";
         report "  - ADI (immediate): PASS";
         report "  - ADC (with carry): PASS";
@@ -390,12 +385,8 @@ begin
         report "  - XRI (immediate): PASS";
         report "  - OR (register): PASS";
         report "  - ORI (immediate): PASS";
-        report "  - CMP (register): SKIPPED (bug - modifies A)";
-        report "  - CPI (immediate): SKIPPED (bug - modifies A)";
-        report "========================================";
-        report "NOTE: CMP/CPI have a bug where they modify the";
-        report "      accumulator when they should only set flags.";
-        report "      This needs to be fixed in s8008.vhdl.";
+        report "  - CMP (register): PASS";
+        report "  - CPI (immediate): PASS";
         report "========================================";
 
         wait;
