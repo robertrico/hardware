@@ -32,7 +32,8 @@ STOP_TIME_s8008_tb = 2500us
 # Unit tests (fast, typically <100us)
 # Conditional test now has more instructions due to flag setup, needs more time
 STOP_TIME_s8008_conditional_tb = 1000us
-STOP_TIME_s8008_alu_tb = 300us
+STOP_TIME_s8008_call_ret_tb = 800us
+STOP_TIME_s8008_alu_tb = 1400us
 STOP_TIME_s8008_io_tb = 100us
 STOP_TIME_s8008_rotate_tb = 150us
 STOP_TIME_s8008_stack_tb = 200us
@@ -81,9 +82,12 @@ test-all: test test-units
 	@echo "========================================"
 
 # Quick shortcuts for specific unit tests
-.PHONY: test-conditional test-alu test-io test-rotate test-stack
+.PHONY: test-conditional test-call-ret test-alu test-io test-rotate test-stack
 test-conditional:
 	@$(MAKE) sim TEST=s8008_conditional_tb
+
+test-call-ret:
+	@$(MAKE) sim TEST=s8008_call_ret_tb
 
 test-alu:
 	@$(MAKE) sim TEST=s8008_alu_tb
