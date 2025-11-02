@@ -237,6 +237,11 @@ architecture rtl of s8008 is
     signal jump_unconditional : std_logic;                  -- '1' for JMP (unconditional), '0' for conditional
     signal perform_jump : std_logic := '0';                 -- '1' when jump condition is met
 
+    -- Conditional CALL signals
+    signal call_condition : std_logic_vector(1 downto 0);  -- Condition code for CALL (00=carry, 01=zero, 10=sign, 11=parity)
+    signal call_condition_sense : std_logic;                -- '0'=CFc (false), '1'=CTc (true)
+    signal call_unconditional : std_logic;                  -- '1' for CALL (unconditional), '0' for conditional
+
     -- Variable-length cycle control
     -- Per Intel 8008 datasheet: "Many of the instructions for the 8008 are multi-cycle
     -- and do not require the two execution states, T4 and T5. As a result, these states
@@ -720,6 +725,12 @@ begin
         alu_command <= "000";
         src_is_memory <= '0';
         dst_is_memory <= '0';
+        jump_unconditional <= '0';
+        jump_condition <= "00";
+        jump_condition_sense <= '0';
+        call_unconditional <= '0';
+        call_condition <= "00";
+        call_condition_sense <= '0';
 
         -- Decode opcode
         -- Intel 8008 instruction format:
@@ -780,8 +791,20 @@ begin
                     jump_condition <= opcode(4 downto 3);      -- C4C3: 00=carry, 01=zero, 10=sign, 11=parity
                     jump_condition_sense <= opcode(5);          -- 0=JFc (false), 1=JTc (true)
                 elsif opcode(2 downto 0) = "110" then
-                    -- 01 XXX 110 = CALL
+                    -- 01 XXX 110 = CALL (unconditional)
                     is_call_op <= '1';
+                    call_unconditional <= '1';
+                    report "Decoded as CALL (unconditional)";
+                elsif opcode(2 downto 0) = "010" then
+                    -- 01 CCC 010 = Conditional CALL
+                    -- bit[5:3]=CCC: condition code with sense bit
+                    -- Same encoding as conditional jumps: bit[5]=sense, bits[4:3]=condition
+                    is_call_op <= '1';
+                    call_unconditional <= '0';
+                    call_condition <= opcode(4 downto 3);      -- C4C3: 00=carry, 01=zero, 10=sign, 11=parity
+                    call_condition_sense <= opcode(5);          -- 0=CFc (false), 1=CTc (true)
+                    report "Decoded as conditional CALL (CCC=" &
+                           std_logic'image(opcode(5)) & std_logic'image(opcode(4)) & std_logic'image(opcode(3)) & ")";
                 elsif opcode(2 downto 0) = "111" then
                     -- 01 XXX 111 = RET
                     is_ret_op <= '1';
@@ -1124,16 +1147,51 @@ begin
 
                         -- Check if this is a CALL or a JMP
                         if is_call_op = '1' then
-                            -- CALL instruction - push current PC+1 to stack (return address), then jump
+                            -- CALL instruction (unconditional or conditional)
                             -- PC currently points to the high byte of CALL address (last byte of 3-byte CALL instruction)
                             -- Return address should be PC+1 (next instruction after CALL)
-                            stack_pointer <= stack_pointer + 1;
-                            address_stack(to_integer(stack_pointer + 1)) <= program_counter + 1;
-                            report "CALL: Pushing PC+1=0x" & to_hstring(program_counter + 1) &
-                                   " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
-                            -- Always jump for CALL (unconditional)
-                            perform_jump <= '1';
-                            report "CALL target: 0x" & to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+
+                            -- Check if this is conditional or unconditional CALL
+                            if call_unconditional = '1' then
+                                -- Unconditional CALL - always push and jump
+                                stack_pointer <= stack_pointer + 1;
+                                address_stack(to_integer(stack_pointer + 1)) <= program_counter + 1;
+                                report "CALL (unconditional): Pushing PC+1=0x" & to_hstring(program_counter + 1) &
+                                       " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
+                                perform_jump <= '1';
+                                report "CALL target: 0x" & to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                            else
+                                -- Conditional CALL - evaluate condition
+                                -- Condition codes (C4C3): 00=carry, 01=zero, 10=sign, 11=parity
+                                case call_condition is
+                                    when "00" => condition_met := flag_carry;   -- Carry flag
+                                    when "01" => condition_met := flag_zero;    -- Zero flag
+                                    when "10" => condition_met := flag_sign;    -- Sign flag
+                                    when "11" => condition_met := flag_parity;  -- Parity flag
+                                    when others => condition_met := '0';
+                                end case;
+
+                                -- For CTc (sense='1'): call if condition is true
+                                -- For CFc (sense='0'): call if condition is false
+                                if (call_condition_sense = '1' and condition_met = '1') or
+                                   (call_condition_sense = '0' and condition_met = '0') then
+                                    -- Condition met - push return address and jump
+                                    stack_pointer <= stack_pointer + 1;
+                                    address_stack(to_integer(stack_pointer + 1)) <= program_counter + 1;
+                                    report "Conditional CALL condition MET - pushing PC+1=0x" & to_hstring(program_counter + 1) &
+                                           " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
+                                    perform_jump <= '1';
+                                    report "CALL target: 0x" & to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                else
+                                    -- Condition not met - skip call
+                                    perform_jump <= '0';
+                                    -- CRITICAL: PC must increment to skip past the high address byte
+                                    -- pc_should_increment was set to '0' during ADDR_LOW to prevent increment during ADDR_HIGH
+                                    -- When call is NOT taken, set flag to increment PC an extra time
+                                    pc_increment_extra <= '1';
+                                    report "Conditional CALL condition NOT MET - skipping call (will increment PC to skip high byte)";
+                                end if;
+                            end if;
 
                         elsif is_jump_op = '1' then
                             -- Jump instruction (JMP or conditional)
