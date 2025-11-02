@@ -68,6 +68,14 @@ entity s8008 is
         -- When INT=1 during T1, CPU performs interrupt acknowledge (T1I)
         INT : in std_logic;
 
+        -- I/O ports
+        -- INP instruction: reads from port_in(MMM) where MMM is 3-bit address (8 ports)
+        -- OUT instruction: writes to port_out(RRMMM) where RRMMM is 5-bit address (32 ports)
+        port_in : in std_logic_vector(7 downto 0);  -- Input from port 0-7 (selected by port address)
+        port_out : out std_logic_vector(7 downto 0); -- Output data
+        port_out_addr : out std_logic_vector(4 downto 0); -- Output port address (0-31)
+        port_out_strobe : out std_logic; -- Pulse high during OUT instruction execution
+
         -- Debug outputs (for testbench verification)
         -- These expose internal state for testing purposes
         debug_reg_A : out std_logic_vector(7 downto 0);
@@ -246,6 +254,11 @@ architecture rtl of s8008 is
     signal ret_condition : std_logic_vector(1 downto 0);   -- Condition code for RET (00=carry, 01=zero, 10=sign, 11=parity)
     signal ret_condition_sense : std_logic;                 -- '0'=RFc (false), '1'=RTc (true)
     signal ret_unconditional : std_logic;                   -- '1' for RET (unconditional), '0' for conditional
+
+    -- I/O operation signals
+    signal is_inp_op : std_logic := '0';                    -- '1' when INP instruction decoded
+    signal is_out_op : std_logic := '0';                    -- '1' when OUT instruction decoded
+    signal io_port_addr : std_logic_vector(4 downto 0);     -- Port address (3-bit for INP, 5-bit for OUT)
 
     -- Variable-length cycle control
     -- Per Intel 8008 datasheet: "Many of the instructions for the 8008 are multi-cycle
@@ -739,6 +752,9 @@ begin
         ret_unconditional <= '0';
         ret_condition <= "00";
         ret_condition_sense <= '0';
+        is_inp_op <= '0';
+        is_out_op <= '0';
+        io_port_addr <= "00000";
 
         -- Decode opcode
         -- Intel 8008 instruction format:
@@ -830,6 +846,21 @@ begin
                 elsif opcode(2 downto 0) = "111" then
                     -- 01 XXX 111 = RET
                     is_ret_op <= '1';
+                elsif opcode(0) = '1' then
+                    -- 01 XXX XX1 = I/O instructions (INP or OUT)
+                    -- INP: 01 00M MM1 (bits 5:4 = 00)
+                    -- OUT: 01 RRM MM1 (bits 5:4 ≠ 00)
+                    if opcode(5 downto 4) = "00" then
+                        -- INP: Read from input port into accumulator
+                        is_inp_op <= '1';
+                        io_port_addr <= "00" & opcode(3 downto 1);  -- 3-bit port address (extended to 5 bits)
+                        report "Decoded as INP (port=" & integer'image(to_integer(unsigned(opcode(3 downto 1)))) & ")";
+                    else
+                        -- OUT: Write accumulator to output port
+                        is_out_op <= '1';
+                        io_port_addr <= opcode(5 downto 1);  -- 5-bit port address
+                        report "Decoded as OUT (port=" & integer'image(to_integer(unsigned(opcode(5 downto 1)))) & ")";
+                    end if;
                 end if;
 
             when "10" =>
@@ -1074,6 +1105,28 @@ begin
                             cycle_type_reg <= "00";  -- PCI (next instruction fetch)
                             skip_exec_states <= '1';  -- 3-state cycle
 
+                        elsif is_inp_op = '1' then
+                            -- INP instruction - read from input port into accumulator
+                            -- Single-byte instruction, executes in single 3-state cycle
+                            reg_write_enable <= '1';
+                            reg_write_addr <= REG_A;
+                            reg_write_data <= port_in;
+                            report "INP: A <- PORT[" & integer'image(to_integer(unsigned(io_port_addr(2 downto 0)))) &
+                                   "] (value=0x" & to_hstring(unsigned(port_in)) & ")";
+                            microcode_state <= FETCH;
+                            cycle_type_reg <= "00";  -- PCI (next instruction fetch)
+                            skip_exec_states <= '1';  -- 3-state cycle
+
+                        elsif is_out_op = '1' then
+                            -- OUT instruction - write accumulator to output port
+                            -- Single-byte instruction, executes in single 3-state cycle
+                            -- Output is handled combinatorially via port_out and port_out_strobe signals
+                            report "OUT: PORT[" & integer'image(to_integer(unsigned(io_port_addr))) &
+                                   "] <- A (value=0x" & to_hstring(unsigned(registers(REG_A))) & ")";
+                            microcode_state <= FETCH;
+                            cycle_type_reg <= "00";  -- PCI (next instruction fetch)
+                            skip_exec_states <= '1';  -- 3-state cycle
+
                         else
                             -- Other instructions not yet implemented
                             report "WARNING: Unimplemented instruction" severity warning;
@@ -1171,6 +1224,20 @@ begin
                             report "MOV R" & integer'image(to_integer(unsigned(dst_reg))) &
                                    " <- R" & integer'image(to_integer(unsigned(src_reg))) &
                                    " (setting reg_write_enable=1, data=0x" & to_hstring(unsigned(registers(to_integer(unsigned(src_reg))))) & ")";
+                        elsif is_inp_op = '1' then
+                            -- INP: Read from input port into accumulator
+                            -- Port address is 3 bits (0-7) stored in io_port_addr(2:0)
+                            reg_write_enable <= '1';
+                            reg_write_addr <= REG_A;
+                            reg_write_data <= port_in;
+                            report "INP: A <- PORT[" & integer'image(to_integer(unsigned(io_port_addr(2 downto 0)))) &
+                                   "] (value=0x" & to_hstring(unsigned(port_in)) & ")";
+                        elsif is_out_op = '1' then
+                            -- OUT: Write accumulator to output port
+                            -- Port address is 5 bits (0-31) stored in io_port_addr
+                            -- Note: The actual output is handled combinatorially in the output assignment section
+                            report "OUT: PORT[" & integer'image(to_integer(unsigned(io_port_addr))) &
+                                   "] <- A (value=0x" & to_hstring(unsigned(registers(REG_A))) & ")";
                         end if;
 
                         -- Return to fetch next instruction (3-state PCI cycle)
@@ -1367,6 +1434,14 @@ begin
             end if;
         end if;
     end process;
+
+    --===========================================
+    -- I/O Port Outputs
+    --===========================================
+    -- Output port assignments (combinatorial)
+    port_out <= registers(REG_A);  -- Always drive accumulator value
+    port_out_addr <= io_port_addr;  -- Drive port address
+    port_out_strobe <= '1' when (is_out_op = '1' and microcode_state = FETCH and timing_state = T3) else '0';  -- Strobe during OUT execution
 
     --===========================================
     -- Debug Outputs
