@@ -197,6 +197,13 @@ architecture rtl of s8008 is
     signal dst_reg : std_logic_vector(2 downto 0);  -- Destination register address
     signal is_immediate : std_logic;  -- Immediate data follows opcode
 
+    -- Rotate operation signals
+    signal is_rotate_op : std_logic;  -- Rotate operation (RLC, RRC, RAL, RAR)
+    signal rotate_type : std_logic_vector(2 downto 0) := "000";  -- 000=RLC, 001=RRC, 010=RAL, 011=RAR
+    signal rotate_result : std_logic_vector(7 downto 0);  -- Result of rotation
+    signal rotate_carry : std_logic := '0';  -- New carry flag value from rotation
+    signal rotate_saved_carry : std_logic := '0';  -- Captured carry flag at decode time (breaks combinational loop)
+
     -- Memory reference signals (M register = "111")
     signal src_is_memory : std_logic;  -- Source is M (memory via H:L)
     signal dst_is_memory : std_logic;  -- Destination is M (memory via H:L)
@@ -290,6 +297,46 @@ begin
             command => alu_command,
             alu_result => alu_result
         );
+
+    --===========================================
+    -- Combinational Rotate Logic
+    --===========================================
+    -- Implements the four rotate instructions:
+    --   RLC (000): Rotate Left Circular - bit7 -> bit0 and carry
+    --   RRC (001): Rotate Right Circular - bit0 -> bit7 and carry
+    --   RAL (010): Rotate Left through carry - 9-bit rotation
+    --   RAR (011): Rotate Right through carry - 9-bit rotation
+    process(rotate_type, registers, rotate_saved_carry)
+        variable accumulator : std_logic_vector(7 downto 0);
+    begin
+        accumulator := registers(REG_A);
+
+        case rotate_type is
+            when "000" =>  -- RLC: Rotate Left Circular
+                rotate_result(7 downto 1) <= accumulator(6 downto 0);
+                rotate_result(0) <= accumulator(7);
+                rotate_carry <= accumulator(7);
+
+            when "001" =>  -- RRC: Rotate Right Circular
+                rotate_result(6 downto 0) <= accumulator(7 downto 1);
+                rotate_result(7) <= accumulator(0);
+                rotate_carry <= accumulator(0);
+
+            when "010" =>  -- RAL: Rotate Left through Carry
+                rotate_result(7 downto 1) <= accumulator(6 downto 0);
+                rotate_result(0) <= rotate_saved_carry;
+                rotate_carry <= accumulator(7);
+
+            when "011" =>  -- RAR: Rotate Right through Carry
+                rotate_result(6 downto 0) <= accumulator(7 downto 1);
+                rotate_result(7) <= rotate_saved_carry;
+                rotate_carry <= accumulator(0);
+
+            when others =>
+                rotate_result <= (others => '0');
+                rotate_carry <= '0';
+        end case;
+    end process;
 
     --===========================================
     -- Clock Phase Counter
@@ -589,8 +636,17 @@ begin
             flag_zero <= '0';
             flag_sign <= '0';
             flag_parity <= '0';
+            rotate_saved_carry <= '0';
         elsif rising_edge(phi1) then
-            if is_alu_op = '1' and timing_state = T5 and clock_phase = '0' then
+            -- Continuously capture current carry flag for rotate operations
+            -- This breaks the combinational loop by registering the value
+            rotate_saved_carry <= flag_carry;
+
+            -- Update carry flag for rotate operations (on next phi1 after rotate executes on phi2)
+            -- Rotate executes at end of T3 on phi2, so flag update happens on next phi1 (early T1 or T4)
+            if is_rotate_op = '1' and timing_state = T3 and clock_phase = '1' then
+                flag_carry <= rotate_carry;
+            elsif is_alu_op = '1' and timing_state = T5 and clock_phase = '0' then
                 result_byte := alu_result(7 downto 0);
 
                 -- Carry flag (bit 8 of ALU result)
@@ -657,6 +713,8 @@ begin
         is_ret_op <= '0';
         is_halt_op <= '0';
         is_immediate <= '0';
+        is_rotate_op <= '0';
+        rotate_type <= "000";
         src_reg <= "000";
         dst_reg <= "000";
         alu_command <= "000";
@@ -672,10 +730,15 @@ begin
 
         case opcode(7 downto 6) is
             when "00" =>
-                -- Class 00: HLT, register ops, immediate loads, and some immediate ops
+                -- Class 00: HLT, Rotate, Conditional Return, MVI (Load Immediate), ALU Immediate, Inc/Dec
                 if opcode = x"00" or opcode = x"FF" then
                     -- HLT (00000000 or 11111111)
                     is_halt_op <= '1';
+                elsif opcode(2 downto 0) = "010" and opcode(5 downto 3) <= "011" then
+                    -- Rotate instructions: 00 FFF 010
+                    -- FFF: 000=RLC, 001=RRC, 010=RAL, 011=RAR (only 000-011 are valid)
+                    is_rotate_op <= '1';
+                    rotate_type <= opcode(5 downto 3);
                 elsif opcode(2 downto 0) = "110" then
                     -- MVI (Move Immediate to register): 00 DDD 110 (source field = 110)
                     -- This is followed by an immediate byte
@@ -684,20 +747,18 @@ begin
                     src_reg <= "000";  -- Don't care
                     is_load_op <= '1';
                     is_immediate <= '1';
-                else
-                    -- MOV operations (register-to-register or register-memory)
-                    dst_reg <= opcode(5 downto 3);
-                    src_reg <= opcode(2 downto 0);
-                    is_load_op <= '1';
-
-                    -- Check for memory reference (M register = 111)
-                    if opcode(2 downto 0) = "111" then
-                        src_is_memory <= '1';
-                    end if;
-                    if opcode(5 downto 3) = "111" then
-                        dst_is_memory <= '1';
-                    end if;
+                elsif opcode(2 downto 0) = "100" then
+                    -- Immediate ALU operations: 00 FFF 100 + immediate byte
+                    -- Per Intel 8008 datasheet: ADI, ACI, SUI, SBI, NDI, XRI, ORI, CPI
+                    -- Bits 5-3: ALU function (FFF)
+                    -- Followed by immediate data byte
+                    is_alu_op <= '1';
+                    is_immediate <= '1';
+                    alu_command <= opcode(5 downto 3);
+                    dst_reg <= "000";  -- Accumulator is destination
                 end if;
+                -- NOTE: Conditional Returns (RTC, RTZ, etc.) will be implemented here later
+                -- NOTE: Inc/Dec operations will be implemented here later
 
             when "01" =>
                 -- Class 01: Jump, Call, and Return instructions
@@ -741,13 +802,24 @@ begin
                 end if;
 
             when "11" =>
-                -- Class 11: Immediate ALU operations
-                -- Bits 5-3: ALU function
-                -- All have immediate data byte following
-                is_alu_op <= '1';
-                is_immediate <= '1';
-                alu_command <= opcode(5 downto 3);
-                dst_reg <= "000";  -- Accumulator
+                -- Class 11: MOV (register-to-register and register-memory)
+                -- Format: 11 DDD SSS
+                -- Bits 5-3: Destination register (DDD)
+                -- Bits 2-0: Source register (SSS)
+                -- Per Intel 8008 datasheet: ALL class 11 instructions are MOV
+
+                -- MOV operations (register-to-register or register-memory)
+                dst_reg <= opcode(5 downto 3);
+                src_reg <= opcode(2 downto 0);
+                is_load_op <= '1';
+
+                -- Check for memory reference (M register = 111)
+                if opcode(2 downto 0) = "111" then
+                    src_is_memory <= '1';
+                end if;
+                if opcode(5 downto 3) = "111" then
+                    dst_is_memory <= '1';
+                end if;
 
             when others =>
                 -- Other instruction classes
@@ -823,6 +895,19 @@ begin
                             report "HLT instruction detected - entering STOPPED state";
                             microcode_state <= FETCH;
                             skip_exec_states <= '1';  -- Stay in 3-state cycles
+
+                        elsif is_rotate_op = '1' then
+                            -- Rotate instruction (RLC, RRC, RAL, RAR)
+                            -- NOTE: flag_carry update happens in phi1 process to avoid multiple drivers
+                            reg_write_enable <= '1';
+                            reg_write_addr <= REG_A;
+                            reg_write_data <= rotate_result;
+                            microcode_state <= FETCH;
+                            skip_exec_states <= '1';
+                            report "Rotate operation: type=" & to_string(rotate_type) &
+                                   " A=0x" & to_hstring(unsigned(registers(REG_A))) &
+                                   " -> 0x" & to_hstring(unsigned(rotate_result)) &
+                                   " carry=" & std_logic'image(rotate_carry);
 
                         elsif is_alu_op = '1' then
                             if is_immediate = '1' then

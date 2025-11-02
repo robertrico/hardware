@@ -15,7 +15,7 @@
 --     - OR  r: Logical OR register with A
 --     - CMP r: Compare register with A (set flags only)
 --
---   Immediate Operands (Class 11):
+--   Immediate Operands (Class 00):
 --     - ADI data: Add immediate to A
 --     - ACI data: Add immediate to A with carry
 --     - SUI data: Subtract immediate from A
@@ -112,9 +112,9 @@ architecture behavior of s8008_alu_tb is
         4 => x"80", -- ADD B (A = 0x10 + 0x05 = 0x15)
 
         -- ========================================
-        -- TEST 2: ADI (immediate) - 11 000 100
+        -- TEST 2: ADI (immediate) - 00 000 100
         -- ========================================
-        5 => x"C4", -- ADI 0x20 (A = 0x15 + 0x20 = 0x35)
+        5 => x"04", -- ADI 0x20 (A = 0x15 + 0x20 = 0x35)
         6 => x"20",
 
         -- ========================================
@@ -123,7 +123,7 @@ architecture behavior of s8008_alu_tb is
         -- First set carry flag by adding 0xFF + 0x01
         7 => x"06", -- LrI A,0xFF
         8 => x"FF",
-        9 => x"C4", -- ADI 0x01 (A = 0x00, Carry = 1)
+        9 => x"04", -- ADI 0x01 (A = 0x00, Carry = 1)
         10 => x"01",
 
         -- Now test ADC with carry set
@@ -134,9 +134,9 @@ architecture behavior of s8008_alu_tb is
         15 => x"88", -- ADC B (A = 0x10 + 0x05 + 1 = 0x16)
 
         -- ========================================
-        -- TEST 4: ACI (immediate with carry)
+        -- TEST 4: ACI (immediate with carry) - 00 001 100
         -- ========================================
-        16 => x"CC", -- ACI 0x20 (A = 0x16 + 0x20 + 0 = 0x36, carry cleared by previous)
+        16 => x"0C", -- ACI 0x20 (A = 0x16 + 0x20 + 0 = 0x36, carry cleared by previous)
         17 => x"20",
 
         -- ========================================
@@ -149,9 +149,9 @@ architecture behavior of s8008_alu_tb is
         22 => x"90", -- SUB B (A = 0x50 - 0x30 = 0x20)
 
         -- ========================================
-        -- TEST 6: SUI (immediate) - 11 010 100
+        -- TEST 6: SUI (immediate) - 00 010 100
         -- ========================================
-        23 => x"D4", -- SUI 0x10 (A = 0x20 - 0x10 = 0x10)
+        23 => x"14", -- SUI 0x10 (A = 0x20 - 0x10 = 0x10)
         24 => x"10",
 
         -- ========================================
@@ -160,7 +160,7 @@ architecture behavior of s8008_alu_tb is
         -- First set carry (borrow) flag
         25 => x"06", -- LrI A,0x00
         26 => x"00",
-        27 => x"D4", -- SUI 0x01 (A = 0xFF, Carry = 1 for borrow)
+        27 => x"14", -- SUI 0x01 (A = 0xFF, Carry = 1 for borrow)
         28 => x"01",
 
         -- Now test SBB with borrow
@@ -171,9 +171,9 @@ architecture behavior of s8008_alu_tb is
         33 => x"98", -- SBB B (A = 0x50 - 0x20 - 1 = 0x2F)
 
         -- ========================================
-        -- TEST 8: SBI (immediate with borrow)
+        -- TEST 8: SBI (immediate with borrow) - 00 011 100
         -- ========================================
-        34 => x"DC", -- SBI 0x0F (A = 0x2F - 0x0F - 0 = 0x20)
+        34 => x"1C", -- SBI 0x0F (A = 0x2F - 0x0F - 0 = 0x20)
         35 => x"0F",
 
         -- ========================================
@@ -186,11 +186,11 @@ architecture behavior of s8008_alu_tb is
         40 => x"A0", -- AND B (A = 0xF0 & 0x0F = 0x00)
 
         -- ========================================
-        -- TEST 10: ANI (immediate) - 11 100 100
+        -- TEST 10: ANI (immediate) - 00 100 100
         -- ========================================
         41 => x"06", -- LrI A,0xFF
         42 => x"FF",
-        43 => x"E4", -- ANI 0xAA (A = 0xFF & 0xAA = 0xAA)
+        43 => x"24", -- ANI 0xAA (A = 0xFF & 0xAA = 0xAA)
         44 => x"AA",
 
         -- ========================================
@@ -203,9 +203,9 @@ architecture behavior of s8008_alu_tb is
         49 => x"A8", -- XOR B (A = 0xFF ^ 0xAA = 0x55)
 
         -- ========================================
-        -- TEST 12: XRI (immediate) - 11 101 100
+        -- TEST 12: XRI (immediate) - 00 101 100
         -- ========================================
-        50 => x"EC", -- XRI 0x0F (A = 0x55 ^ 0x0F = 0x5A)
+        50 => x"2C", -- XRI 0x0F (A = 0x55 ^ 0x0F = 0x5A)
         51 => x"0F",
 
         -- ========================================
@@ -218,11 +218,11 @@ architecture behavior of s8008_alu_tb is
         56 => x"B0", -- OR B (A = 0xF0 | 0x0F = 0xFF)
 
         -- ========================================
-        -- TEST 14: ORI (immediate) - 11 110 100
+        -- TEST 14: ORI (immediate) - 00 110 100
         -- ========================================
         57 => x"06", -- LrI A,0x50
         58 => x"50",
-        59 => x"F4", -- ORI 0x05 (A = 0x50 | 0x05 = 0x55)
+        59 => x"34", -- ORI 0x05 (A = 0x50 | 0x05 = 0x55)
         60 => x"05",
 
         -- ========================================
@@ -235,9 +235,9 @@ architecture behavior of s8008_alu_tb is
         65 => x"B8", -- CMP B (compare 0x50 - 0x30 = 0x20, A should stay 0x50)
 
         -- ========================================
-        -- TEST 16: CPI (immediate) - 11 111 100
+        -- TEST 16: CPI (immediate) - 00 111 100
         -- ========================================
-        66 => x"FC", -- CPI 0x50 (compare 0x50 - 0x50 = 0, A should stay 0x50)
+        66 => x"3C", -- CPI 0x50 (compare 0x50 - 0x50 = 0, A should stay 0x50)
         67 => x"50",
 
         -- Final verification values

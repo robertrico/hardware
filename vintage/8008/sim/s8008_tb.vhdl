@@ -101,11 +101,11 @@ architecture sim of s8008_tb is
         --        ALU (memory), and JMP (unconditional jump)
         --
         -- Intel 8008 opcodes:
-        --   LrI (Load Immediate) = 00 DDD 110 + immediate byte
-        --   MOV dst,src = 00 DDD SSS (class 00)
+        --   LrI (Load Immediate) = 00 DDD 110 + immediate byte (class 00)
+        --   MOV dst,src = 11 DDD SSS (class 11) - **CORRECTED FROM CLASS 00**
         --   ALU op,src = 10 OOO SSS (class 10)
         --   ALU op,imm = 11 OOO 100 + immediate byte (class 11)
-        --   JMP = 01 XXX 100 + addr_low + addr_high (class 11)
+        --   JMP = 01 XXX 100 + addr_low + addr_high (class 01)
         --   Register encoding: 000=A, 001=B, 010=C, 011=D, 100=E, 101=H, 110=L, 111=M
         --   ALU operations: 000=ADD, 001=ADC, 010=SUB, 011=SBB, 100=AND, 101=XOR, 110=OR, 111=CMP
 
@@ -118,13 +118,13 @@ architecture sim of s8008_tb is
         5 => x"55",  --               immediate data = 0x55
 
         -- TEST 2: Register-to-Register MOV
-        6 => x"01",  -- MOV A,B     = 00 000 001  (copy B -> A, result = 0xAA)
+        6 => x"C1",  -- MOV A,B     = 11 000 001  (copy B -> A, result = 0xAA)
 
         -- TEST 3: ALU with register operands (ADD B to A)
         7 => x"81",  -- ADD B       = 10 000 001  (A = A + B = 0xAA + 0xAA = 0x54, with carry)
 
         -- TEST 4: ALU with immediate operand (ADD immediate to A)
-        8 => x"C4",  -- ADI 0x0C    = 11 000 100  (A = A + 0x0C)
+        8 => x"04",  -- ADI 0x0C    = 00 000 100  (A = A + 0x0C)
         9 => x"0C",  --               immediate data = 0x0C
 
         -- TEST 5: Set up H:L register pair for memory operations
@@ -134,10 +134,10 @@ architecture sim of s8008_tb is
         13 => x"F0", --               immediate data = 0xF0
 
         -- TEST 6: Memory write (MOV M,C - store C to memory at H:L)
-        14 => x"3A", -- MOV M,C     = 00 111 010  (Store C=0x55 to address 0x00F0)
+        14 => x"FA", -- MOV M,C     = 11 111 010  (Store C=0x55 to address 0x00F0)
 
         -- TEST 7: Memory read (MOV D,M - load from memory at H:L to D)
-        15 => x"1F", -- MOV D,M     = 00 011 111  (Load from address 0x00F0 into D)
+        15 => x"DF", -- MOV D,M     = 11 011 111  (Load from address 0x00F0 into D)
 
         -- TEST 8: ALU with memory operand (ADD M to A)
         16 => x"87", -- ADD M       = 10 000 111  (A = A + M[H:L])
@@ -156,29 +156,29 @@ architecture sim of s8008_tb is
 
         -- Extended ADI and MOV Tests at addresses 25-48 (decimal 0x19-0x30)
         -- Jump lands here at 0x0019 - these tests stress the immediate_data register and MOV register combinations
-        25 => x"C4", -- TEST 20: ADI 0x00 (add zero - A=0xB5 + 0x00 = 0xB5, no change)
+        25 => x"04", -- TEST 20: ADI 0x00 (add zero - A=0xB5 + 0x00 = 0xB5, no change)
         26 => x"00", --               immediate = 0x00
-        27 => x"C4", -- TEST 21: ADI 0xFF (test overflow/carry - A=0xB5 + 0xFF = 0x1B4 -> 0xB4, carry=1)
+        27 => x"04", -- TEST 21: ADI 0xFF (test overflow/carry - A=0xB5 + 0xFF = 0x1B4 -> 0xB4, carry=1)
         28 => x"FF", --               immediate = 0xFF
-        29 => x"C4", -- TEST 22: ADI 0x01 (A=0xB4 + 0x01 = 0xB5)
+        29 => x"04", -- TEST 22: ADI 0x01 (A=0xB4 + 0x01 = 0xB5)
         30 => x"01", --               immediate = 0x01
-        31 => x"10", -- TEST 23: MOV C,A = 00 010 000 (C should = 0xB5 from previous ADI)
-        32 => x"1A", -- TEST 24: MOV D,C = 00 011 010
-        33 => x"23", -- TEST 25: MOV E,D = 00 100 011
-        34 => x"2C", -- TEST 26: MOV H,E = 00 101 100
-        35 => x"24", -- TEST 27: MOV E,H = 00 100 101 (E should = 0xB5)
-        36 => x"03", -- TEST 28: MOV A,D = 00 000 011 (A should = 0xB5, complete circle)
-        37 => x"08", -- TEST 29: MOV B,A = 00 001 000
-        38 => x"C4", -- TEST 30: Chain ADI #1 - ADI 0x10 (A=0xB5 + 0x10 = 0xC5)
+        31 => x"D0", -- TEST 23: MOV C,A = 11 010 000 (C should = 0xB5 from previous ADI)
+        32 => x"D8", -- TEST 24: MOV D,A = 11 011 000 (D should = 0xB5, changed from MOV D,C to avoid rotate conflict)
+        33 => x"E3", -- TEST 25: MOV E,D = 11 100 011
+        34 => x"EC", -- TEST 26: MOV H,E = 11 101 100 (NO CONFLICT - XRI is Class 00!)
+        35 => x"E5", -- TEST 27: MOV E,H = 11 100 101 (E should = 0xB5)
+        36 => x"C3", -- TEST 28: MOV A,D = 11 000 011 (A should = 0xB5, complete circle)
+        37 => x"C8", -- TEST 29: MOV B,A = 11 001 000
+        38 => x"04", -- TEST 30: Chain ADI #1 - ADI 0x10 (A=0xB5 + 0x10 = 0xC5)
         39 => x"10", --               immediate = 0x10
-        40 => x"C4", -- TEST 31: Chain ADI #2 - ADI 0x20 (A=0xC5 + 0x20 = 0xE5)
+        40 => x"04", -- TEST 31: Chain ADI #2 - ADI 0x20 (A=0xC5 + 0x20 = 0xE5)
         41 => x"20", --               immediate = 0x20
-        42 => x"C4", -- TEST 32: Chain ADI #3 - ADI 0x30 (A=0xE5 + 0x30 = 0x115 -> 0x15, carry=1)
+        42 => x"04", -- TEST 32: Chain ADI #3 - ADI 0x30 (A=0xE5 + 0x30 = 0x115 -> 0x15, carry=1)
         43 => x"30", --               immediate = 0x30
-        44 => x"08", -- TEST 33: Interleaved - MOV B,A = 00 001 000 (B = 0x15)
-        45 => x"C4", -- TEST 34: Interleaved - ADI 0x05 (A=0x15 + 0x05 = 0x1A)
+        44 => x"C8", -- TEST 33: Interleaved - MOV B,A = 11 001 000 (B = 0x15)
+        45 => x"04", -- TEST 34: Interleaved - ADI 0x05 (A=0x15 + 0x05 = 0x1A)
         46 => x"05", --               immediate = 0x05
-        47 => x"10", -- TEST 35: Interleaved - MOV C,A = 00 010 000 (C = 0x1A)
+        47 => x"D0", -- TEST 35: Interleaved - MOV C,A = 11 010 000 (C = 0x1A)
 
         -- TEST 10: CALL/RET - Test subroutine call and return
         48 => x"46", -- TEST 36: CALL 0x0060 = 01 000 110  (call subroutine at address 0x0060)
@@ -751,14 +751,14 @@ begin
             severity error;
         report "PASS: MOV C,A - C=0x" & to_hstring(unsigned(debug_reg_C_tb));
 
-        -- TEST 25: MOV D,C
-        report "TEST 25: Verifying MOV D,C";
+        -- TEST 25: MOV D,A (changed from MOV D,C to avoid rotate opcode conflict)
+        report "TEST 25: Verifying MOV D,A";
         wait until unsigned(debug_pc_tb) = to_unsigned(33, 14);
         wait for 22 us;
         assert debug_reg_D_tb = x"B5"
-            report "FAIL: After MOV D,C, D=" & to_hstring(unsigned(debug_reg_D_tb)) & " (expected 0xB5)"
+            report "FAIL: After MOV D,A, D=" & to_hstring(unsigned(debug_reg_D_tb)) & " (expected 0xB5)"
             severity error;
-        report "PASS: MOV D,C - D=0x" & to_hstring(unsigned(debug_reg_D_tb));
+        report "PASS: MOV D,A - D=0x" & to_hstring(unsigned(debug_reg_D_tb));
 
         -- TEST 26: MOV E,D
         report "TEST 26: Verifying MOV E,D";

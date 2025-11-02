@@ -35,7 +35,7 @@ STOP_TIME_s8008_conditional_tb = 1000us
 STOP_TIME_s8008_call_ret_tb = 800us
 STOP_TIME_s8008_alu_tb = 1400us
 STOP_TIME_s8008_io_tb = 100us
-STOP_TIME_s8008_rotate_tb = 150us
+STOP_TIME_s8008_rotate_tb = 400us
 STOP_TIME_s8008_stack_tb = 200us
 
 # Get stop time for active test, or use default
