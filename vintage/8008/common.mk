@@ -76,14 +76,22 @@ SIM_REPORT = $(REPORTS_DIR)/simulation.txt
 # Simulation parameters
 #==========================================
 # If TEST is specified, override TB_ENTITY and TB_SOURCES
+# Check both sim/ and sim/units/ directories for test files
 ifdef TEST
     ACTIVE_TB_ENTITY = $(TEST)
-    ACTIVE_TB_SOURCES = $(SIM_DIR)/$(TEST).vhdl
+    # Try units directory first, then main sim directory
+    ifneq (,$(wildcard $(SIM_DIR)/units/$(TEST).vhdl))
+        ACTIVE_TB_SOURCES = $(SIM_DIR)/units/$(TEST).vhdl
+    else
+        ACTIVE_TB_SOURCES = $(SIM_DIR)/$(TEST).vhdl
+    endif
 else
     ACTIVE_TB_ENTITY = $(TB_ENTITY)
     ACTIVE_TB_SOURCES = $(TB_SOURCES)
 endif
 
+# SIM_STOP_TIME is now set in the project-specific Makefile based on test
+# Default fallback if not specified
 SIM_STOP_TIME ?= 1ms
 SIM_OUTPUT = $(SIM_DIR)/output.txt
 WAVE_FILE = $(SIM_DIR)/$(ACTIVE_TB_ENTITY).ghw

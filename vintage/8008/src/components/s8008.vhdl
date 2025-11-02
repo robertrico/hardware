@@ -121,6 +121,7 @@ architecture rtl of s8008 is
     signal data_out : std_logic_vector(7 downto 0) := (others => '0');  -- Data to write
     signal cycle_type_reg : std_logic_vector(1 downto 0) := "00";  -- PCI (instruction fetch)
     signal pc_should_increment : std_logic := '1';  -- Whether PC should increment after this cycle
+    signal pc_increment_extra : std_logic := '0';  -- Extra increment for skipping unused bytes
 
     -- Data input and instruction registers
     signal data_in : std_logic_vector(7 downto 0);  -- Data read from bus
@@ -763,6 +764,7 @@ begin
             cycle_type_reg <= "00";  -- PCI (instruction fetch)
             skip_exec_states <= '1';  -- Default to 3-state cycles
             perform_jump <= '0';  -- Initialize jump control
+            pc_increment_extra <= '0';  -- Initialize extra increment flag
 
         elsif rising_edge(phi1) then
             -- Default: no register writes
@@ -807,6 +809,7 @@ begin
                         -- PLA control signals are now valid
                         pc_should_increment <= '1';  -- Default: PC should increment (override for M register ops)
                         perform_jump <= '0';  -- Reset jump flag (will be set if jump/call/ret occurs)
+                        pc_increment_extra <= '0';  -- Clear extra increment flag after use
                         if is_halt_op = '1' then
                             -- HLT instruction - stop execution
                             report "HLT instruction detected - entering STOPPED state";
@@ -1066,7 +1069,11 @@ begin
                                            to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
                                 else
                                     perform_jump <= '0';
-                                    report "Conditional jump condition NOT MET - continuing sequential execution";
+                                    -- CRITICAL: PC must increment to skip past the high address byte
+                                    -- pc_should_increment was set to '0' during ADDR_LOW to prevent increment during ADDR_HIGH
+                                    -- When jump is NOT taken, set flag to increment PC an extra time
+                                    pc_increment_extra <= '1';
+                                    report "Conditional jump condition NOT MET - will increment PC to skip high byte";
                                 end if;
                             end if;
                         end if;
@@ -1113,6 +1120,13 @@ begin
                 program_counter <= unsigned(jump_addr_high) & unsigned(jump_addr_low);
                 report "Jump executed: PC <= 0x" & to_hstring(unsigned(jump_addr_high) & unsigned(jump_addr_low));
                 -- NOTE: perform_jump is cleared in the Microcode Sequencer process in the next FETCH state
+
+            -- Handle extra PC increment for conditional jumps that are NOT taken
+            -- When a conditional jump is not taken, we need to skip the high address byte that was fetched
+            -- This happens at T1 of the next FETCH cycle, before the address is output
+            elsif pc_increment_extra = '1' and timing_state = T1 and clock_phase = '1' then
+                program_counter <= program_counter + 1;
+                report "Extra PC increment to skip unused high byte: " & integer'image(to_integer(program_counter + 1));
 
             -- Increment PC at the end of each complete bus cycle
             -- unless we're about to jump
