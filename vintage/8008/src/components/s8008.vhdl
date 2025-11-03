@@ -1332,6 +1332,30 @@ begin
                             cycle_type_reg <= "00";  -- PCI
                             skip_exec_states <= '1';  -- 3-state cycle
 
+                        elsif is_inp_op = '1' then
+                            -- INP instruction - transition to I/O transfer cycle
+                            -- Second cycle will be PCC (cycle type "10") with 5 states
+                            if DEBUG_VERBOSE then
+                                report "INP: Transitioning to IO_TRANSFER state for port " &
+                                       integer'image(to_integer(unsigned(io_port_addr(2 downto 0))));
+                            end if;
+                            microcode_state <= IO_TRANSFER;
+                            cycle_type_reg <= "10";  -- PCC (I/O cycle)
+                            skip_exec_states <= '0';  -- 5-state cycle (T1, T2, T3, T4, T5)
+                            pc_should_increment <= '1';  -- Reset for next instruction fetch
+
+                        elsif is_out_op = '1' then
+                            -- OUT instruction - transition to I/O transfer cycle
+                            -- Second cycle will be PCC (cycle type "10") with 3 states
+                            if DEBUG_VERBOSE then
+                                report "OUT: Transitioning to IO_TRANSFER state for port " &
+                                       integer'image(to_integer(unsigned(io_port_addr(4 downto 0))));
+                            end if;
+                            microcode_state <= IO_TRANSFER;
+                            cycle_type_reg <= "10";  -- PCC (I/O cycle)
+                            skip_exec_states <= '1';  -- 3-state cycle (T1, T2, T3)
+                            pc_should_increment <= '1';  -- Reset for next instruction fetch
+
                         else
                             -- Other instructions not yet implemented
                             report "WARNING: Unimplemented instruction" severity warning;
@@ -1454,30 +1478,13 @@ begin
                                        " <- R" & integer'image(to_integer(unsigned(src_reg))) &
                                        " (setting reg_write_enable=1, data=0x" & to_hstring(unsigned(registers(to_integer(unsigned(src_reg))))) & ")";
                             end if;
-                        elsif is_inp_op = '1' then
-                            -- INP instruction - transition to I/O transfer cycle
-                            -- Second cycle will be PCC (cycle type "10") with 5 states
-                            if DEBUG_VERBOSE then
-                                report "INP: Transitioning to IO_TRANSFER state for port " &
-                                       integer'image(to_integer(unsigned(io_port_addr(2 downto 0))));
-                            end if;
-                            microcode_state <= IO_TRANSFER;
-                            cycle_type_reg <= "10";  -- PCC (I/O cycle)
-                            skip_exec_states <= '0';  -- 5-state cycle (T1, T2, T3, T4, T5)
-                            pc_should_increment <= '1';  -- Reset for next instruction fetch
-
-                        elsif is_out_op = '1' then
-                            -- OUT instruction - transition to I/O transfer cycle
-                            -- Second cycle will be PCC (cycle type "10") with 3 states
-                            if DEBUG_VERBOSE then
-                                report "OUT: Transitioning to IO_TRANSFER state for port " &
-                                       integer'image(to_integer(unsigned(io_port_addr(4 downto 0))));
-                            end if;
-                            microcode_state <= IO_TRANSFER;
-                            cycle_type_reg <= "10";  -- PCC (I/O cycle)
-                            skip_exec_states <= '1';  -- 3-state cycle (T1, T2, T3)
-                            pc_should_increment <= '1';  -- Reset for next instruction fetch
                         end if;
+
+                        -- Return to fetch next instruction (3-state PCI cycle)
+                        microcode_state <= FETCH;
+                        cycle_type_reg <= "00";  -- PCI (instruction fetch)
+                        skip_exec_states <= '1';  -- 3-state cycle for next fetch
+                        pc_should_increment <= '1';  -- Reset for next instruction fetch
 
                     when ADDR_LOW =>
                         -- Just fetched low byte of address (3-state PCR cycle completed)

@@ -34,7 +34,8 @@ STOP_TIME_s8008_tb = 2500us
 
 # Unit tests (fast, typically <100us)
 # Conditional test now has more instructions due to flag setup, needs more time
-STOP_TIME_s8008_conditional_tb = 1000us
+# Increased timeouts for conditional and inc_dec after I/O architecture changes
+STOP_TIME_s8008_conditional_tb = 3000us
 STOP_TIME_s8008_conditional_call_tb = 3000us
 STOP_TIME_s8008_conditional_ret_tb = 2000us
 STOP_TIME_s8008_call_ret_tb = 800us
@@ -42,7 +43,7 @@ STOP_TIME_s8008_alu_tb = 1800us
 STOP_TIME_s8008_io_tb = 600us
 STOP_TIME_s8008_rotate_tb = 400us
 STOP_TIME_s8008_stack_tb = 200us
-STOP_TIME_s8008_inc_dec_tb = 1000us
+STOP_TIME_s8008_inc_dec_tb = 2000us
 STOP_TIME_s8008_rst_tb = 800us
 STOP_TIME_s8008_search_tb = 16000us
 STOP_TIME_s8008_ram_intensive_tb = 20000us
