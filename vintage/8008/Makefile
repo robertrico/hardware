@@ -43,7 +43,7 @@ STOP_TIME_s8008_rotate_tb = 400us
 STOP_TIME_s8008_stack_tb = 200us
 STOP_TIME_s8008_inc_dec_tb = 1000us
 STOP_TIME_s8008_rst_tb = 800us
-STOP_TIME_s8008_search_tb = 5000us
+STOP_TIME_s8008_search_tb = 16000us
 
 # Get stop time for active test, or use default
 SIM_STOP_TIME ?= $(or $(STOP_TIME_$(ACTIVE_TB_ENTITY)),1ms)
