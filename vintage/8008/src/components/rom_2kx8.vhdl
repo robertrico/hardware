@@ -59,7 +59,7 @@ architecture rtl of rom_2kx8 is
             report "Loaded ROM from " & filename & " (" & integer'image(addr) & " bytes)" severity note;
         else
             -- File not found, use default program
-            report "ROM file " & filename & " not found, using default program" severity warning;
+            -- report "ROM file " & filename & " not found, using default program" severity warning;
             -- Simple ADD test: A = 5 + 3 = 8
             rom_data(0) := x"06";  -- MVI A, 5
             rom_data(1) := x"05";
@@ -86,7 +86,7 @@ begin
         if CS_N = '0' then
             -- Chip selected, output data
             DATA_OUT <= rom(to_integer(unsigned(ADDR)));
-            report "ROM read: addr=0x" & to_hstring(ADDR) & " data=0x" & to_hstring(rom(to_integer(unsigned(ADDR))));
+            -- report "ROM read: addr=0x" & to_hstring(ADDR) & " data=0x" & to_hstring(rom(to_integer(unsigned(ADDR))));
         else
             -- Chip not selected, tri-state (high-Z)
             DATA_OUT <= (others => 'Z');

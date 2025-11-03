@@ -444,31 +444,43 @@ begin
                         -- Check for interrupt request
                         if INT = '1' then
                             timing_state <= T1I;
-                            report "T1 -> T1I (interrupt)";
+                            if DEBUG_VERBOSE then
+                                report "T1 -> T1I (interrupt)";
+                            end if;
                         else
                             timing_state <= T2;
-                            report "T1 -> T2";
+                            if DEBUG_VERBOSE then
+                                report "T1 -> T2";
+                            end if;
                         end if;
 
                     when T1I =>
                         timing_state <= T2;
-                        report "T1I -> T2";
+                        if DEBUG_VERBOSE then
+                            report "T1I -> T2";
+                        end if;
 
                     when T2 =>
                         -- Check READY signal for wait states
                         if READY = '1' then
                             timing_state <= T3;
-                            report "T2 -> T3";
+                            if DEBUG_VERBOSE then
+                                report "T2 -> T3";
+                            end if;
                         else
                             timing_state <= TWAIT;
-                            report "T2 -> TWAIT";
+                            if DEBUG_VERBOSE then
+                                report "T2 -> TWAIT";
+                            end if;
                         end if;
 
                     when TWAIT =>
                         -- Stay in wait until READY
                         if READY = '1' then
                             timing_state <= T3;
-                            report "TWAIT -> T3";
+                            if DEBUG_VERBOSE then
+                                report "TWAIT -> T3";
+                            end if;
                         end if;
 
                     when T3 =>
@@ -481,33 +493,47 @@ begin
                             -- Instruction just fetched - use combinatorial decode
                             if is_halt_op = '1' then
                                 timing_state <= STOPPED;
-                                report "T3 -> STOPPED (HLT instruction)";
+                                if DEBUG_VERBOSE then
+                                    report "T3 -> STOPPED (HLT instruction)";
+                                end if;
                             elsif instruction_needs_execute = '1' then
                                 timing_state <= T4;
-                                report "T3 -> T4 (5-state cycle - instruction needs EXECUTE)";
+                                if DEBUG_VERBOSE then
+                                    report "T3 -> T4 (5-state cycle - instruction needs EXECUTE)";
+                                end if;
                             else
                                 timing_state <= T1;
-                                report "T3 -> T1 (3-state cycle - no EXECUTE needed)";
+                                if DEBUG_VERBOSE then
+                                    report "T3 -> T1 (3-state cycle - no EXECUTE needed)";
+                                end if;
                             end if;
                         else
                             -- Other microcode states - use runtime tracking
                             if skip_exec_states = '1' then
                                 timing_state <= T1;
-                                report "T3 -> T1 (3-state cycle)";
+                                if DEBUG_VERBOSE then
+                                    report "T3 -> T1 (3-state cycle)";
+                                end if;
                             else
                                 timing_state <= T4;
-                                report "T3 -> T4 (5-state cycle)";
+                                if DEBUG_VERBOSE then
+                                    report "T3 -> T4 (5-state cycle)";
+                                end if;
                             end if;
                         end if;
 
                     when T4 =>
                         timing_state <= T5;
-                        report "T4 -> T5";
+                        if DEBUG_VERBOSE then
+                            report "T4 -> T5";
+                        end if;
 
                     when T5 =>
                         -- Return to T1 after execution states
                         timing_state <= T1;
-                        report "T5 -> T1 (cycle complete)";
+                        if DEBUG_VERBOSE then
+                            report "T5 -> T1 (cycle complete)";
+                        end if;
 
                     when STOPPED =>
                         -- Remain stopped (HLT instruction executed)
@@ -603,7 +629,9 @@ begin
                 -- If this is an instruction fetch (PCI), also update instruction register
                 if cycle_type_reg = "00" then
                     instruction_reg <= data_bus;
-                    report "Instruction fetched: 0x" & to_hstring(unsigned(data_bus));
+                    if DEBUG_VERBOSE then
+                        report "Instruction fetched: 0x" & to_hstring(unsigned(data_bus));
+                    end if;
                 end if;
             end if;
         end if;
@@ -628,8 +656,10 @@ begin
         elsif rising_edge(phi2) then
             if reg_write_enable = '1' then
                 registers(reg_write_addr) <= reg_write_data;
-                report "Register write: R" & integer'image(reg_write_addr) &
-                       " <= 0x" & to_hstring(unsigned(reg_write_data));
+                if DEBUG_VERBOSE then
+                    report "Register write: R" & integer'image(reg_write_addr) &
+                           " <= 0x" & to_hstring(unsigned(reg_write_data));
+                end if;
             end if;
         end if;
     end process;
@@ -687,10 +717,14 @@ begin
                 -- Zero flag (result is all zeros)
                 if result_byte = x"00" then
                     flag_zero <= '1';
-                    report "Flag update (ALU): result=0x00, setting Z=1";
+                    if DEBUG_VERBOSE then
+                        report "Flag update (ALU): result=0x00, setting Z=1";
+                    end if;
                 else
                     flag_zero <= '0';
-                    report "Flag update (ALU): result=0x" & to_hstring(unsigned(result_byte)) & ", setting Z=0";
+                    if DEBUG_VERBOSE then
+                        report "Flag update (ALU): result=0x" & to_hstring(unsigned(result_byte)) & ", setting Z=0";
+                    end if;
                 end if;
 
                 -- Sign flag (bit 7 of result)
@@ -709,10 +743,12 @@ begin
                     flag_parity <= '0';
                 end if;
 
-                report "Flags updated (ALU): C=" & std_logic'image(alu_result(8)) &
-                       " Z=" & std_logic'image(flag_zero) & " (old value, will update next cycle)" &
-                       " S=" & std_logic'image(result_byte(7)) &
-                       " P=" & std_logic'image(flag_parity);
+                if DEBUG_VERBOSE then
+                    report "Flags updated (ALU): C=" & std_logic'image(alu_result(8)) &
+                           " Z=" & std_logic'image(flag_zero) & " (old value, will update next cycle)" &
+                           " S=" & std_logic'image(result_byte(7)) &
+                           " P=" & std_logic'image(flag_parity);
+                end if;
             elsif (is_inc_op = '1' or is_dec_op = '1') and timing_state = T3 and clock_phase = '0' and reg_write_enable = '1' then
                 -- INR/DCR operation flag update
                 -- These execute in 3-state cycles, complete at T3 end
@@ -743,10 +779,12 @@ begin
                     flag_parity <= '0';
                 end if;
 
-                report "Flags updated (INC/DEC): Z=" & std_logic'image(flag_zero) &
-                       " S=" & std_logic'image(result_byte(7)) &
-                       " P=" & std_logic'image(flag_parity) &
-                       " (Carry unchanged)";
+                if DEBUG_VERBOSE then
+                    report "Flags updated (INC/DEC): Z=" & std_logic'image(flag_zero) &
+                           " S=" & std_logic'image(result_byte(7)) &
+                           " P=" & std_logic'image(flag_parity) &
+                           " (Carry unchanged)";
+                end if;
             end if;
         end if;
     end process;
@@ -770,8 +808,10 @@ begin
         opcode := instruction_reg;
 
         -- DEBUG: Log every decoder invocation
-        report "DECODER: instruction_reg=0x" & to_hstring(unsigned(instruction_reg)) &
-               " bits[7:6]=" & std_logic'image(instruction_reg(7)) & std_logic'image(instruction_reg(6));
+        if DEBUG_VERBOSE then
+            report "DECODER: instruction_reg=0x" & to_hstring(unsigned(instruction_reg)) &
+                   " bits[7:6]=" & std_logic'image(instruction_reg(7)) & std_logic'image(instruction_reg(6));
+        end if;
 
         -- Default values (all operations disabled)
         is_alu_op <= '0';
@@ -845,20 +885,26 @@ begin
                     -- DDD ≠ 000 (no INR A in 8008)
                     is_inc_op <= '1';
                     dst_reg <= opcode(5 downto 3);
-                    report "Decoded as INR (register=" &
-                           integer'image(to_integer(unsigned(opcode(5 downto 3)))) & ")";
+                    if DEBUG_VERBOSE then
+                        report "Decoded as INR (register=" &
+                               integer'image(to_integer(unsigned(opcode(5 downto 3)))) & ")";
+                    end if;
                 elsif opcode(2 downto 0) = "001" and opcode(5 downto 3) /= "000" then
                     -- 00 DDD 001 = DCR (Decrement Register)
                     -- DDD ≠ 000 (no DCR A in 8008)
                     is_dec_op <= '1';
                     dst_reg <= opcode(5 downto 3);
-                    report "Decoded as DCR (register=" &
-                           integer'image(to_integer(unsigned(opcode(5 downto 3)))) & ")";
+                    if DEBUG_VERBOSE then
+                        report "Decoded as DCR (register=" &
+                               integer'image(to_integer(unsigned(opcode(5 downto 3)))) & ")";
+                    end if;
                 elsif opcode(2 downto 0) = "111" then
                     -- 00 XXX 111 = RET (unconditional return)
                     is_ret_op <= '1';
                     ret_unconditional <= '1';
-                    report "Decoded as RET (unconditional)";
+                    if DEBUG_VERBOSE then
+                        report "Decoded as RET (unconditional)";
+                    end if;
                 elsif opcode(2 downto 0) = "011" then
                     -- 00 CCC 011 = Conditional RET
                     -- Bits 5:3=CCC: condition code with sense bit
@@ -867,28 +913,36 @@ begin
                     ret_unconditional <= '0';
                     ret_condition <= opcode(4 downto 3);      -- C4C3: 00=carry, 01=zero, 10=sign, 11=parity
                     ret_condition_sense <= opcode(5);          -- 0=RFc (false), 1=RTc (true)
-                    report "Decoded as conditional RET (CCC=" &
-                           std_logic'image(opcode(5)) & std_logic'image(opcode(4)) & std_logic'image(opcode(3)) & ")";
+                    if DEBUG_VERBOSE then
+                        report "Decoded as conditional RET (CCC=" &
+                               std_logic'image(opcode(5)) & std_logic'image(opcode(4)) & std_logic'image(opcode(3)) & ")";
+                    end if;
                 elsif opcode(2 downto 0) = "101" then
                     -- 00 AAA 101 = RST (Restart)
                     -- Bits 5:3=AAA: restart vector (0-7)
                     -- Target address = AAA * 8 (AAA shifted left 3 bits)
                     is_rst_op <= '1';
                     rst_vector <= opcode(5 downto 3);
-                    report "Decoded as RST " & integer'image(to_integer(unsigned(opcode(5 downto 3))));
+                    if DEBUG_VERBOSE then
+                        report "Decoded as RST " & integer'image(to_integer(unsigned(opcode(5 downto 3))));
+                    end if;
                 end if;
 
             when "01" =>
                 -- Class 01: Jump, Call, and Return instructions
                 -- All jumps/calls/returns have bits[7:6]="01"
                 -- Per 8008UM.pdf Table: bits[2:0] determine the operation
-                report "Class 01 instruction decoded: opcode=0x" & to_hstring(unsigned(opcode)) &
-                       " bits[2:0]=" & std_logic'image(opcode(2)) & std_logic'image(opcode(1)) & std_logic'image(opcode(0));
+                if DEBUG_VERBOSE then
+                    report "Class 01 instruction decoded: opcode=0x" & to_hstring(unsigned(opcode)) &
+                           " bits[2:0]=" & std_logic'image(opcode(2)) & std_logic'image(opcode(1)) & std_logic'image(opcode(0));
+                end if;
                 if opcode(2 downto 0) = "100" then
                     -- 01 XXX 100 = JMP (unconditional jump)
                     is_jump_op <= '1';
                     jump_unconditional <= '1';
-                    report "Decoded as JMP (unconditional)";
+                    if DEBUG_VERBOSE then
+                        report "Decoded as JMP (unconditional)";
+                    end if;
                 elsif opcode(2 downto 0) = "000" then
                     -- 01 SC₄C₃ 000 = Conditional jump (bit[2]=0, bit[1:0]=00)
                     -- bit[5]=S: 0=JFc (false), 1=JTc (true)
@@ -901,7 +955,9 @@ begin
                     -- 01 XXX 110 = CALL (unconditional)
                     is_call_op <= '1';
                     call_unconditional <= '1';
-                    report "Decoded as CALL (unconditional)";
+                    if DEBUG_VERBOSE then
+                        report "Decoded as CALL (unconditional)";
+                    end if;
                 elsif opcode(2 downto 0) = "010" then
                     -- 01 CCC 010 = Conditional CALL
                     -- bit[5:3]=CCC: condition code with sense bit
@@ -910,8 +966,10 @@ begin
                     call_unconditional <= '0';
                     call_condition <= opcode(4 downto 3);      -- C4C3: 00=carry, 01=zero, 10=sign, 11=parity
                     call_condition_sense <= opcode(5);          -- 0=CFc (false), 1=CTc (true)
-                    report "Decoded as conditional CALL (CCC=" &
-                           std_logic'image(opcode(5)) & std_logic'image(opcode(4)) & std_logic'image(opcode(3)) & ")";
+                    if DEBUG_VERBOSE then
+                        report "Decoded as conditional CALL (CCC=" &
+                               std_logic'image(opcode(5)) & std_logic'image(opcode(4)) & std_logic'image(opcode(3)) & ")";
+                    end if;
                 elsif opcode(2 downto 0) = "111" then
                     -- 01 XXX 111 = RET
                     is_ret_op <= '1';
@@ -923,12 +981,16 @@ begin
                         -- INP: Read from input port into accumulator
                         is_inp_op <= '1';
                         io_port_addr <= "00" & opcode(3 downto 1);  -- 3-bit port address (extended to 5 bits)
-                        report "Decoded as INP (port=" & integer'image(to_integer(unsigned(opcode(3 downto 1)))) & ")";
+                        if DEBUG_VERBOSE then
+                            report "Decoded as INP (port=" & integer'image(to_integer(unsigned(opcode(3 downto 1)))) & ")";
+                        end if;
                     else
                         -- OUT: Write accumulator to output port
                         is_out_op <= '1';
                         io_port_addr <= opcode(5 downto 1);  -- 5-bit port address
-                        report "Decoded as OUT (port=" & integer'image(to_integer(unsigned(opcode(5 downto 1)))) & ")";
+                        if DEBUG_VERBOSE then
+                            report "Decoded as OUT (port=" & integer'image(to_integer(unsigned(opcode(5 downto 1)))) & ")";
+                        end if;
                     end if;
                 end if;
 
@@ -999,9 +1061,11 @@ begin
 
             -- Debug: log state at every phi1 edge during T5
             if timing_state = T5 then
-                report "At T5 phi1 edge: clock_phase=" & std_logic'image(clock_phase) &
-                       " skip_exec=" & std_logic'image(skip_exec_states) &
-                       " microcode=" & microcode_state_t'image(microcode_state);
+                if DEBUG_VERBOSE then
+                    report "At T5 phi1 edge: clock_phase=" & std_logic'image(clock_phase) &
+                           " skip_exec=" & std_logic'image(skip_exec_states) &
+                           " microcode=" & microcode_state_t'image(microcode_state);
+                end if;
             end if;
 
             -- Microcode state transitions happen at end of cycle
@@ -1025,10 +1089,12 @@ begin
                (timing_state = T3 and clock_phase = '0' and skip_exec_states = '1' and microcode_state /= FETCH) or
                (timing_state = T5 and clock_phase = '0' and skip_exec_states = '0') then
 
-                report "Microcode handler entered: timing_state=" & timing_state_t'image(timing_state) &
-                       " clock_phase=" & std_logic'image(clock_phase) &
-                       " skip_exec=" & std_logic'image(skip_exec_states) &
-                       " microcode_state=" & microcode_state_t'image(microcode_state);
+                if DEBUG_VERBOSE then
+                    report "Microcode handler entered: timing_state=" & timing_state_t'image(timing_state) &
+                           " clock_phase=" & std_logic'image(clock_phase) &
+                           " skip_exec=" & std_logic'image(skip_exec_states) &
+                           " microcode_state=" & microcode_state_t'image(microcode_state);
+                end if;
 
                 case microcode_state is
                     when FETCH =>
@@ -1039,7 +1105,9 @@ begin
                         pc_increment_extra <= '0';  -- Clear extra increment flag after use
                         if is_halt_op = '1' then
                             -- HLT instruction - stop execution
-                            report "HLT instruction detected - entering STOPPED state";
+                            if DEBUG_VERBOSE then
+                                report "HLT instruction detected - entering STOPPED state";
+                            end if;
                             microcode_state <= FETCH;
                             skip_exec_states <= '1';  -- Stay in 3-state cycles
 
@@ -1051,10 +1119,12 @@ begin
                             reg_write_data <= rotate_result;
                             microcode_state <= FETCH;
                             skip_exec_states <= '1';
-                            report "Rotate operation: type=" & to_string(rotate_type) &
-                                   " A=0x" & to_hstring(unsigned(registers(REG_A))) &
-                                   " -> 0x" & to_hstring(unsigned(rotate_result)) &
-                                   " carry=" & std_logic'image(rotate_carry);
+                            if DEBUG_VERBOSE then
+                                report "Rotate operation: type=" & to_string(rotate_type) &
+                                       " A=0x" & to_hstring(unsigned(registers(REG_A))) &
+                                       " -> 0x" & to_hstring(unsigned(rotate_result)) &
+                                       " carry=" & std_logic'image(rotate_carry);
+                            end if;
 
                         elsif is_inc_op = '1' or is_dec_op = '1' then
                             -- Increment/Decrement Register
@@ -1064,12 +1134,16 @@ begin
 
                             if is_inc_op = '1' then
                                 inc_dec_result_var := reg_value + 1;
-                                report "INR: R" & integer'image(to_integer(unsigned(dst_reg))) &
-                                       " <- 0x" & to_hstring(inc_dec_result_var) & " (was 0x" & to_hstring(reg_value) & ")";
+                                if DEBUG_VERBOSE then
+                                    report "INR: R" & integer'image(to_integer(unsigned(dst_reg))) &
+                                           " <- 0x" & to_hstring(inc_dec_result_var) & " (was 0x" & to_hstring(reg_value) & ")";
+                                end if;
                             else
                                 inc_dec_result_var := reg_value - 1;
-                                report "DCR: R" & integer'image(to_integer(unsigned(dst_reg))) &
-                                       " <- 0x" & to_hstring(inc_dec_result_var) & " (was 0x" & to_hstring(reg_value) & ")";
+                                if DEBUG_VERBOSE then
+                                    report "DCR: R" & integer'image(to_integer(unsigned(dst_reg))) &
+                                           " <- 0x" & to_hstring(inc_dec_result_var) & " (was 0x" & to_hstring(reg_value) & ")";
+                                end if;
                             end if;
 
                             -- Write result back to register
@@ -1098,7 +1172,9 @@ begin
                                 microcode_state <= MEM_READ;
                                 skip_exec_states <= '0';  -- 5-state cycle: read M then execute
                                 pc_should_increment <= '0';  -- Don't increment PC for M register read
-                                report "ALU with M register source - initiating 5-state memory read+execute";
+                                if DEBUG_VERBOSE then
+                                    report "ALU with M register source - initiating 5-state memory read+execute";
+                                end if;
                             else
                                 -- ALU with register operand - execute immediately
                                 microcode_state <= EXECUTE;
@@ -1115,7 +1191,9 @@ begin
                                 cycle_type_reg <= "01";  -- PCR (data read)
                                 microcode_state <= IMMEDIATE;
                                 skip_exec_states <= '1';  -- 3-state cycle for immediate fetch
-                                report "LrI (Load register Immediate) - fetching immediate byte";
+                                if DEBUG_VERBOSE then
+                                    report "LrI (Load register Immediate) - fetching immediate byte";
+                                end if;
                             elsif src_is_memory = '1' and dst_is_memory = '0' then
                                 -- Load from memory to register (e.g., MOV B,M)
                                 -- Use 5-state cycle for memory read (per Intel 8008: 8 states total = 3 PCI + 5 for load)
@@ -1123,7 +1201,9 @@ begin
                                 microcode_state <= MEM_READ;
                                 skip_exec_states <= '0';  -- 5-state cycle for memory read
                                 pc_should_increment <= '0';  -- Don't increment PC for M register read
-                                report "MOV from memory - initiating 5-state memory read";
+                                if DEBUG_VERBOSE then
+                                    report "MOV from memory - initiating 5-state memory read";
+                                end if;
                             elsif dst_is_memory = '1' and src_is_memory = '0' then
                                 -- Store register to memory (e.g., MOV M,B)
                                 -- Use 5-state cycle for memory write (per Intel 8008: 8 states total = 3 PCI + 5 for store)
@@ -1132,7 +1212,9 @@ begin
                                 skip_exec_states <= '0';  -- 5-state cycle for memory write
                                 pc_should_increment <= '0';  -- Don't increment PC for M register write
                                 data_out <= registers(to_integer(unsigned(src_reg)));
-                                report "MOV to memory - initiating 5-state memory write";
+                                if DEBUG_VERBOSE then
+                                    report "MOV to memory - initiating 5-state memory write";
+                                end if;
                             elsif src_is_memory = '1' and dst_is_memory = '1' then
                                 -- M to M is illegal (both can't be memory)
                                 report "ERROR: Illegal M to M operation" severity error;
@@ -1141,7 +1223,9 @@ begin
                                 skip_exec_states <= '1';  -- 3-state cycle
                             else
                                 -- Regular register-to-register move
-                                report "MOV register-to-register detected - setting skip_exec='0' for 5-state EXECUTE";
+                                if DEBUG_VERBOSE then
+                                    report "MOV register-to-register detected - setting skip_exec='0' for 5-state EXECUTE";
+                                end if;
                                 microcode_state <= EXECUTE;
                                 skip_exec_states <= '0';  -- 5-state cycle for register transfer
                                 pc_should_increment <= '0';  -- Don't increment PC during EXECUTE (already incremented when fetching instruction)
@@ -1152,14 +1236,18 @@ begin
                             cycle_type_reg <= "01";  -- PCR (data read)
                             microcode_state <= ADDR_LOW;
                             skip_exec_states <= '1';  -- 3-state cycle for address fetch
-                            report "Jump instruction - fetching address low byte";
+                            if DEBUG_VERBOSE then
+                                report "Jump instruction - fetching address low byte";
+                            end if;
 
                         elsif is_call_op = '1' then
                             -- CALL instruction - need to fetch 2 address bytes, then push PC
                             cycle_type_reg <= "01";  -- PCR (data read)
                             microcode_state <= ADDR_LOW;
                             skip_exec_states <= '1';  -- 3-state cycle for address fetch
-                            report "CALL instruction - fetching address low byte";
+                            if DEBUG_VERBOSE then
+                                report "CALL instruction - fetching address low byte";
+                            end if;
 
                         elsif is_ret_op = '1' then
                             -- RET instruction (unconditional or conditional)
@@ -1170,8 +1258,10 @@ begin
                                 jump_addr_high <= std_logic_vector(address_stack(to_integer(stack_pointer))(13 downto 8));
                                 stack_pointer <= stack_pointer - 1;
                                 perform_jump <= '1';  -- Use jump mechanism to load PC
-                                report "RET (unconditional): Popping PC from stack[" & integer'image(to_integer(stack_pointer)) &
-                                       "] = 0x" & to_hstring(address_stack(to_integer(stack_pointer)));
+                                if DEBUG_VERBOSE then
+                                    report "RET (unconditional): Popping PC from stack[" & integer'image(to_integer(stack_pointer)) &
+                                           "] = 0x" & to_hstring(address_stack(to_integer(stack_pointer)));
+                                end if;
                             else
                                 -- Conditional RET - evaluate condition
                                 -- Condition codes (C4C3): 00=carry, 01=zero, 10=sign, 11=parity
@@ -1192,12 +1282,16 @@ begin
                                     jump_addr_high <= std_logic_vector(address_stack(to_integer(stack_pointer))(13 downto 8));
                                     stack_pointer <= stack_pointer - 1;
                                     perform_jump <= '1';
-                                    report "Conditional RET condition MET - popping PC from stack[" & integer'image(to_integer(stack_pointer)) &
-                                           "] = 0x" & to_hstring(address_stack(to_integer(stack_pointer)));
+                                    if DEBUG_VERBOSE then
+                                        report "Conditional RET condition MET - popping PC from stack[" & integer'image(to_integer(stack_pointer)) &
+                                               "] = 0x" & to_hstring(address_stack(to_integer(stack_pointer)));
+                                    end if;
                                 else
                                     -- Condition not met - do nothing, continue execution
                                     perform_jump <= '0';
-                                    report "Conditional RET condition NOT MET - continuing execution";
+                                    if DEBUG_VERBOSE then
+                                        report "Conditional RET condition NOT MET - continuing execution";
+                                    end if;
                                 end if;
                             end if;
                             -- Return to fetch next instruction (at popped address if jumped, or next sequential if not)
@@ -1221,11 +1315,13 @@ begin
                             jump_addr_high <= "000000";  -- Upper 6 bits always 0 for RST
                             perform_jump <= '1';
 
-                            report "RST " & integer'image(to_integer(unsigned(rst_vector))) &
-                                   ": Pushing PC+1=0x" & to_hstring(program_counter + 1) &
-                                   " to stack[" & integer'image(to_integer(stack_pointer + 1)) &
-                                   "], jumping to 0x" &
-                                   to_hstring(to_unsigned(to_integer(unsigned(rst_vector)) * 8, 14));
+                            if DEBUG_VERBOSE then
+                                report "RST " & integer'image(to_integer(unsigned(rst_vector))) &
+                                       ": Pushing PC+1=0x" & to_hstring(program_counter + 1) &
+                                       " to stack[" & integer'image(to_integer(stack_pointer + 1)) &
+                                       "], jumping to 0x" &
+                                       to_hstring(to_unsigned(to_integer(unsigned(rst_vector)) * 8, 14));
+                            end if;
 
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI
@@ -1237,8 +1333,10 @@ begin
                             reg_write_enable <= '1';
                             reg_write_addr <= REG_A;
                             reg_write_data <= port_in;
-                            report "INP: A <- PORT[" & integer'image(to_integer(unsigned(io_port_addr(2 downto 0)))) &
-                                   "] (value=0x" & to_hstring(unsigned(port_in)) & ")";
+                            if DEBUG_VERBOSE then
+                                report "INP: A <- PORT[" & integer'image(to_integer(unsigned(io_port_addr(2 downto 0)))) &
+                                       "] (value=0x" & to_hstring(unsigned(port_in)) & ")";
+                            end if;
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (next instruction fetch)
                             skip_exec_states <= '1';  -- 3-state cycle
@@ -1247,8 +1345,10 @@ begin
                             -- OUT instruction - write accumulator to output port
                             -- Single-byte instruction, executes in single 3-state cycle
                             -- Output is handled combinatorially via port_out and port_out_strobe signals
-                            report "OUT: PORT[" & integer'image(to_integer(unsigned(io_port_addr))) &
-                                   "] <- A (value=0x" & to_hstring(unsigned(registers(REG_A))) & ")";
+                            if DEBUG_VERBOSE then
+                                report "OUT: PORT[" & integer'image(to_integer(unsigned(io_port_addr))) &
+                                       "] <- A (value=0x" & to_hstring(unsigned(registers(REG_A))) & ")";
+                            end if;
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (next instruction fetch)
                             skip_exec_states <= '1';  -- 3-state cycle
@@ -1265,7 +1365,9 @@ begin
                         -- Just fetched immediate data (3-state PCR cycle completed)
                         -- IMPORTANT: Save immediate byte now before data_in changes!
                         immediate_data <= data_in;
-                        report "IMMEDIATE: Captured immediate byte 0x" & to_hstring(unsigned(data_in));
+                        if DEBUG_VERBOSE then
+                            report "IMMEDIATE: Captured immediate byte 0x" & to_hstring(unsigned(data_in));
+                        end if;
 
                         if is_alu_op = '1' then
                             -- ALU immediate operation - execute in next cycle
@@ -1275,17 +1377,21 @@ begin
                             microcode_state <= EXECUTE;
                             skip_exec_states <= '0';  -- 5-state cycle for execution
                             pc_should_increment <= '0';  -- Don't increment PC during EXECUTE (already incremented when fetching instruction and immediate)
-                            report "Immediate ALU operation - alu_command=" & to_string(alu_command) &
-                                   " A=0x" & to_hstring(unsigned(alu_data_0)) &
-                                   " imm=0x" & to_hstring(unsigned(data_in)) &
-                                   " transitioning to EXECUTE";
+                            if DEBUG_VERBOSE then
+                                report "Immediate ALU operation - alu_command=" & to_string(alu_command) &
+                                       " A=0x" & to_hstring(unsigned(alu_data_0)) &
+                                       " imm=0x" & to_hstring(unsigned(data_in)) &
+                                       " transitioning to EXECUTE";
+                            end if;
                         elsif is_load_op = '1' then
                             -- LrI (Load register Immediate) - write immediate to register
                             reg_write_enable <= '1';
                             reg_write_addr <= to_integer(unsigned(dst_reg));
                             reg_write_data <= data_in;
-                            report "LrI: R" & integer'image(to_integer(unsigned(dst_reg))) &
-                                   " <- 0x" & to_hstring(unsigned(data_in));
+                            if DEBUG_VERBOSE then
+                                report "LrI: R" & integer'image(to_integer(unsigned(dst_reg))) &
+                                       " <- 0x" & to_hstring(unsigned(data_in));
+                            end if;
                             -- Return to fetch next instruction
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (instruction fetch)
@@ -1303,7 +1409,9 @@ begin
                             reg_write_enable <= '1';
                             reg_write_addr <= REG_A;
                             reg_write_data <= alu_result(7 downto 0);
-                            report "ALU with M: A <= 0x" & to_hstring(unsigned(alu_result(7 downto 0)));
+                            if DEBUG_VERBOSE then
+                                report "ALU with M: A <= 0x" & to_hstring(unsigned(alu_result(7 downto 0)));
+                            end if;
                             -- Return to fetch next instruction
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (instruction fetch)
@@ -1315,8 +1423,10 @@ begin
                             reg_write_enable <= '1';
                             reg_write_addr <= to_integer(unsigned(dst_reg));
                             reg_write_data <= data_in;
-                            report "MOV R" & integer'image(to_integer(unsigned(dst_reg))) &
-                                   " <- M[0x" & to_hstring(memory_address) & "] = 0x" & to_hstring(unsigned(data_in));
+                            if DEBUG_VERBOSE then
+                                report "MOV R" & integer'image(to_integer(unsigned(dst_reg))) &
+                                       " <- M[0x" & to_hstring(memory_address) & "] = 0x" & to_hstring(unsigned(data_in));
+                            end if;
                             -- Return to fetch next instruction
                             microcode_state <= FETCH;
                             cycle_type_reg <= "00";  -- PCI (instruction fetch)
@@ -1326,7 +1436,9 @@ begin
 
                     when MEM_WRITE =>
                         -- Just wrote data to memory (5-state PCW cycle completed at T5)
-                        report "Memory write: M[0x" & to_hstring(memory_address) & "] <- 0x" & to_hstring(unsigned(data_out));
+                        if DEBUG_VERBOSE then
+                            report "Memory write: M[0x" & to_hstring(memory_address) & "] <- 0x" & to_hstring(unsigned(data_out));
+                        end if;
                         -- Return to fetch next instruction
                         microcode_state <= FETCH;
                         cycle_type_reg <= "00";  -- PCI (instruction fetch)
@@ -1335,15 +1447,19 @@ begin
 
                     when EXECUTE =>
                         -- Execute the instruction (5-state cycle)
-                        report "EXECUTE state handler running at end of 5-state cycle";
+                        if DEBUG_VERBOSE then
+                            report "EXECUTE state handler running at end of 5-state cycle";
+                        end if;
                         if is_alu_op = '1' then
                             -- Write ALU result to accumulator (except for CMP which only sets flags)
                             -- CMP/CPI have alu_command = "111" and should NOT modify accumulator
-                            report "ALU EXECUTE: cmd=" & to_string(alu_command) &
-                                   " data_0=0x" & to_hstring(unsigned(alu_data_0)) &
-                                   " data_1=0x" & to_hstring(unsigned(alu_data_1)) &
-                                   " result=0x" & to_hstring(unsigned(alu_result(7 downto 0))) &
-                                   " carry=" & std_logic'image(alu_result(8));
+                            if DEBUG_VERBOSE then
+                                report "ALU EXECUTE: cmd=" & to_string(alu_command) &
+                                       " data_0=0x" & to_hstring(unsigned(alu_data_0)) &
+                                       " data_1=0x" & to_hstring(unsigned(alu_data_1)) &
+                                       " result=0x" & to_hstring(unsigned(alu_result(7 downto 0))) &
+                                       " carry=" & std_logic'image(alu_result(8));
+                            end if;
                             if alu_command /= "111" then
                                 reg_write_enable <= '1';
                                 reg_write_addr <= REG_A;
@@ -1354,23 +1470,29 @@ begin
                             reg_write_enable <= '1';
                             reg_write_addr <= to_integer(unsigned(dst_reg));
                             reg_write_data <= registers(to_integer(unsigned(src_reg)));
-                            report "MOV R" & integer'image(to_integer(unsigned(dst_reg))) &
-                                   " <- R" & integer'image(to_integer(unsigned(src_reg))) &
-                                   " (setting reg_write_enable=1, data=0x" & to_hstring(unsigned(registers(to_integer(unsigned(src_reg))))) & ")";
+                            if DEBUG_VERBOSE then
+                                report "MOV R" & integer'image(to_integer(unsigned(dst_reg))) &
+                                       " <- R" & integer'image(to_integer(unsigned(src_reg))) &
+                                       " (setting reg_write_enable=1, data=0x" & to_hstring(unsigned(registers(to_integer(unsigned(src_reg))))) & ")";
+                            end if;
                         elsif is_inp_op = '1' then
                             -- INP: Read from input port into accumulator
                             -- Port address is 3 bits (0-7) stored in io_port_addr(2:0)
                             reg_write_enable <= '1';
                             reg_write_addr <= REG_A;
                             reg_write_data <= port_in;
-                            report "INP: A <- PORT[" & integer'image(to_integer(unsigned(io_port_addr(2 downto 0)))) &
-                                   "] (value=0x" & to_hstring(unsigned(port_in)) & ")";
+                            if DEBUG_VERBOSE then
+                                report "INP: A <- PORT[" & integer'image(to_integer(unsigned(io_port_addr(2 downto 0)))) &
+                                       "] (value=0x" & to_hstring(unsigned(port_in)) & ")";
+                            end if;
                         elsif is_out_op = '1' then
                             -- OUT: Write accumulator to output port
                             -- Port address is 5 bits (0-31) stored in io_port_addr
                             -- Note: The actual output is handled combinatorially in the output assignment section
-                            report "OUT: PORT[" & integer'image(to_integer(unsigned(io_port_addr))) &
-                                   "] <- A (value=0x" & to_hstring(unsigned(registers(REG_A))) & ")";
+                            if DEBUG_VERBOSE then
+                                report "OUT: PORT[" & integer'image(to_integer(unsigned(io_port_addr))) &
+                                       "] <- A (value=0x" & to_hstring(unsigned(registers(REG_A))) & ")";
+                            end if;
                         end if;
 
                         -- Return to fetch next instruction (3-state PCI cycle)
@@ -1382,7 +1504,9 @@ begin
                     when ADDR_LOW =>
                         -- Just fetched low byte of address (3-state PCR cycle completed)
                         jump_addr_low <= data_in;
-                        report "Jump address low byte: 0x" & to_hstring(unsigned(data_in));
+                        if DEBUG_VERBOSE then
+                            report "Jump address low byte: 0x" & to_hstring(unsigned(data_in));
+                        end if;
                         -- Prevent PC increment at end of NEXT cycle (ADDR_HIGH)
                         -- PC WILL increment at end of THIS cycle (ADDR_LOW) using the current '1' value
                         pc_should_increment <= '0';  -- Takes effect next cycle (at ADDR_HIGH)
@@ -1395,7 +1519,9 @@ begin
                         -- Just fetched high byte of address (3-state PCR cycle completed)
                         -- Only use lower 6 bits for 14-bit address (8008 has 14-bit PC)
                         jump_addr_high <= data_in(5 downto 0);
-                        report "Address high byte: 0x" & to_hstring(unsigned(data_in(5 downto 0)));
+                        if DEBUG_VERBOSE then
+                            report "Address high byte: 0x" & to_hstring(unsigned(data_in(5 downto 0)));
+                        end if;
 
                         -- Check if this is a CALL or a JMP
                         if is_call_op = '1' then
@@ -1408,10 +1534,14 @@ begin
                                 -- Unconditional CALL - always push and jump
                                 stack_pointer <= stack_pointer + 1;
                                 address_stack(to_integer(stack_pointer + 1)) <= program_counter + 1;
-                                report "CALL (unconditional): Pushing PC+1=0x" & to_hstring(program_counter + 1) &
-                                       " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
+                                if DEBUG_VERBOSE then
+                                    report "CALL (unconditional): Pushing PC+1=0x" & to_hstring(program_counter + 1) &
+                                           " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
+                                end if;
                                 perform_jump <= '1';
-                                report "CALL target: 0x" & to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                if DEBUG_VERBOSE then
+                                    report "CALL target: 0x" & to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                end if;
                             else
                                 -- Conditional CALL - evaluate condition
                                 -- Condition codes (C4C3): 00=carry, 01=zero, 10=sign, 11=parity
@@ -1430,10 +1560,14 @@ begin
                                     -- Condition met - push return address and jump
                                     stack_pointer <= stack_pointer + 1;
                                     address_stack(to_integer(stack_pointer + 1)) <= program_counter + 1;
-                                    report "Conditional CALL condition MET - pushing PC+1=0x" & to_hstring(program_counter + 1) &
-                                           " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
+                                    if DEBUG_VERBOSE then
+                                        report "Conditional CALL condition MET - pushing PC+1=0x" & to_hstring(program_counter + 1) &
+                                               " to stack[" & integer'image(to_integer(stack_pointer + 1)) & "]";
+                                    end if;
                                     perform_jump <= '1';
-                                    report "CALL target: 0x" & to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                    if DEBUG_VERBOSE then
+                                        report "CALL target: 0x" & to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                    end if;
                                 else
                                     -- Condition not met - skip call
                                     perform_jump <= '0';
@@ -1441,7 +1575,9 @@ begin
                                     -- pc_should_increment was set to '0' during ADDR_LOW to prevent increment during ADDR_HIGH
                                     -- When call is NOT taken, set flag to increment PC an extra time
                                     pc_increment_extra <= '1';
-                                    report "Conditional CALL condition NOT MET - skipping call (will increment PC to skip high byte)";
+                                    if DEBUG_VERBOSE then
+                                        report "Conditional CALL condition NOT MET - skipping call (will increment PC to skip high byte)";
+                                    end if;
                                 end if;
                             end if;
 
@@ -1453,8 +1589,10 @@ begin
                             if jump_unconditional = '1' then
                                 -- Unconditional jump (JMP) - always jump
                                 perform_jump <= '1';
-                                report "Unconditional JMP - will jump to 0x" &
-                                       to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                if DEBUG_VERBOSE then
+                                    report "Unconditional JMP - will jump to 0x" &
+                                           to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                end if;
                             else
                                 -- Conditional jump (JFc or JTc) - evaluate condition
                                 -- Check the specified condition
@@ -1471,15 +1609,19 @@ begin
                                 if (jump_condition_sense = '1' and condition_met = '1') or
                                    (jump_condition_sense = '0' and condition_met = '0') then
                                     perform_jump <= '1';
-                                    report "Conditional jump condition MET - will jump to 0x" &
-                                           to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                    if DEBUG_VERBOSE then
+                                        report "Conditional jump condition MET - will jump to 0x" &
+                                               to_hstring(unsigned(data_in(5 downto 0)) & unsigned(jump_addr_low));
+                                    end if;
                                 else
                                     perform_jump <= '0';
                                     -- CRITICAL: PC must increment to skip past the high address byte
                                     -- pc_should_increment was set to '0' during ADDR_LOW to prevent increment during ADDR_HIGH
                                     -- When jump is NOT taken, set flag to increment PC an extra time
                                     pc_increment_extra <= '1';
-                                    report "Conditional jump condition NOT MET - will increment PC to skip high byte";
+                                    if DEBUG_VERBOSE then
+                                        report "Conditional jump condition NOT MET - will increment PC to skip high byte";
+                                    end if;
                                 end if;
                             end if;
                         end if;
@@ -1512,9 +1654,11 @@ begin
         elsif rising_edge(phi1) then
             -- Debug: Log all conditions at T1 to diagnose jump issue
             if timing_state = T1 then
-                report "PC jump check at T1: perform_jump=" & std_logic'image(perform_jump) &
-                       " clock_phase=" & std_logic'image(clock_phase) &
-                       " timing_state=" & timing_state_t'image(timing_state);
+                if DEBUG_VERBOSE then
+                    report "PC jump check at T1: perform_jump=" & std_logic'image(perform_jump) &
+                           " clock_phase=" & std_logic'image(clock_phase) &
+                           " timing_state=" & timing_state_t'image(timing_state);
+                end if;
             end if;
 
             -- Check if we should perform a jump (set in ADDR_HIGH or RET state)
@@ -1524,7 +1668,9 @@ begin
             if perform_jump = '1' and timing_state = T1 and clock_phase = '1' then
                 -- Load PC with jump target address (14-bit)
                 program_counter <= unsigned(jump_addr_high) & unsigned(jump_addr_low);
-                report "Jump executed: PC <= 0x" & to_hstring(unsigned(jump_addr_high) & unsigned(jump_addr_low));
+                if DEBUG_VERBOSE then
+                    report "Jump executed: PC <= 0x" & to_hstring(unsigned(jump_addr_high) & unsigned(jump_addr_low));
+                end if;
                 -- NOTE: perform_jump is cleared in the Microcode Sequencer process in the next FETCH state
 
             -- Handle extra PC increment for conditional jumps that are NOT taken
@@ -1532,17 +1678,21 @@ begin
             -- This happens at T1 of the next FETCH cycle, before the address is output
             elsif pc_increment_extra = '1' and timing_state = T1 and clock_phase = '1' then
                 program_counter <= program_counter + 1;
-                report "Extra PC increment to skip unused high byte: " & integer'image(to_integer(program_counter + 1));
+                if DEBUG_VERBOSE then
+                    report "Extra PC increment to skip unused high byte: " & integer'image(to_integer(program_counter + 1));
+                end if;
 
             -- Increment PC at the end of each complete bus cycle
             -- unless we're about to jump
             elsif clock_phase = '0' then
                 -- Debug: report conditions
                 if timing_state = T3 or timing_state = T5 then
-                    report "PC check: clock_phase=" & std_logic'image(clock_phase) &
-                           " timing_state=" & timing_state_t'image(timing_state) &
-                           " perform_jump=" & std_logic'image(perform_jump) &
-                           " skip_exec=" & std_logic'image(skip_exec_states);
+                    if DEBUG_VERBOSE then
+                        report "PC check: clock_phase=" & std_logic'image(clock_phase) &
+                               " timing_state=" & timing_state_t'image(timing_state) &
+                               " perform_jump=" & std_logic'image(perform_jump) &
+                               " skip_exec=" & std_logic'image(skip_exec_states);
+                    end if;
                 end if;
 
                 -- PC increment logic:
@@ -1556,12 +1706,16 @@ begin
                         -- Always increment for FETCH (instruction fetch) and IMMEDIATE (data fetch)
                         if microcode_state = FETCH or microcode_state = IMMEDIATE or pc_should_increment = '1' then
                             program_counter <= program_counter + 1;
-                            report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (3-state cycle)";
+                            if DEBUG_VERBOSE then
+                                report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (3-state cycle)";
+                            end if;
                         end if;
                     -- 5-state cycles (T1-T2-T3-T4-T5): increment at end of T5 if pc_should_increment='1'
                     elsif timing_state = T5 and skip_exec_states = '0' and pc_should_increment = '1' then
                         program_counter <= program_counter + 1;
-                        report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (5-state cycle)";
+                        if DEBUG_VERBOSE then
+                            report "PC incremented to " & integer'image(to_integer(program_counter + 1)) & " (5-state cycle)";
+                        end if;
                     end if;
                 end if;
             end if;
