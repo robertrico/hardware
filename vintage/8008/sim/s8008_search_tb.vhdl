@@ -43,10 +43,6 @@ architecture sim of s8008_search_tb is
             SYNC : out std_logic;
             READY : in std_logic;
             INT : in std_logic;
-            port_in : in std_logic_vector(7 downto 0);
-            port_out : out std_logic_vector(7 downto 0);
-            port_out_addr : out std_logic_vector(4 downto 0);
-            port_out_strobe : out std_logic;
             debug_reg_A : out std_logic_vector(7 downto 0);
             debug_reg_B : out std_logic_vector(7 downto 0);
             debug_reg_C : out std_logic_vector(7 downto 0);
@@ -106,10 +102,6 @@ architecture sim of s8008_search_tb is
     signal SYNC_tb : std_logic;
     signal READY_tb : std_logic := '1';
     signal INT_tb : std_logic := '0';
-    signal port_in_tb : std_logic_vector(7 downto 0) := x"00";
-    signal port_out_tb : std_logic_vector(7 downto 0);
-    signal port_out_addr_tb : std_logic_vector(4 downto 0);
-    signal port_out_strobe_tb : std_logic;
 
     -- Debug signals
     signal debug_reg_A_tb : std_logic_vector(7 downto 0);
@@ -191,10 +183,6 @@ begin
             SYNC => SYNC_tb,
             READY => READY_tb,
             INT => INT_tb,
-            port_in => port_in_tb,
-            port_out => port_out_tb,
-            port_out_addr => port_out_addr_tb,
-            port_out_strobe => port_out_strobe_tb,
             debug_reg_A => debug_reg_A_tb,
             debug_reg_B => debug_reg_B_tb,
             debug_reg_C => debug_reg_C_tb,
