@@ -46,10 +46,6 @@ architecture behavior of s8008_io_tb is
             sync : out std_logic;
             ready : in std_logic;
             int : in std_logic;
-            port_in : in std_logic_vector(7 downto 0);
-            port_out : out std_logic_vector(7 downto 0);
-            port_out_addr : out std_logic_vector(4 downto 0);
-            port_out_strobe : out std_logic;
             debug_reg_A : out std_logic_vector(7 downto 0);
             debug_reg_B : out std_logic_vector(7 downto 0);
             debug_reg_C : out std_logic_vector(7 downto 0);
@@ -73,12 +69,6 @@ architecture behavior of s8008_io_tb is
     signal data_tb : std_logic_vector(7 downto 0);
     signal S0_tb, S1_tb, S2_tb : std_logic;
     signal sync_tb : std_logic;
-
-    -- I/O port signals
-    signal port_in_tb : std_logic_vector(7 downto 0) := x"00";
-    signal port_out_tb : std_logic_vector(7 downto 0);
-    signal port_out_addr_tb : std_logic_vector(4 downto 0);
-    signal port_out_strobe_tb : std_logic;
 
     -- Debug signals
     signal debug_reg_A_tb : std_logic_vector(7 downto 0);
@@ -146,13 +136,21 @@ architecture behavior of s8008_io_tb is
     signal test_complete : boolean := false;
     constant TIMEOUT : time := 500 us;
 
-    -- I/O port simulation
+    -- I/O port simulation (bus-based)
     type port_array_t is array (0 to 31) of std_logic_vector(7 downto 0);
     signal output_ports : port_array_t := (others => x"00");
+    signal io_port_addr : std_logic_vector(7 downto 0) := (others => '0');
+    signal io_cycle_type : std_logic_vector(1 downto 0) := "00";
+    signal is_io_cycle : boolean := false;
+    signal is_io_read : boolean := false;
+    signal io_bus_data : std_logic_vector(7 downto 0) := (others => '0');
+    signal io_drive_bus : std_logic := '0';
 
 begin
-    -- Bus driver
-    data_tb <= rom_data when rom_enable = '1' else (others => 'Z');
+    -- Bus driver (combines ROM and I/O bus control)
+    data_tb <= rom_data when rom_enable = '1' else
+               io_bus_data when io_drive_bus = '1' else
+               (others => 'Z');
 
     -- Instantiate the CPU
     uut : s8008
@@ -167,10 +165,6 @@ begin
             sync => sync_tb,
             ready => ready_tb,
             int => int_tb,
-            port_in => port_in_tb,
-            port_out => port_out_tb,
-            port_out_addr => port_out_addr_tb,
-            port_out_strobe => port_out_strobe_tb,
             debug_reg_A => debug_reg_A_tb,
             debug_reg_B => debug_reg_B_tb,
             debug_reg_C => debug_reg_C_tb,
@@ -243,23 +237,99 @@ begin
         end if;
     end process;
 
-    -- I/O port simulation
-    -- Input ports: provide test data based on current instruction being executed
-    -- For simplicity, we'll use a simple mapping where each port returns a unique value
-    -- The CPU will read via INP and we need to provide the correct value
-    -- Since we can't easily detect which port is being read, we'll use the port_out_addr
-    -- during INP operations. However, INP doesn't use port_out_addr, so we need a different approach.
-    -- Solution: Use a simple counter or fixed value that changes based on program execution
-    -- For this test, we'll just provide a fixed value and verify it gets read correctly
-    port_in_tb <= x"33";  -- Test value for INP operations
-
-    -- Output port capture
-    process(port_out_strobe_tb)
+    -- I/O cycle decoder (bus-based)
+    -- Decodes PCC cycles from state signals and data bus
+    -- Captures port address during T1 and cycle type during T2
+    io_cycle_decoder: process(phi1_tb)
     begin
-        if rising_edge(port_out_strobe_tb) then
-            output_ports(to_integer(unsigned(port_out_addr_tb))) <= port_out_tb;
-            report "OUT captured: PORT[" & integer'image(to_integer(unsigned(port_out_addr_tb))) &
-                   "] = 0x" & to_hstring(unsigned(port_out_tb));
+        if rising_edge(phi1_tb) then
+            if reset_tb = '1' then
+                io_port_addr <= (others => '0');
+                io_cycle_type <= "00";
+                is_io_cycle <= false;
+                io_drive_bus <= '0';
+            else
+                -- T1 (S2S1S0 = 010): Capture port address from data bus
+                if S2_tb = '0' and S1_tb = '1' and S0_tb = '0' then
+                    if data_tb /= "ZZZZZZZZ" then
+                        io_port_addr <= data_tb;
+                    end if;
+                    is_io_cycle <= false;  -- Not confirmed as I/O yet
+                    io_drive_bus <= '0';   -- Don't drive during T1
+
+                -- T2 (S2S1S0 = 001): Capture cycle type from data bus
+                elsif S2_tb = '0' and S1_tb = '0' and S0_tb = '1' then
+                    if data_tb /= "ZZZZZZZZ" then
+                        io_cycle_type <= data_tb(7 downto 6);
+                        -- Check if this is a PCC cycle (I/O operation)
+                        if data_tb(7 downto 6) = "10" then
+                            is_io_cycle <= true;
+                            -- Determine if INP or OUT based on port address
+                            -- INP: port_addr bits 7-3 are all 0 (00000MMM)
+                            -- OUT: port_addr bits 7-5 are 0, bits 4-3 can be non-zero (000RRMMM)
+                            is_io_read <= (io_port_addr(7 downto 3) = "00000");
+                        else
+                            is_io_cycle <= false;
+                        end if;
+                    end if;
+                    io_drive_bus <= '0';  -- Don't drive during T2
+
+                -- T3 (S2S1S0 = 100): Data transfer
+                -- For INP (read), drive the bus
+                -- For OUT (write), tri-state the bus (CPU drives it)
+                elsif S2_tb = '1' and S1_tb = '0' and S0_tb = '0' then
+                    if is_io_cycle and is_io_read then
+                        -- INP: Drive input data on bus
+                        io_drive_bus <= '1';
+                    else
+                        -- OUT or non-I/O: Don't drive bus
+                        io_drive_bus <= '0';
+                    end if;
+
+                -- Other states: Don't drive bus
+                else
+                    io_drive_bus <= '0';
+                end if;
+            end if;
+        end if;
+    end process;
+
+    -- I/O input data generation (for INP instructions)
+    -- Provide test data based on port address
+    io_input_data: process(io_port_addr)
+    begin
+        case io_port_addr(2 downto 0) is
+            when "000" =>
+                -- Port 0: Return test value
+                io_bus_data <= x"33";
+            when others =>
+                -- Other ports: Return 0x00
+                io_bus_data <= x"00";
+        end case;
+    end process;
+
+    -- I/O output capture (for OUT instructions)
+    -- Captures data during T3 of PCC write cycles
+    io_output_capture: process(phi1_tb)
+        variable last_state : std_logic_vector(2 downto 0) := "000";
+        variable current_state : std_logic_vector(2 downto 0);
+    begin
+        if rising_edge(phi1_tb) then
+            current_state := S2_tb & S1_tb & S0_tb;
+
+            -- Detect rising edge of T3 (transition to S2S1S0=100)
+            -- During T3 of an OUT operation
+            if current_state = "100" and last_state /= "100" then
+                if is_io_cycle and not is_io_read then
+                    -- Capture output data from bus
+                    output_ports(to_integer(unsigned(io_port_addr(4 downto 0)))) <= data_tb;
+                    report "OUT captured: PORT[" & integer'image(to_integer(unsigned(io_port_addr(4 downto 0)))) &
+                           "] = 0x" & to_hstring(unsigned(data_tb));
+                end if;
+            end if;
+
+            -- Track state for edge detection
+            last_state := current_state;
         end if;
     end process;
 

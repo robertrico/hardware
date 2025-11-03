@@ -103,7 +103,7 @@ architecture rtl of s8008 is
     -- Debug Configuration
     --===========================================
     -- Set to false to reduce simulation noise (hides clock toggle messages)
-    constant DEBUG_VERBOSE : boolean := false;
+    constant DEBUG_VERBOSE : boolean := true;
 
     --===========================================
     -- Internal Signals
@@ -597,7 +597,7 @@ begin
                     data_bus_output <= (others => '0');
                     data_bus_enable <= '0';
                 elsif microcode_state = IO_TRANSFER and is_out_op = '1' then
-                    -- OUT: Drive accumulator on bus
+                    -- OUT: Drive accumulator on bus (always from accumulator)
                     data_bus_output <= registers(REG_A);
                     data_bus_enable <= '1';
                 else
@@ -991,8 +991,9 @@ begin
                         end if;
                     else
                         -- OUT: Write accumulator to output port
+                        -- RR field (bits 5:4) is part of port address, NOT source register selector
                         is_out_op <= '1';
-                        io_port_addr <= "000" & opcode(5 downto 1);  -- 8-bit: 000RRMMM
+                        io_port_addr <= "000" & opcode(5 downto 1);  -- 8-bit: 000RRMMM (full 5-bit port address)
                         if DEBUG_VERBOSE then
                             report "Decoded as OUT (port=" & integer'image(to_integer(unsigned(opcode(5 downto 1)))) & ")";
                         end if;
@@ -1342,7 +1343,7 @@ begin
                             microcode_state <= IO_TRANSFER;
                             cycle_type_reg <= "10";  -- PCC (I/O cycle)
                             skip_exec_states <= '0';  -- 5-state cycle (T1, T2, T3, T4, T5)
-                            pc_should_increment <= '1';  -- Reset for next instruction fetch
+                            pc_should_increment <= '0';  -- Don't increment PC during I/O cycle
 
                         elsif is_out_op = '1' then
                             -- OUT instruction - transition to I/O transfer cycle
@@ -1354,7 +1355,7 @@ begin
                             microcode_state <= IO_TRANSFER;
                             cycle_type_reg <= "10";  -- PCC (I/O cycle)
                             skip_exec_states <= '1';  -- 3-state cycle (T1, T2, T3)
-                            pc_should_increment <= '1';  -- Reset for next instruction fetch
+                            pc_should_increment <= '0';  -- Don't increment PC during I/O cycle
 
                         else
                             -- Other instructions not yet implemented

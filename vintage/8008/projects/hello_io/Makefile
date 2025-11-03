@@ -15,7 +15,7 @@ WORK_DIR = work
 #==========================================
 # Simulation Configuration
 #==========================================
-STOP_TIME_s8008_hello_io_tb = 15000us
+STOP_TIME_s8008_hello_io_tb = 3050us
 SIM_STOP_TIME ?= $(or $(STOP_TIME_$(TB_ENTITY)),1ms)
 
 #==========================================

@@ -45,10 +45,11 @@ PRINT_LOOP:
         cpi 0x00            ; CPI 0x00 - Compare immediate with 0
         jz DONE             ; JZ DONE - Jump if zero (found terminator)
 
-        ; Output character to console (Port 0)
-        ; Note: 8008 OUT instruction: OUT RRMMM where RR=register, MMM=port
-        ; OUT from A register (RR=00) to port 0 (MMM=000) = 00000 + 8 = 8
-        out 8               ; OUT 8 - Output A to port 0 (Console TX Data)
+        ; Output character to console (Port 8)
+        ; Note: 8008 OUT instruction always outputs from accumulator
+        ; RR field in opcode is part of port address, not source register
+        ; Port 8 = RRMMM where RR=01, MMM=000 (first group of 8 OUT ports)
+        out 8               ; OUT 8 - Output A to port 8 (maps to logical port 0)
 
         ; Increment pointer (L only, string is small)
         inr l               ; INR L - Increment L register
