@@ -44,6 +44,9 @@ STOP_TIME_s8008_stack_tb = 200us
 STOP_TIME_s8008_inc_dec_tb = 1000us
 STOP_TIME_s8008_rst_tb = 800us
 STOP_TIME_s8008_search_tb = 16000us
+STOP_TIME_s8008_ram_intensive_tb = 20000us
+STOP_TIME_s8008_ram_test_tb = 3000us
+STOP_TIME_s8008_simple_add_tb = 1000us
 
 # Get stop time for active test, or use default
 SIM_STOP_TIME ?= $(or $(STOP_TIME_$(ACTIVE_TB_ENTITY)),1ms)
@@ -132,6 +135,15 @@ test-rst:
 
 test-search:
 	@$(MAKE) sim TEST=s8008_search_tb
+
+test-ram-intensive:
+	@$(MAKE) sim TEST=s8008_ram_intensive_tb
+
+test-ram-test:
+	@$(MAKE) sim TEST=s8008_ram_test_tb
+
+test-simple-add:
+	@$(MAKE) sim TEST=s8008_simple_add_tb
 
 #==========================================
 # Program Assembly and ROM Loading

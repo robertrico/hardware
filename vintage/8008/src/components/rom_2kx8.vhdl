@@ -12,6 +12,10 @@ use STD.TEXTIO.ALL;
 use IEEE.STD_LOGIC_TEXTIO.ALL;
 
 entity rom_2kx8 is
+    generic(
+        -- ROM initialization file
+        ROM_FILE : string := "test_programs/simple_add.mem"
+    );
     port(
         -- 11-bit address (2^11 = 2048)
         ADDR : in std_logic_vector(10 downto 0);
@@ -74,7 +78,7 @@ architecture rtl of rom_2kx8 is
     end function;
 
     -- Initialize ROM by loading from file
-    signal rom : rom_array := load_rom("test_programs/search.mem");
+    signal rom : rom_array := load_rom(ROM_FILE);
 
 begin
     process(ADDR, CS_N)
