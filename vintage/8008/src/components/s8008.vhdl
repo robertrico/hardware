@@ -656,8 +656,8 @@ begin
     --===========================================
     -- Flag Update Logic
     --===========================================
-    -- Updates condition flags based on ALU results
-    -- Only updates during ALU operations
+    -- Updates condition flags based on ALU, rotate, and INC/DEC results
+    -- Centralizes all flag updates to avoid multiple driver issues
     process(phi1, reset_n)
         variable result_byte : std_logic_vector(7 downto 0);
         variable parity_count : integer;
@@ -678,6 +678,7 @@ begin
             if is_rotate_op = '1' and timing_state = T3 and clock_phase = '1' then
                 flag_carry <= rotate_carry;
             elsif is_alu_op = '1' and timing_state = T5 and clock_phase = '0' then
+                -- ALU operation flag update
                 result_byte := alu_result(7 downto 0);
 
                 -- Carry flag (bit 8 of ALU result)
@@ -686,8 +687,10 @@ begin
                 -- Zero flag (result is all zeros)
                 if result_byte = x"00" then
                     flag_zero <= '1';
+                    report "Flag update (ALU): result=0x00, setting Z=1";
                 else
                     flag_zero <= '0';
+                    report "Flag update (ALU): result=0x" & to_hstring(unsigned(result_byte)) & ", setting Z=0";
                 end if;
 
                 -- Sign flag (bit 7 of result)
@@ -706,10 +709,44 @@ begin
                     flag_parity <= '0';
                 end if;
 
-                report "Flags updated: C=" & std_logic'image(alu_result(8)) &
-                       " Z=" & std_logic'image(flag_zero) &
+                report "Flags updated (ALU): C=" & std_logic'image(alu_result(8)) &
+                       " Z=" & std_logic'image(flag_zero) & " (old value, will update next cycle)" &
                        " S=" & std_logic'image(result_byte(7)) &
                        " P=" & std_logic'image(flag_parity);
+            elsif (is_inc_op = '1' or is_dec_op = '1') and timing_state = T3 and clock_phase = '0' and reg_write_enable = '1' then
+                -- INR/DCR operation flag update
+                -- These execute in 3-state cycles, complete at T3 end
+                -- Flags affected: Z, S, P (NOT Carry!)
+                -- Use reg_write_data which is set by microcode handler in same clock cycle
+                result_byte := reg_write_data;
+
+                -- Zero flag
+                if result_byte = x"00" then
+                    flag_zero <= '1';
+                else
+                    flag_zero <= '0';
+                end if;
+
+                -- Sign flag (bit 7)
+                flag_sign <= result_byte(7);
+
+                -- Parity flag (even parity = 1)
+                parity_count := 0;
+                for i in 0 to 7 loop
+                    if result_byte(i) = '1' then
+                        parity_count := parity_count + 1;
+                    end if;
+                end loop;
+                if (parity_count mod 2) = 0 then
+                    flag_parity <= '1';
+                else
+                    flag_parity <= '0';
+                end if;
+
+                report "Flags updated (INC/DEC): Z=" & std_logic'image(flag_zero) &
+                       " S=" & std_logic'image(result_byte(7)) &
+                       " P=" & std_logic'image(flag_parity) &
+                       " (Carry unchanged)";
             end if;
         end if;
     end process;
@@ -943,7 +980,7 @@ begin
     process(phi1, reset_n)
         variable condition_met : std_logic;  -- For evaluating jump conditions
         variable reg_value : unsigned(7 downto 0);  -- For INR/DCR operations
-        variable inc_dec_result : unsigned(7 downto 0);  -- For INR/DCR result
+        variable inc_dec_result_var : unsigned(7 downto 0);  -- For INR/DEC result (local variable)
     begin
         if reset_n = '0' then
             microcode_state <= FETCH;
@@ -1026,26 +1063,22 @@ begin
                             reg_value := unsigned(registers(to_integer(unsigned(dst_reg))));
 
                             if is_inc_op = '1' then
-                                inc_dec_result := reg_value + 1;
+                                inc_dec_result_var := reg_value + 1;
                                 report "INR: R" & integer'image(to_integer(unsigned(dst_reg))) &
-                                       " <- 0x" & to_hstring(inc_dec_result) & " (was 0x" & to_hstring(reg_value) & ")";
+                                       " <- 0x" & to_hstring(inc_dec_result_var) & " (was 0x" & to_hstring(reg_value) & ")";
                             else
-                                inc_dec_result := reg_value - 1;
+                                inc_dec_result_var := reg_value - 1;
                                 report "DCR: R" & integer'image(to_integer(unsigned(dst_reg))) &
-                                       " <- 0x" & to_hstring(inc_dec_result) & " (was 0x" & to_hstring(reg_value) & ")";
+                                       " <- 0x" & to_hstring(inc_dec_result_var) & " (was 0x" & to_hstring(reg_value) & ")";
                             end if;
 
                             -- Write result back to register
                             reg_write_enable <= '1';
                             reg_write_addr <= to_integer(unsigned(dst_reg));
-                            reg_write_data <= std_logic_vector(inc_dec_result);
+                            reg_write_data <= std_logic_vector(inc_dec_result_var);
 
-                            -- Update flags (NOT including Carry!)
-                            flag_zero <= '1' when inc_dec_result = x"00" else '0';
-                            flag_sign <= inc_dec_result(7);  -- MSB
-                            flag_parity <= not (inc_dec_result(7) xor inc_dec_result(6) xor inc_dec_result(5) xor inc_dec_result(4) xor
-                                                inc_dec_result(3) xor inc_dec_result(2) xor inc_dec_result(1) xor inc_dec_result(0));
-                            -- Carry flag is NOT modified by INR/DCR
+                            -- Flags are updated by dedicated flag process using reg_write_data
+                            -- Note: Carry flag is NOT modified by INR/DCR
 
                             -- Continue to next instruction
                             microcode_state <= FETCH;
@@ -1242,7 +1275,10 @@ begin
                             microcode_state <= EXECUTE;
                             skip_exec_states <= '0';  -- 5-state cycle for execution
                             pc_should_increment <= '0';  -- Don't increment PC during EXECUTE (already incremented when fetching instruction and immediate)
-                            report "ADI operation - transitioning to EXECUTE (5-state cycle)";
+                            report "Immediate ALU operation - alu_command=" & to_string(alu_command) &
+                                   " A=0x" & to_hstring(unsigned(alu_data_0)) &
+                                   " imm=0x" & to_hstring(unsigned(data_in)) &
+                                   " transitioning to EXECUTE";
                         elsif is_load_op = '1' then
                             -- LrI (Load register Immediate) - write immediate to register
                             reg_write_enable <= '1';
@@ -1303,12 +1339,16 @@ begin
                         if is_alu_op = '1' then
                             -- Write ALU result to accumulator (except for CMP which only sets flags)
                             -- CMP/CPI have alu_command = "111" and should NOT modify accumulator
+                            report "ALU EXECUTE: cmd=" & to_string(alu_command) &
+                                   " data_0=0x" & to_hstring(unsigned(alu_data_0)) &
+                                   " data_1=0x" & to_hstring(unsigned(alu_data_1)) &
+                                   " result=0x" & to_hstring(unsigned(alu_result(7 downto 0))) &
+                                   " carry=" & std_logic'image(alu_result(8));
                             if alu_command /= "111" then
                                 reg_write_enable <= '1';
                                 reg_write_addr <= REG_A;
                                 reg_write_data <= alu_result(7 downto 0);
                             end if;
-                            report "ALU operation: 0x" & to_hstring(unsigned(alu_result(7 downto 0)));
                         elsif is_load_op = '1' then
                             -- MOV: write source register to destination register
                             reg_write_enable <= '1';

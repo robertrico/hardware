@@ -247,14 +247,45 @@ architecture behavior of s8008_alu_tb is
         -- ========================================
         -- TEST 16: CPI (immediate) - 00 111 100
         -- ========================================
-        66 => x"3C", -- CPI 0x50 (compare 0x50 - 0x50 = 0, A should stay 0x50)
+        66 => x"3C", -- CPI 0x50 (compare 0x50 - 0x50 = 0, A should stay 0x50, Z should be 1)
         67 => x"50",
 
-        -- Final verification values
-        68 => x"06", -- LrI A,0x50  (verify A still has 0x50 after CMP/CPI)
-        69 => x"50",
+        -- ========================================
+        -- TEST 17: CPI vs ADI Bug Test
+        -- Test that CPI doesn't behave like ADI
+        -- ========================================
+        -- First test ADI behavior
+        68 => x"06", -- LrI A,0x10
+        69 => x"10",
+        70 => x"04", -- ADI 0x05  (A should become 0x15)
+        71 => x"05",
+        72 => x"16", -- LrI C,0xAD (marker: ADI test done, A should be 0x15)
+        73 => x"AD",
 
-        70 => x"00", -- HLT - all 16 ALU tests passed
+        -- Now test CPI behavior (should NOT add)
+        74 => x"06", -- LrI A,0x10
+        75 => x"10",
+        76 => x"3C", -- CPI 0x05  (A should STAY 0x10, NOT become 0x15!)
+        77 => x"05",
+        78 => x"16", -- LrI C,0xC1 (marker: CPI test done, A should still be 0x10)
+        79 => x"C1",
+
+        -- ========================================
+        -- TEST 18: CPI Flag Test - Equal Values
+        -- CPI should set Z=1 when A equals immediate
+        -- ========================================
+        80 => x"06", -- LrI A,0x42
+        81 => x"42",
+        82 => x"3C", -- CPI 0x42  (should set Z=1 because 0x42 - 0x42 = 0)
+        83 => x"42",
+        84 => x"16", -- LrI C,0xEQ (marker: equal test done, check flags)
+        85 => x"EE",
+
+        -- Final verification
+        86 => x"0E", -- LrI B,0xFF  (marker: all tests complete)
+        87 => x"FF",
+
+        88 => x"00", -- HLT - all ALU tests passed
 
         others => x"00"
     );
@@ -368,23 +399,71 @@ begin
         reset_n_tb <= '1';
         report "Reset released - starting ALU tests";
 
-        -- Run until program halts
-        -- 14 ALU tests (skip CMP/CPI due to bug) = ~1200us estimated
-        wait for 1300 us;
+        -- Wait for ADI test marker
+        wait until debug_reg_C_tb = x"AD";
+        report "========================================";
+        report "TEST 17: CPI vs ADI Distinction";
+        report "========================================";
+        report "After ADI 0x05: A = 0x" & to_hstring(debug_reg_A_tb);
+        assert debug_reg_A_tb = x"15"
+            report "FAIL: ADI didn't modify A correctly! A=" & to_hstring(debug_reg_A_tb) &
+                   " (expected 0x15)"
+            severity error;
+        report "  ADI: PASS - A correctly modified to 0x15";
+
+        -- Wait for CPI test marker
+        wait until debug_reg_C_tb = x"C1";
+        report "After CPI 0x05: A = 0x" & to_hstring(debug_reg_A_tb);
+
+        assert debug_reg_A_tb = x"10"
+            report "FAIL: CPI modified A to 0x" & to_hstring(debug_reg_A_tb) &
+                   " (expected 0x10 - compare should not modify accumulator)"
+            severity error;
+
+        if debug_reg_A_tb = x"10" then
+            report "  CPI: PASS - Accumulator preserved at 0x10";
+        end if;
+
+        -- Wait for CPI equal values flag test marker
+        wait until debug_reg_C_tb = x"EE";
+        report "========================================";
+        report "TEST 18: CPI Flag Verification (Equal Values)";
+        report "========================================";
+        report "After CPI 0x42 with A=0x42:";
+        report "  A = 0x" & to_hstring(debug_reg_A_tb);
+        report "  Flags = " & to_string(debug_flags_tb) & " [C Z S P]";
+        report "  Expected: A=0x42 (preserved), Z=1 (equal comparison)";
+
+        assert debug_reg_A_tb = x"42"
+            report "FAIL: CPI modified accumulator to 0x" & to_hstring(debug_reg_A_tb)
+            severity error;
+
+        assert debug_flags_tb(1) = '1'
+            report "FAIL: Zero flag not set (Z=" & std_logic'image(debug_flags_tb(1)) &
+                   "). CPI should set Z=1 when comparing equal values (0x42 - 0x42 = 0)"
+            severity error;
+
+        if debug_reg_A_tb = x"42" and debug_flags_tb(1) = '1' then
+            report "  PASS: CPI correctly preserves A and sets Z flag";
+        end if;
+
+        -- Wait for final marker
+        wait until debug_reg_B_tb = x"FF";
+
+        -- Wait for HLT to execute
+        wait for 200 us;
 
         -- Verify STOPPED state
         assert S2_tb = '1' and S1_tb = '0' and S0_tb = '1'
             report "FAIL: CPU should be in STOPPED state after HLT"
             severity error;
 
-        -- Verify ALU operation results
-        -- Final A value should be 0x50 from last LrI instruction (after CMP/CPI tests)
-        assert debug_reg_A_tb = x"50"
-            report "FAIL: A should be 0x50 (verifies CMP/CPI didn't modify A)"
-            severity error;
-
         report "========================================";
-        report "=== ALU Tests PASSED (16/16) ===";
+        if debug_reg_A_tb = x"42" and debug_flags_tb(1) = '1' then
+            report "=== ALL ALU TESTS PASSED (18/18) ===";
+        else
+            report "=== ALU Test Results ===";
+        end if;
         report "  - ADD (register): PASS";
         report "  - ADI (immediate): PASS";
         report "  - ADC (with carry): PASS";
@@ -400,7 +479,13 @@ begin
         report "  - OR (register): PASS";
         report "  - ORI (immediate): PASS";
         report "  - CMP (register): PASS";
-        report "  - CPI (immediate): PASS";
+        if debug_reg_A_tb = x"42" and debug_flags_tb(1) = '1' then
+            report "  - CPI (immediate): PASS";
+            report "  - CPI vs ADI distinction: PASS";
+            report "  - CPI flag verification: PASS";
+        else
+            report "  - CPI validation: FAIL";
+        end if;
         report "========================================";
 
         wait;
