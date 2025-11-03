@@ -74,7 +74,7 @@ architecture rtl of rom_2kx8 is
     end function;
 
     -- Initialize ROM by loading from file
-    signal rom : rom_array := load_rom("test_programs/ram_intensive.mem");
+    signal rom : rom_array := load_rom("test_programs/search.mem");
 
 begin
     process(ADDR, CS_N)

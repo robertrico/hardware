@@ -12,6 +12,8 @@ TB_ENTITY ?= s8008_tb
 #==========================================
 RTL_SOURCES = $(SRC_DIR)/components/i8008_alu.vhdl \
               $(SRC_DIR)/components/phase_clocks.vhdl \
+              $(SRC_DIR)/components/rom_2kx8.vhdl \
+              $(SRC_DIR)/components/ram_1kx8.vhdl \
               $(SRC_DIR)/components/s8008.vhdl
 
 # Main comprehensive testbench
@@ -41,6 +43,7 @@ STOP_TIME_s8008_rotate_tb = 400us
 STOP_TIME_s8008_stack_tb = 200us
 STOP_TIME_s8008_inc_dec_tb = 1000us
 STOP_TIME_s8008_rst_tb = 800us
+STOP_TIME_s8008_search_tb = 5000us
 
 # Get stop time for active test, or use default
 SIM_STOP_TIME ?= $(or $(STOP_TIME_$(ACTIVE_TB_ENTITY)),1ms)
@@ -49,6 +52,16 @@ SIM_STOP_TIME ?= $(or $(STOP_TIME_$(ACTIVE_TB_ENTITY)),1ms)
 # Include Common Build Rules
 #==========================================
 include common.mk
+
+#==========================================
+# Program Assembly Configuration
+#==========================================
+NAKEN_ASM ?= /Users/hackbook/Development/naken_asm/naken_asm
+TEST_PROG_DIR = test_programs
+PYTHON = python3
+
+# Default program to load
+ROM_PROGRAM ?= ram_test
 
 #==========================================
 # Extended Test Targets
@@ -116,3 +129,53 @@ test-inc-dec:
 
 test-rst:
 	@$(MAKE) sim TEST=s8008_rst_tb
+
+test-search:
+	@$(MAKE) sim TEST=s8008_search_tb
+
+#==========================================
+# Program Assembly and ROM Loading
+#==========================================
+
+# List available programs
+list-programs:
+	@echo "Available programs in $(TEST_PROG_DIR):"
+	@cd $(TEST_PROG_DIR) && ls -1 *.asm | sed 's/\.asm//'
+	@echo ""
+	@echo "Usage:"
+	@echo "  make asm ROM_PROGRAM=program_name      # Assemble program"
+	@echo "  make load-rom ROM_PROGRAM=program_name # Load into ROM"
+	@echo "  make asm-and-load ROM_PROGRAM=program_name  # Assemble and load"
+	@echo ""
+	@echo "Current ROM program: $(ROM_PROGRAM)"
+
+# Assemble a program
+asm:
+	@echo "=== Assembling $(ROM_PROGRAM).asm ==="
+	@if [ ! -f "$(TEST_PROG_DIR)/$(ROM_PROGRAM).asm" ]; then \
+		echo "Error: $(TEST_PROG_DIR)/$(ROM_PROGRAM).asm not found"; \
+		echo "Available programs:"; \
+		cd $(TEST_PROG_DIR) && ls -1 *.asm; \
+		exit 1; \
+	fi
+	cd $(TEST_PROG_DIR) && $(NAKEN_ASM) -I . -l -type hex -o $(ROM_PROGRAM).hex $(ROM_PROGRAM).asm
+	@echo "✓ Assembly complete: $(TEST_PROG_DIR)/$(ROM_PROGRAM).hex"
+	@echo "✓ Listing file: $(TEST_PROG_DIR)/$(ROM_PROGRAM).lst"
+
+# Convert HEX to MEM format and update ROM
+load-rom:
+	@echo "=== Loading $(ROM_PROGRAM) into ROM ==="
+	@if [ ! -f "$(TEST_PROG_DIR)/$(ROM_PROGRAM).hex" ]; then \
+		echo "Error: $(TEST_PROG_DIR)/$(ROM_PROGRAM).hex not found"; \
+		echo "Run 'make asm ROM_PROGRAM=$(ROM_PROGRAM)' first"; \
+		exit 1; \
+	fi
+	$(PYTHON) hex_to_mem.py $(TEST_PROG_DIR)/$(ROM_PROGRAM).hex $(TEST_PROG_DIR)/$(ROM_PROGRAM).mem
+	@echo "✓ Generated $(TEST_PROG_DIR)/$(ROM_PROGRAM).mem"
+	sed -i '' 's|test_programs/[^"]*\.mem|test_programs/$(ROM_PROGRAM).mem|' src/components/rom_2kx8.vhdl
+	@echo "✓ Updated ROM to load $(ROM_PROGRAM).mem"
+	@grep "load_rom" src/components/rom_2kx8.vhdl | grep signal
+
+# Assemble and load in one step
+asm-and-load: asm load-rom
+	@echo "=== Program $(ROM_PROGRAM) assembled and loaded into ROM ==="
