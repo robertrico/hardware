@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intel 8008 ISA Reference</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #666;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .category-row {
+            background-color: #e8e8e8 !important;
+            font-weight: bold;
+        }
+        .category-row small {
+            font-weight: normal;
+            font-style: italic;
+        }
+        sub {
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Intel 8008 ISA</h1>
+
+    <p>The <strong>8008 ISA</strong> (or <em>MCS-8 ISA</em>) was an instruction set architecture introduced by Intel in 1972 and was used in the 8008 and 8008-1 microprocessors.</p>
+
+    <p>This ISA has an 8-bit data and address bus. This architecture included seven 8-bit registers, 48 instructions, and interrupt capability.</p>
+
+    <h2>Registers</h2>
+
+    <p>The 8008 had seven scratchpad registers. A few of them had additional capabilities - <strong>A</strong> is used as an accumulator register. Registers <strong>H</strong> & <strong>L</strong> are high-order and low-order words of a 14-bit address.</p>
+
+    <table>
+        <tr>
+            <th>Register</th>
+            <th>Size</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td>A</td>
+            <td>8 bit</td>
+            <td>Accumulator</td>
+        </tr>
+        <tr>
+            <td>B</td>
+            <td>8 bit</td>
+            <td>GP</td>
+        </tr>
+        <tr>
+            <td>C</td>
+            <td>8 bit</td>
+            <td>GP</td>
+        </tr>
+        <tr>
+            <td>D</td>
+            <td>8 bit</td>
+            <td>GP</td>
+        </tr>
+        <tr>
+            <td>E</td>
+            <td>8 bit</td>
+            <td>GP</td>
+        </tr>
+        <tr>
+            <td>H</td>
+            <td>8 bit</td>
+            <td>High-order word</td>
+        </tr>
+        <tr>
+            <td>L</td>
+            <td>8 bit</td>
+            <td>Low-order word</td>
+        </tr>
+    </table>
+
+    <h2>Instruction Format</h2>
+
+    <p>Data on the 8008 is always stored in an 8-bit binary integer.</p>
+
+    <p>Instructions can be made of 1-3 bytes depending on operation. Multi-byte instructions must be stored in successive order in memory. Typical operations involving register-register operations such as arithmetic and logic operations only require one byte.</p>
+
+    <p>Instructions that involve an immediate value have 2 bytes. The first byte stores the opcode and the second byte stores the 8-bit value.</p>
+
+    <p>Instructions involving an address (such as CALL and JUMP) require a 14-bit address. This is done via a 3-byte instruction where the first byte is the opcode, the second byte is the low-order word, and the third byte is the high-order word. Note that the 2 MSBs on the high-order word are don't cares.</p>
+
+    <h2>Instruction Set</h2>
+
+    <p>The 8008 ISA has 48 instructions broken into several groups:</p>
+    <ul>
+        <li>Index Register Instructions</li>
+        <li>Accumulator Group Instructions</li>
+        <li>Program Counter and Stack Control Instructions</li>
+        <li>Input/Output Instructions</li>
+        <li>Machine Instructions</li>
+    </ul>
+
+    <p>In 1972, Intel introduced their first set of mnemonics for their instructions. This original set consists of three characters which meant it could easily be encoded into a lookup table. A few years later, when they released their 8080 and its instruction set, they also revamped the 8008 mnemonics to match the 8080's ones more closely. The newer mnemonics resemble a primitive version of modern x86 mnemonics. Both the "old" and the "new" mnemonics are listed below. Both mnemonics result in identical binary values.</p>
+
+    <table>
+        <tr>
+            <th colspan="5">8008 ISA</th>
+        </tr>
+        <tr>
+            <th>Mnemonic (old)</th>
+            <th>Mnemonic (new)</th>
+            <th>Len</th>
+            <th>Opcode</th>
+            <th>Action</th>
+        </tr>
+        <tr class="category-row">
+            <td colspan="5"><strong>Index Register Instructions</strong><br><small>Load instructions do not affect any flag. The Inc and Dec instructions affect all flags except carry.</small></td>
+        </tr>
+        <tr><td>LR<sub>d</sub>R<sub>s</sub></td><td>MOV R<sub>d</sub>, R<sub>s</sub></td><td>1</td><td>11 DDD SSS<sub>2</sub></td><td>R<sub>d</sub> = R<sub>s</sub></td></tr>
+        <tr><td>LR<sub>d</sub>M</td><td>MOV R<sub>d</sub>, M</td><td>1</td><td>11 DDD 111<sub>2</sub></td><td>R<sub>d</sub> = Mem</td></tr>
+        <tr><td>LMR<sub>s</sub></td><td>MOV M, R<sub>s</sub></td><td>1</td><td>11 111 SSS<sub>2</sub></td><td>Mem = R<sub>s</sub></td></tr>
+        <tr><td>LR<sub>d</sub>I</td><td>MVI R<sub>d</sub>, Imm</td><td>2</td><td>00 DDD 110<sub>2</sub></td><td>R<sub>d</sub> = Immed Value</td></tr>
+        <tr><td>LMI</td><td>MVI M, Imm</td><td>2</td><td>00 111 110<sub>2</sub></td><td>Mem = Immed Value</td></tr>
+        <tr><td>INR<sub>d</sub></td><td>INR R<sub>d</sub></td><td>1</td><td>00 DDD 000<sub>2</sub></td><td>R<sub>d</sub> = R<sub>d</sub> + 1 (R<sub>d</sub> ≠ A)</td></tr>
+        <tr><td>DCR<sub>d</sub></td><td>DCR R<sub>d</sub></td><td>1</td><td>00 DDD 001<sub>2</sub></td><td>R<sub>d</sub> = R<sub>d</sub> - 1 (R<sub>d</sub> ≠ A)</td></tr>
+
+        <tr class="category-row">
+            <td colspan="5"><strong>Accumulator Group Instructions</strong><br><small>The result of an ALU instruction affect all flags. The rotation instructions only affect the carry flag.</small></td>
+        </tr>
+        <tr><td>ADR<sub>s</sub></td><td>ADD R<sub>s</sub></td><td>1</td><td>10 000 SSS<sub>2</sub></td><td>A = A + R<sub>s</sub></td></tr>
+        <tr><td>ADM</td><td>ADD M</td><td>1</td><td>10 000 111<sub>2</sub></td><td>A = A + Mem</td></tr>
+        <tr><td>ADI</td><td>ADI</td><td>2</td><td>00 000 100<sub>2</sub></td><td>A = A + Immed Value</td></tr>
+        <tr><td>ACR<sub>s</sub></td><td>ADC R<sub>s</sub></td><td>1</td><td>10 001 SSS<sub>2</sub></td><td>A = Carry + R<sub>s</sub></td></tr>
+        <tr><td>ACM</td><td>ADC M</td><td>1</td><td>10 001 111<sub>2</sub></td><td>A = Carry + Mem</td></tr>
+        <tr><td>ACI</td><td>ACI</td><td>2</td><td>00 001 100<sub>2</sub></td><td>A = Carry + Immed Value</td></tr>
+        <tr><td>SUR<sub>s</sub></td><td>SUB R<sub>s</sub></td><td>1</td><td>10 010 SSS<sub>2</sub></td><td>A = A - R<sub>s</sub></td></tr>
+        <tr><td>SUM</td><td>SUB M</td><td>1</td><td>10 010 111<sub>2</sub></td><td>A = A - Mem</td></tr>
+        <tr><td>SUI</td><td>SUI</td><td>2</td><td>00 010 100<sub>2</sub></td><td>A = A - Immed Value</td></tr>
+        <tr><td>SBR<sub>s</sub></td><td>SBB R<sub>s</sub></td><td>1</td><td>10 011 SSS<sub>2</sub></td><td>A = A - (Carry + R<sub>s</sub>)</td></tr>
+        <tr><td>SBM</td><td>SBB M</td><td>1</td><td>10 011 111<sub>2</sub></td><td>A = A - (Carry + Mem)</td></tr>
+        <tr><td>SBI</td><td>SCI</td><td>2</td><td>00 011 100<sub>2</sub></td><td>A = A - (Carry + Immed Value)</td></tr>
+        <tr><td>NDR<sub>s</sub></td><td>ANA R<sub>s</sub></td><td>1</td><td>10 100 SSS<sub>2</sub></td><td>A = A ∧ R<sub>s</sub></td></tr>
+        <tr><td>NDM</td><td>ANA M</td><td>1</td><td>10 100 111<sub>2</sub></td><td>A = A ∧ Mem</td></tr>
+        <tr><td>NDI</td><td>ANI</td><td>2</td><td>00 100 100<sub>2</sub></td><td>A = A ∧ Immed Value</td></tr>
+        <tr><td>XRR<sub>s</sub></td><td>XRA R<sub>s</sub></td><td>1</td><td>10 101 SSS<sub>2</sub></td><td>A = A ⊕ R<sub>s</sub></td></tr>
+        <tr><td>XRM</td><td>XRA M</td><td>1</td><td>10 101 111<sub>2</sub></td><td>A = A ⊕ Mem</td></tr>
+        <tr><td>XRI</td><td>XRI</td><td>2</td><td>00 101 100<sub>2</sub></td><td>A = A ⊕ Immed Value</td></tr>
+        <tr><td>ORR<sub>s</sub></td><td>ORA R<sub>s</sub></td><td>1</td><td>10 110 SSS<sub>2</sub></td><td>A = A ∨ R<sub>s</sub></td></tr>
+        <tr><td>ORM</td><td>ORA M</td><td>1</td><td>10 110 111<sub>2</sub></td><td>A = A ∨ Mem</td></tr>
+        <tr><td>ORI</td><td>ORI</td><td>2</td><td>00 110 100<sub>2</sub></td><td>A = A ∨ Immed Value</td></tr>
+        <tr><td>CRR<sub>s</sub></td><td>CMP R<sub>s</sub></td><td>1</td><td>10 111 SSS<sub>2</sub></td><td>Compare A with R<sub>s</sub>, set flags</td></tr>
+        <tr><td>CRM</td><td>CMP M</td><td>1</td><td>10 111 111<sub>2</sub></td><td>Compare A with Mem, set flags</td></tr>
+        <tr><td>CRI</td><td>CPI</td><td>2</td><td>00 111 100<sub>2</sub></td><td>Compare A with Immed Value, set flags</td></tr>
+        <tr><td>RLC</td><td>RLC</td><td>1</td><td>00 000 010<sub>2</sub></td><td>Rotate A Left Once</td></tr>
+        <tr><td>RRC</td><td>RRC</td><td>1</td><td>00 001 010<sub>2</sub></td><td>Rotate A Right Once</td></tr>
+        <tr><td>RAL</td><td>RAL</td><td>1</td><td>00 010 010<sub>2</sub></td><td>Rotate A Left Through Carry Once</td></tr>
+        <tr><td>RAR</td><td>RAR</td><td>1</td><td>00 011 010<sub>2</sub></td><td>Rotate A Right Through Carry Once</td></tr>
+
+        <tr class="category-row">
+            <td colspan="5"><strong>Program Counter and Stack Control Instructions</strong></td>
+        </tr>
+        <tr><td>JMP</td><td>JMP</td><td>3</td><td>01 XXX 100<sub>2</sub></td><td>Unconditional Jump to immed address</td></tr>
+        <tr><td>JFC</td><td>JNC</td><td>3</td><td>01 000 000<sub>2</sub></td><td>If carry = 0, jump to immed address</td></tr>
+        <tr><td>JFZ</td><td>JNZ</td><td>3</td><td>01 001 000<sub>2</sub></td><td>If result ≠ 0, jump to immed address</td></tr>
+        <tr><td>JFS</td><td>JP</td><td>3</td><td>01 010 000<sub>2</sub></td><td>If sign = 0 (positive), jump to immed address</td></tr>
+        <tr><td>JFP</td><td>JPO</td><td>3</td><td>01 011 000<sub>2</sub></td><td>If parity = 0 (odd), jump to immed address</td></tr>
+        <tr><td>JTC</td><td>JC</td><td>3</td><td>01 100 000<sub>2</sub></td><td>If carry = 1, jump to immed address</td></tr>
+        <tr><td>JTZ</td><td>JZ</td><td>3</td><td>01 101 000<sub>2</sub></td><td>If result = 0, jump to immed address</td></tr>
+        <tr><td>JTS</td><td>JM</td><td>3</td><td>01 110 000<sub>2</sub></td><td>If sign = 1 (negative), jump to immed address</td></tr>
+        <tr><td>JTP</td><td>JPE</td><td>3</td><td>01 111 000<sub>2</sub></td><td>If parity = 1 (even), jump to immed address</td></tr>
+        <tr><td>CAL</td><td>CALL</td><td>3</td><td>01 XXX 110<sub>2</sub></td><td>Save current address onto the stack and jump to immed address</td></tr>
+        <tr><td>CFC</td><td>CNC</td><td>3</td><td>01 000 010<sub>2</sub></td><td>If carry = 0, save current address and jump to immed address</td></tr>
+        <tr><td>CFZ</td><td>CNZ</td><td>3</td><td>01 001 010<sub>2</sub></td><td>If result ≠ 0, save current address and jump to immed address</td></tr>
+        <tr><td>CFS</td><td>CP</td><td>3</td><td>01 010 010<sub>2</sub></td><td>If sign = 0 (positive), save current address and jump to immed address</td></tr>
+        <tr><td>CFP</td><td>CPO</td><td>3</td><td>01 011 010<sub>2</sub></td><td>If parity = 0 (odd), save current address and jump to immed address</td></tr>
+        <tr><td>CTC</td><td>CC</td><td>3</td><td>01 100 010<sub>2</sub></td><td>If carry = 1, save current address and jump to immed address</td></tr>
+        <tr><td>CTZ</td><td>CZ</td><td>3</td><td>01 101 010<sub>2</sub></td><td>If result = 0, save current address and jump to immed address</td></tr>
+        <tr><td>CTS</td><td>CM</td><td>3</td><td>01 110 010<sub>2</sub></td><td>If sign = 1 (negative), save current address and jump to immed address</td></tr>
+        <tr><td>CTP</td><td>CPE</td><td>3</td><td>01 111 010<sub>2</sub></td><td>If parity = 1 (even), save current address and jump to immed address</td></tr>
+        <tr><td>RET</td><td>RET</td><td>1</td><td>00 XXX 111<sub>2</sub></td><td>Unconditionally return, down one stack level</td></tr>
+        <tr><td>RFC</td><td>RNC</td><td>1</td><td>00 000 011<sub>2</sub></td><td>If carry = 0, return, down one stack level</td></tr>
+        <tr><td>RFZ</td><td>RNZ</td><td>1</td><td>00 001 011<sub>2</sub></td><td>If result ≠ 0, return, down one stack level</td></tr>
+        <tr><td>RFS</td><td>RP</td><td>1</td><td>00 010 011<sub>2</sub></td><td>If sign = 0 (positive), return, down one stack level</td></tr>
+        <tr><td>RFP</td><td>RPO</td><td>1</td><td>00 011 011<sub>2</sub></td><td>If parity = 0 (odd), return, down one stack level</td></tr>
+        <tr><td>RTC</td><td>RC</td><td>1</td><td>00 100 011<sub>2</sub></td><td>If carry = 1, return, down one stack level</td></tr>
+        <tr><td>RTZ</td><td>RZ</td><td>1</td><td>00 101 011<sub>2</sub></td><td>If result = 0, return, down one stack level</td></tr>
+        <tr><td>RTS</td><td>RM</td><td>1</td><td>00 110 011<sub>2</sub></td><td>If sign = 1 (negative), return, down one stack level</td></tr>
+        <tr><td>RTP</td><td>RPE</td><td>1</td><td>00 111 011<sub>2</sub></td><td>If parity = 1 (even), return, down one stack level</td></tr>
+        <tr><td>RST</td><td>RST</td><td>1</td><td>00 AAA 101<sub>2</sub></td><td>Call the subroutine at memory AAA000 (up one stack level)</td></tr>
+
+        <tr class="category-row">
+            <td colspan="5"><strong>Input/Output Instructions</strong></td>
+        </tr>
+        <tr><td>INP</td><td>IN</td><td>1</td><td>01 00M MM1<sub>2</sub></td><td>A = PORT[MMM]</td></tr>
+        <tr><td>OUT</td><td>OUT</td><td>1</td><td>01 RRM MM1<sub>2</sub></td><td>PORT[RRMMM] = A (RR ≠ 00)</td></tr>
+
+        <tr class="category-row">
+            <td colspan="5"><strong>Machine Instructions</strong></td>
+        </tr>
+        <tr><td>HLT</td><td>HLT</td><td>1</td><td>00 000 00X<sub>2</sub></td><td>Enter STOPPED state; remain there until interrupted</td></tr>
+        <tr><td>HLT</td><td>HLT</td><td>1</td><td>11 111 111<sub>2</sub></td><td>Enter STOPPED state; remain there until interrupted</td></tr>
+    </table>
+
+</body>
+</html>

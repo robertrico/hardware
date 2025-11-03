@@ -14,6 +14,7 @@ RTL_SOURCES = $(SRC_DIR)/components/i8008_alu.vhdl \
               $(SRC_DIR)/components/phase_clocks.vhdl \
               $(SRC_DIR)/components/rom_2kx8.vhdl \
               $(SRC_DIR)/components/ram_1kx8.vhdl \
+              $(SRC_DIR)/components/io_console.vhdl \
               $(SRC_DIR)/components/s8008.vhdl
 
 # Main comprehensive testbench
@@ -61,6 +62,7 @@ include common.mk
 #==========================================
 NAKEN_ASM ?= /Users/hackbook/Development/naken_asm/naken_asm
 TEST_PROG_DIR = test_programs
+PROJECTS_DIR = projects
 PYTHON = python3
 
 # Default program to load
