@@ -103,7 +103,7 @@ architecture rtl of s8008 is
     -- Debug Configuration
     --===========================================
     -- Set to false to reduce simulation noise (hides clock toggle messages)
-    constant DEBUG_VERBOSE : boolean := true;
+    constant DEBUG_VERBOSE : boolean := false;
 
     --===========================================
     -- Internal Signals

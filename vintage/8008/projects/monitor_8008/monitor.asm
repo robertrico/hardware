@@ -16,60 +16,36 @@
         jmp MAIN
 
 ;=============================================================================
-; String Data in ROM
-;=============================================================================
-.org 0x00C8
-BANNER:     .ascii "8008 Monitor v1.0"
-            .dc8 0x0D, 0x0A
-            .ascii "Type ? for help"
-            .dc8 0x0D, 0x0A, 0x00
-
-PROMPT:     .ascii "8008> "
-            .dc8 0x00
-
-HELP_MSG:   .ascii "Commands:"
-            .dc8 0x0D, 0x0A
-            .ascii "  H - Hello World"
-            .dc8 0x0D, 0x0A
-            .ascii "  ? - Help"
-            .dc8 0x0D, 0x0A
-            .ascii "  Q - Quit"
-            .dc8 0x0D, 0x0A, 0x00
-
-HELLO_MSG:  .ascii "Hello, World!"
-            .dc8 0x0D, 0x0A, 0x00
-
-UNKNOWN:    .ascii "Unknown command"
-            .dc8 0x0D, 0x0A, 0x00
-
-GOODBYE:    .ascii "Goodbye!"
-            .dc8 0x0D, 0x0A, 0x00
-
-;=============================================================================
 ; Main Program
 ;=============================================================================
 .org 0x0100
 MAIN:
         ; Print banner
-        mvi h, 0x00
-        mvi l, 0xC8         ; Point to BANNER
+        mvi h, (BANNER >> 8) & 0xFF
+        mvi l, BANNER & 0xFF
         call PRINT_STRING
-        jmp MONITOR_LOOP_V2 ; Jump to correct monitor loop
+        jmp MONITOR_LOOP ; Jump to correct monitor loop
 
 ; Note: Old MONITOR_LOOP code removed - was incomplete
-; Jump directly to MONITOR_LOOP_V2 from MAIN
+; Jump directly to MONITOR_LOOP from MAIN
 
-MONITOR_LOOP_V2:
+MONITOR_LOOP:
         ; Print prompt
-        mvi h, 0x01
-        mvi l, 0x11
+        mvi h, (PROMPT >> 8) & 0xFF
+        mvi l, PROMPT & 0xFF
         call PRINT_STRING
 
         ; Read command
         in 2                ; Port 2 - BLOCKS for input
         mov b, a            ; Save in B
 
-        ; Echo
+        ; Filter out newlines/carriage returns - ignore and re-prompt
+        cpi 0x0A            ; Check for LF (newline)
+        jz MONITOR_LOOP
+        cpi 0x0D            ; Check for CR (carriage return)
+        jz MONITOR_LOOP
+
+        ; Echo the actual command character
         out 8
         mvi a, 0x0D
         out 8
@@ -96,26 +72,26 @@ MONITOR_LOOP_V2:
         jz CMD_QUIT
 
         ; Unknown command
-        mvi h, 0x01
-        mvi l, 0x69         ; UNKNOWN message
+        mvi h, (UNKNOWN >> 8) & 0xFF
+        mvi l, UNKNOWN & 0xFF
         call PRINT_STRING
-        jmp MONITOR_LOOP_V2
+        jmp MONITOR_LOOP
 
 CMD_HELLO:
-        mvi h, 0x01
-        mvi l, 0x59         ; HELLO_MSG
+        mvi h, (HELLO_MSG >> 8) & 0xFF
+        mvi l, HELLO_MSG & 0xFF
         call PRINT_STRING
-        jmp MONITOR_LOOP_V2
+        jmp MONITOR_LOOP
 
 CMD_HELP:
-        mvi h, 0x01
-        mvi l, 0x18         ; HELP_MSG
+        mvi h, (HELP_MSG >> 8) & 0xFF
+        mvi l, HELP_MSG & 0xFF
         call PRINT_STRING
-        jmp MONITOR_LOOP_V2
+        jmp MONITOR_LOOP
 
 CMD_QUIT:
-        mvi h, 0x01
-        mvi l, 0x7E         ; GOODBYE
+        mvi h, (GOODBYE >> 8) & 0xFF
+        mvi l, GOODBYE & 0xFF
         call PRINT_STRING
         hlt
 
@@ -136,5 +112,35 @@ PRINT_STRING:
 
         inr h               ; Increment high byte
         jmp PRINT_STRING
+
+;=============================================================================
+; String Data in ROM (placed after code to avoid overlap)
+;=============================================================================
+.org 0x0200
+BANNER:     .ascii "8008 Monitor v1.0"
+            .dc8 0x0D, 0x0A
+            .ascii "Type ? for help"
+            .dc8 0x0D, 0x0A, 0x00
+
+PROMPT:     .ascii "8008> "
+            .dc8 0x00
+
+HELP_MSG:   .ascii "Commands:"
+            .dc8 0x0D, 0x0A
+            .ascii "  H - Hello World"
+            .dc8 0x0D, 0x0A
+            .ascii "  ? - Help"
+            .dc8 0x0D, 0x0A
+            .ascii "  Q - Quit"
+            .dc8 0x0D, 0x0A, 0x00
+
+HELLO_MSG:  .ascii "Hello, World!"
+            .dc8 0x0D, 0x0A, 0x00
+
+UNKNOWN:    .ascii "Unknown command"
+            .dc8 0x0D, 0x0A, 0x00
+
+GOODBYE:    .ascii "Goodbye!"
+            .dc8 0x0D, 0x0A, 0x00
 
 .end

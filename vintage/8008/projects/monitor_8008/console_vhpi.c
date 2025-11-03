@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/select.h>
+#include <errno.h>
 
 static struct termios orig_termios;
 static int raw_mode_enabled = 0;
@@ -36,12 +37,13 @@ void console_init(void) {
     // Create modified settings for raw mode
     struct termios raw = orig_termios;
 
-    // Disable canonical mode (line buffering) and echo
-    raw.c_lflag &= ~(ECHO | ICANON);
+    // Keep canonical mode (line buffering) and echo enabled
+    // This allows user to type, see what they're typing, and press Enter to submit
+    // Keep ICANON enabled for line-at-a-time input
+    // Keep ECHO enabled so user can see their typing
 
-    // Set minimum characters for read and timeout
-    raw.c_cc[VMIN] = 1;
-    raw.c_cc[VTIME] = 0;
+    // With ICANON enabled, VMIN/VTIME are not used
+    // Input is buffered until newline
 
     // Apply settings
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
@@ -98,13 +100,28 @@ unsigned char console_getc(void) {
     }
 
     unsigned char c;
+    ssize_t result;
 
     // Block until a character is available
-    if (read(STDIN_FILENO, &c, 1) == 1) {
-        return c;
-    }
+    while (1) {
+        result = read(STDIN_FILENO, &c, 1);
 
-    return 0;
+        if (result == 1) {
+            return c;
+        } else if (result == 0) {
+            // EOF - wait a bit and try again (stdin might be redirected/closed)
+            usleep(100000);  // 100ms
+            continue;
+        } else if (result < 0) {
+            // Error
+            if (errno == EINTR) {
+                // Interrupted by signal, try again
+                continue;
+            }
+            // Other error, return 0
+            return 0;
+        }
+    }
 }
 
 /*
