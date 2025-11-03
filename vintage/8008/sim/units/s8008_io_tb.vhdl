@@ -249,16 +249,16 @@ begin
                 is_io_cycle <= false;
                 io_drive_bus <= '0';
             else
-                -- T1 (S2S1S0 = 010): Capture port address from data bus
-                if S2_tb = '0' and S1_tb = '1' and S0_tb = '0' then
+                -- T1 (S2S1S0 = 000): Capture port address from data bus
+                if S2_tb = '0' and S1_tb = '0' and S0_tb = '0' then
                     if data_tb /= "ZZZZZZZZ" then
                         io_port_addr <= data_tb;
                     end if;
                     is_io_cycle <= false;  -- Not confirmed as I/O yet
                     io_drive_bus <= '0';   -- Don't drive during T1
 
-                -- T2 (S2S1S0 = 001): Capture cycle type from data bus
-                elsif S2_tb = '0' and S1_tb = '0' and S0_tb = '1' then
+                -- T2 (S2S1S0 = 010): Capture cycle type from data bus
+                elsif S2_tb = '0' and S1_tb = '1' and S0_tb = '0' then
                     if data_tb /= "ZZZZZZZZ" then
                         io_cycle_type <= data_tb(7 downto 6);
                         -- Check if this is a PCC cycle (I/O operation)
