@@ -68,14 +68,6 @@ entity s8008 is
         -- When INT=1 during T1, CPU performs interrupt acknowledge (T1I)
         INT : in std_logic;
 
-        -- I/O ports
-        -- INP instruction: reads from port_in(MMM) where MMM is 3-bit address (8 ports)
-        -- OUT instruction: writes to port_out(RRMMM) where RRMMM is 5-bit address (32 ports)
-        port_in : in std_logic_vector(7 downto 0);  -- Input from port 0-7 (selected by port address)
-        port_out : out std_logic_vector(7 downto 0); -- Output data
-        port_out_addr : out std_logic_vector(4 downto 0); -- Output port address (0-31)
-        port_out_strobe : out std_logic; -- Pulse high during OUT instruction execution
-
         -- Debug outputs (for testbench verification)
         -- These expose internal state for testing purposes
         debug_reg_A : out std_logic_vector(7 downto 0);
@@ -226,7 +218,8 @@ architecture rtl of s8008 is
         MEM_READ,    -- Reading from memory (M register source)
         MEM_WRITE,   -- Writing to memory (M register destination)
         ADDR_LOW,    -- Fetching low byte of address (for jumps)
-        ADDR_HIGH    -- Fetching high byte of address (for jumps)
+        ADDR_HIGH,   -- Fetching high byte of address (for jumps)
+        IO_TRANSFER  -- I/O data transfer cycle (PCC)
     );
     signal microcode_state : microcode_state_t := FETCH;
 
@@ -266,7 +259,7 @@ architecture rtl of s8008 is
     -- I/O operation signals
     signal is_inp_op : std_logic := '0';                    -- '1' when INP instruction decoded
     signal is_out_op : std_logic := '0';                    -- '1' when OUT instruction decoded
-    signal io_port_addr : std_logic_vector(4 downto 0);     -- Port address (3-bit for INP, 5-bit for OUT)
+    signal io_port_addr : std_logic_vector(7 downto 0) := (others => '0');  -- Full 8-bit for bus output
 
     -- Variable-length cycle control
     -- Per Intel 8008 datasheet: "Many of the instructions for the 8008 are multi-cycle
@@ -551,9 +544,12 @@ begin
     --   00 (PCI) = Program memory read (instruction fetch) - READ
     --   01 (PCR) = Program memory read (data) - READ
     --   10 (PCW) = Program memory write (data) - WRITE
-    --   11 (PCC) = I/O or stack (not used in basic implementation) - varies
+    --   11 (PCC) = I/O or stack - READ for INP, WRITE for OUT
 
-    is_read_cycle <= '1' when (cycle_type_reg = "00" or cycle_type_reg = "01") else '0';
+    -- Read cycles: PCI (instruction fetch), PCR (data read), PCC for INP
+    is_read_cycle <= '1' when (cycle_type_reg = "00" or
+                               cycle_type_reg = "01" or
+                               (cycle_type_reg = "10" and is_inp_op = '1')) else '0';
 
     --===========================================
     -- Data Bus Multiplexing
@@ -568,12 +564,16 @@ begin
     --
     -- For memory operations (M register), use memory_address instead of program_counter
 
-    process(timing_state, program_counter, memory_address, microcode_state, cycle_type_reg, data_out, is_read_cycle)
+    process(timing_state, program_counter, memory_address, microcode_state, cycle_type_reg,
+            data_out, is_read_cycle, io_port_addr, registers, is_out_op)
         variable effective_address : unsigned(13 downto 0);
     begin
-        -- Select address source: PC for instruction fetch, memory_address for M register ops
+        -- Select address source
         if microcode_state = MEM_READ or microcode_state = MEM_WRITE then
             effective_address := memory_address;
+        elsif microcode_state = IO_TRANSFER then
+            -- For I/O: Use port address as "address"
+            effective_address := "000000" & unsigned(io_port_addr);
         else
             effective_address := program_counter;
         end if;
@@ -581,6 +581,7 @@ begin
         case timing_state is
             when T1 | T1I =>
                 -- Output lower 8 bits of address
+                -- For I/O, this is the port address
                 data_bus_output <= std_logic_vector(effective_address(7 downto 0));
                 data_bus_enable <= '1';
 
@@ -592,9 +593,13 @@ begin
             when T3 =>
                 -- Bidirectional data transfer
                 if is_read_cycle = '1' then
-                    -- READ: Hi-Z (memory drives the bus)
+                    -- READ: Hi-Z (memory/IO device drives the bus)
                     data_bus_output <= (others => '0');
                     data_bus_enable <= '0';
+                elsif microcode_state = IO_TRANSFER and is_out_op = '1' then
+                    -- OUT: Drive accumulator on bus
+                    data_bus_output <= registers(REG_A);
+                    data_bus_enable <= '1';
                 else
                     -- WRITE: CPU drives the bus
                     data_bus_output <= data_out;
@@ -843,7 +848,7 @@ begin
         rst_vector <= "000";
         is_inp_op <= '0';
         is_out_op <= '0';
-        io_port_addr <= "00000";
+        io_port_addr <= "00000000";
 
         -- Decode opcode
         -- Intel 8008 instruction format:
@@ -980,14 +985,14 @@ begin
                     if opcode(5 downto 4) = "00" then
                         -- INP: Read from input port into accumulator
                         is_inp_op <= '1';
-                        io_port_addr <= "00" & opcode(3 downto 1);  -- 3-bit port address (extended to 5 bits)
+                        io_port_addr <= "00000" & opcode(3 downto 1);  -- 8-bit: 00000MMM
                         if DEBUG_VERBOSE then
                             report "Decoded as INP (port=" & integer'image(to_integer(unsigned(opcode(3 downto 1)))) & ")";
                         end if;
                     else
                         -- OUT: Write accumulator to output port
                         is_out_op <= '1';
-                        io_port_addr <= opcode(5 downto 1);  -- 5-bit port address
+                        io_port_addr <= "000" & opcode(5 downto 1);  -- 8-bit: 000RRMMM
                         if DEBUG_VERBOSE then
                             report "Decoded as OUT (port=" & integer'image(to_integer(unsigned(opcode(5 downto 1)))) & ")";
                         end if;
@@ -1327,32 +1332,6 @@ begin
                             cycle_type_reg <= "00";  -- PCI
                             skip_exec_states <= '1';  -- 3-state cycle
 
-                        elsif is_inp_op = '1' then
-                            -- INP instruction - read from input port into accumulator
-                            -- Single-byte instruction, executes in single 3-state cycle
-                            reg_write_enable <= '1';
-                            reg_write_addr <= REG_A;
-                            reg_write_data <= port_in;
-                            if DEBUG_VERBOSE then
-                                report "INP: A <- PORT[" & integer'image(to_integer(unsigned(io_port_addr(2 downto 0)))) &
-                                       "] (value=0x" & to_hstring(unsigned(port_in)) & ")";
-                            end if;
-                            microcode_state <= FETCH;
-                            cycle_type_reg <= "00";  -- PCI (next instruction fetch)
-                            skip_exec_states <= '1';  -- 3-state cycle
-
-                        elsif is_out_op = '1' then
-                            -- OUT instruction - write accumulator to output port
-                            -- Single-byte instruction, executes in single 3-state cycle
-                            -- Output is handled combinatorially via port_out and port_out_strobe signals
-                            if DEBUG_VERBOSE then
-                                report "OUT: PORT[" & integer'image(to_integer(unsigned(io_port_addr))) &
-                                       "] <- A (value=0x" & to_hstring(unsigned(registers(REG_A))) & ")";
-                            end if;
-                            microcode_state <= FETCH;
-                            cycle_type_reg <= "00";  -- PCI (next instruction fetch)
-                            skip_exec_states <= '1';  -- 3-state cycle
-
                         else
                             -- Other instructions not yet implemented
                             report "WARNING: Unimplemented instruction" severity warning;
@@ -1476,30 +1455,29 @@ begin
                                        " (setting reg_write_enable=1, data=0x" & to_hstring(unsigned(registers(to_integer(unsigned(src_reg))))) & ")";
                             end if;
                         elsif is_inp_op = '1' then
-                            -- INP: Read from input port into accumulator
-                            -- Port address is 3 bits (0-7) stored in io_port_addr(2:0)
-                            reg_write_enable <= '1';
-                            reg_write_addr <= REG_A;
-                            reg_write_data <= port_in;
+                            -- INP instruction - transition to I/O transfer cycle
+                            -- Second cycle will be PCC (cycle type "10") with 5 states
                             if DEBUG_VERBOSE then
-                                report "INP: A <- PORT[" & integer'image(to_integer(unsigned(io_port_addr(2 downto 0)))) &
-                                       "] (value=0x" & to_hstring(unsigned(port_in)) & ")";
+                                report "INP: Transitioning to IO_TRANSFER state for port " &
+                                       integer'image(to_integer(unsigned(io_port_addr(2 downto 0))));
                             end if;
-                        elsif is_out_op = '1' then
-                            -- OUT: Write accumulator to output port
-                            -- Port address is 5 bits (0-31) stored in io_port_addr
-                            -- Note: The actual output is handled combinatorially in the output assignment section
-                            if DEBUG_VERBOSE then
-                                report "OUT: PORT[" & integer'image(to_integer(unsigned(io_port_addr))) &
-                                       "] <- A (value=0x" & to_hstring(unsigned(registers(REG_A))) & ")";
-                            end if;
-                        end if;
+                            microcode_state <= IO_TRANSFER;
+                            cycle_type_reg <= "10";  -- PCC (I/O cycle)
+                            skip_exec_states <= '0';  -- 5-state cycle (T1, T2, T3, T4, T5)
+                            pc_should_increment <= '1';  -- Reset for next instruction fetch
 
-                        -- Return to fetch next instruction (3-state PCI cycle)
-                        microcode_state <= FETCH;
-                        cycle_type_reg <= "00";  -- PCI (instruction fetch)
-                        skip_exec_states <= '1';  -- 3-state cycle for next fetch
-                        pc_should_increment <= '1';  -- Reset for next instruction fetch
+                        elsif is_out_op = '1' then
+                            -- OUT instruction - transition to I/O transfer cycle
+                            -- Second cycle will be PCC (cycle type "10") with 3 states
+                            if DEBUG_VERBOSE then
+                                report "OUT: Transitioning to IO_TRANSFER state for port " &
+                                       integer'image(to_integer(unsigned(io_port_addr(4 downto 0))));
+                            end if;
+                            microcode_state <= IO_TRANSFER;
+                            cycle_type_reg <= "10";  -- PCC (I/O cycle)
+                            skip_exec_states <= '1';  -- 3-state cycle (T1, T2, T3)
+                            pc_should_increment <= '1';  -- Reset for next instruction fetch
+                        end if;
 
                     when ADDR_LOW =>
                         -- Just fetched low byte of address (3-state PCR cycle completed)
@@ -1631,6 +1609,47 @@ begin
                         cycle_type_reg <= "00";  -- PCI (instruction fetch)
                         skip_exec_states <= '1';  -- 3-state cycle for next fetch
 
+                    when IO_TRANSFER =>
+                        -- I/O data transfer cycle (PCC)
+                        -- T1: Port address on bus
+                        -- T2: Cycle type "10" on bus
+                        -- T3: Data transfer
+                        -- T4-T5: Extended states (INP only)
+
+                        if timing_state = T3 then
+                            if is_inp_op = '1' then
+                                -- INP: Read from data bus into accumulator
+                                -- External I/O device should be driving the bus now
+                                reg_write_enable <= '1';
+                                reg_write_addr <= REG_A;
+                                reg_write_data <= data_bus;
+                                if DEBUG_VERBOSE then
+                                    report "INP T3: Reading data_bus (0x" & to_hstring(unsigned(data_bus)) &
+                                           ") from port " & integer'image(to_integer(unsigned(io_port_addr(2 downto 0))));
+                                end if;
+                            elsif is_out_op = '1' then
+                                -- OUT: Accumulator already on bus via combinatorial logic
+                                -- External I/O device should be latching data_bus now
+                                if DEBUG_VERBOSE then
+                                    report "OUT T3: Accumulator (0x" & to_hstring(unsigned(registers(REG_A))) &
+                                           ") on data_bus for port " & integer'image(to_integer(unsigned(io_port_addr(4 downto 0))));
+                                end if;
+                            end if;
+                        end if;
+
+                        -- For OUT (3-state): Complete at T3
+                        -- For INP (5-state): Complete at T5
+                        if (is_out_op = '1' and timing_state = T3) or
+                           (is_inp_op = '1' and timing_state = T5) then
+                            -- I/O transfer complete, return to instruction fetch
+                            microcode_state <= FETCH;
+                            cycle_type_reg <= "00";  -- PCI for next instruction
+                            skip_exec_states <= '1';
+                            if DEBUG_VERBOSE then
+                                report "IO_TRANSFER complete, returning to FETCH";
+                            end if;
+                        end if;
+
                     when others =>
                         microcode_state <= FETCH;
                         cycle_type_reg <= "00";  -- PCI
@@ -1721,14 +1740,6 @@ begin
             end if;
         end if;
     end process;
-
-    --===========================================
-    -- I/O Port Outputs
-    --===========================================
-    -- Output port assignments (combinatorial)
-    port_out <= registers(REG_A);  -- Always drive accumulator value
-    port_out_addr <= io_port_addr;  -- Drive port address
-    port_out_strobe <= '1' when (is_out_op = '1' and microcode_state = FETCH and timing_state = T3) else '0';  -- Strobe during OUT execution
 
     --===========================================
     -- Debug Outputs

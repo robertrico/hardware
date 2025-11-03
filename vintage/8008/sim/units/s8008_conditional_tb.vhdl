@@ -46,10 +46,6 @@ architecture behavior of s8008_conditional_tb is
             sync : out std_logic;
             ready : in std_logic;
             int : in std_logic;
-            port_in : in std_logic_vector(7 downto 0);
-            port_out : out std_logic_vector(7 downto 0);
-            port_out_addr : out std_logic_vector(4 downto 0);
-            port_out_strobe : out std_logic;
             debug_reg_A : out std_logic_vector(7 downto 0);
             debug_reg_B : out std_logic_vector(7 downto 0);
             debug_reg_C : out std_logic_vector(7 downto 0);
@@ -73,12 +69,6 @@ architecture behavior of s8008_conditional_tb is
     signal data_tb : std_logic_vector(7 downto 0);
     signal S0_tb, S1_tb, S2_tb : std_logic;
     signal sync_tb : std_logic;
-
-    -- I/O port signals
-    signal port_in_tb : std_logic_vector(7 downto 0) := x"00";
-    signal port_out_tb : std_logic_vector(7 downto 0);
-    signal port_out_addr_tb : std_logic_vector(4 downto 0);
-    signal port_out_strobe_tb : std_logic;
 
     -- Debug signals
     signal debug_reg_A_tb : std_logic_vector(7 downto 0);
@@ -249,10 +239,6 @@ begin
             sync => sync_tb,
             ready => ready_tb,
             int => int_tb,
-            port_in => port_in_tb,
-            port_out => port_out_tb,
-            port_out_addr => port_out_addr_tb,
-            port_out_strobe => port_out_strobe_tb,
             debug_reg_A => debug_reg_A_tb,
             debug_reg_B => debug_reg_B_tb,
             debug_reg_C => debug_reg_C_tb,
