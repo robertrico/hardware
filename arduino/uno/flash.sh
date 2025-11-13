@@ -11,7 +11,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-PORT="/dev/tty.usbserial-143410"
+PORT="/dev/tty.usbmodem13401"
 
 # Check if build directory exists
 if [ ! -d "build" ]; then

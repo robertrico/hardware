@@ -13,7 +13,7 @@ set(BAUD 115200)
 
 # Programmer settings
 set(PROGRAMMER arduino)
-set(PORT /dev/tty.usbserial-143410)
+set(PORT /dev/tty.usbmodem13401)
 set(AVRDUDE_BAUD 115200)
 
 # Compiler flags
