@@ -76,6 +76,16 @@ That's it! You now have a complete ROM image ready for your 6809 PCB.
 
 ## Workflow
 
+### Option A: ROM Development (Burn to EPROM)
+
+Follow this workflow when creating ROM images to burn into EPROM chips.
+
+### Option B: ASSIST09 Development (Serial Testing)
+
+If you have a 6809 SBC running the ASSIST09 monitor ROM, you can develop and test code via serial connection without burning EPROMs. See the **[ASSIST09 Serial Development](#assist09-serial-development)** section below.
+
+---
+
 ### 1. Create a New Project
 
 ```bash
@@ -700,6 +710,208 @@ But with A14 tied HIGH, the automated `make rom` / `make flash` workflow handles
 
 ---
 
+## ASSIST09 Serial Development
+
+If your 6809 SBC is running the **ASSIST09 monitor ROM**, you can develop and test code without burning EPROMs. This workflow lets you write assembly on your laptop, then load it over serial for immediate testing.
+
+### What is ASSIST09?
+
+ASSIST09 is **not an assembler** - it's a **monitor ROM** that runs on your 6809 hardware and provides:
+- Command-line interface via serial terminal
+- Memory examination/modification commands
+- Breakpoint debugging
+- S-record loading via serial (XMODEM compatible)
+- Program execution from RAM
+
+The AS9 assembler in this repository runs on your modern laptop and generates S19 files that ASSIST09 can load.
+
+### Development Workflow
+
+**1. Write Assembly on Your Laptop**
+
+```bash
+# Create a new project
+make new PROJECT=test_program
+
+# Edit your code
+vim src/test_program/main.asm
+```
+
+**Important:** When writing code for ASSIST09, target RAM addresses (not ROM):
+
+```assembly
+; Example ASSIST09 program (runs from RAM)
+        ORG     $0400           ; RAM address (adjust for your system)
+
+START   LDS     #$0200          ; Set up stack
+        LDA     #$01            ; Your code here
+        STA     $4000           ; Output to port
+
+LOOP    BRA     LOOP            ; Loop forever
+
+        END     START
+```
+
+**2. Assemble on Your Laptop**
+
+```bash
+# Build the S-record file
+make build PROJECT=test_program
+
+# Output: build/test_program/main.s19
+```
+
+**3. Connect to Your SBC**
+
+```bash
+# Using screen (replace with your serial device)
+screen /dev/ttyUSB0 9600
+
+# Or using minicom
+minicom -D /dev/ttyUSB0 -b 9600
+```
+
+You should see the ASSIST09 prompt:
+```
+ASSIST09
+>
+```
+
+**4. Load Code via XMODEM**
+
+**In ASSIST09 (on SBC):**
+```
+> L         (press L and Enter to start Load command)
+```
+
+ASSIST09 will wait for the S-record transfer.
+
+**On Your Laptop (while connected via serial):**
+
+Using `minicom`:
+1. Press `Ctrl-A`, then `S` (Send file)
+2. Select `xmodem`
+3. Navigate to `build/test_program/main.s19`
+4. Press Enter to send
+
+Using `sx` command directly:
+```bash
+sx build/test_program/main.s19 > /dev/ttyUSB0 < /dev/ttyUSB0
+```
+
+Using `lrzsz` (modern alternative):
+```bash
+lsz --xmodem build/test_program/main.s19 > /dev/ttyUSB0 < /dev/ttyUSB0
+```
+
+**5. Verify Load**
+
+After transfer completes, ASSIST09 returns to the prompt. Verify your code loaded:
+
+```
+> M 0400         (Memory examine at $0400)
+0400-10 CE 02 00...   (shows your assembled code)
+```
+
+**6. Execute Your Code**
+
+```
+> G 0400         (Go - execute at address $0400)
+```
+
+Your program starts running! To break execution:
+- Press `Ctrl-X` or use a breakpoint
+- Returns to ASSIST09 prompt
+
+**7. Debug with ASSIST09 Commands**
+
+```
+> B 0410         (set Breakpoint at $0410)
+> G 0400         (Go from start)
+> R              (display Registers after break)
+> T 10           (Trace 10 instructions)
+> M 0400/        (Memory modify - change bytes)
+```
+
+### Quick ASSIST09 Command Reference
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `L` | Load S-record via serial | `L` |
+| `G <addr>` | Go - execute at address | `G 0400` |
+| `M <addr>` | Memory examine/modify | `M 0400` |
+| `R` | Display/modify registers | `R` |
+| `B <addr>` | Set breakpoint | `B 0450` |
+| `B -<addr>` | Delete breakpoint | `B -0450` |
+| `B -` | Clear all breakpoints | `B -` |
+| `T <count>` | Trace instructions | `T 20` |
+| `D <addr>` | Display memory block | `D 0400` |
+
+### Typical Development Loop
+
+```bash
+# Edit code on laptop
+vim src/test_program/main.asm
+
+# Assemble
+make build PROJECT=test_program
+
+# In ASSIST09 terminal, load and run
+> L                  # Send via XMODEM from laptop
+> G 0400             # Execute
+> (Ctrl-X to break)
+> R                  # Check registers
+```
+
+Repeat this cycle for rapid iterative development without burning any ROMs!
+
+### Memory Map for ASSIST09 Systems
+
+Typical layout (verify with your specific hardware):
+
+```
+$0000-$00FF   Zero Page (fast direct addressing)
+$0100-$01FF   Stack space
+$0200-$7FFF   RAM (load your programs here)
+$8000-$EFFF   RAM or empty
+$F000-$FFFF   ASSIST09 ROM
+```
+
+**Always use RAM addresses** when writing code for ASSIST09 serial development. Use ROM addresses ($C000+) only when creating final ROM images.
+
+### Troubleshooting
+
+**"Load doesn't complete":**
+- Ensure XMODEM protocol is selected (not YMODEM or ZMODEM)
+- Check baud rate matches (typically 9600 or 115200)
+- Verify S19 file exists and is not corrupted
+
+**"Code doesn't execute":**
+- Check that ORG address matches G command address
+- Verify RAM exists at the target address
+- Use `M` command to confirm code loaded correctly
+
+**"Breakpoints don't work":**
+- RAM must be writable at breakpoint address
+- ROM addresses can't have breakpoints
+- Clear old breakpoints with `B -`
+
+### Installing XMODEM Tools
+
+**macOS:**
+```bash
+brew install lrzsz
+```
+
+**Linux (Debian/Ubuntu):**
+```bash
+sudo apt install lrzsz
+```
+
+**Alternative:** Use `minicom` which has built-in XMODEM support.
+
+---
+
 ## Credits
 
 - **Original AS9 assembler:** Motorola (circa 1980s)
@@ -715,6 +927,8 @@ Public domain (as per original AS9 license)
 ---
 
 ## Quick Reference
+
+### Assembly and ROM Programming
 
 ```bash
 # Create project
@@ -747,4 +961,28 @@ make assembler
 
 # Clean builds
 make clean
+```
+
+### ASSIST09 Development Workflow
+
+```bash
+# 1. Create and build project
+make new PROJECT=mytest
+vim src/mytest/main.asm    # Use ORG $0400 for RAM
+make build PROJECT=mytest
+
+# 2. Connect to SBC
+screen /dev/ttyUSB0 9600
+
+# 3. In ASSIST09 monitor
+> L                         # Load command
+# (send build/mytest/main.s19 via XMODEM from laptop)
+> G 0400                    # Execute at $0400
+
+# Common ASSIST09 commands
+> M 0400                    # Memory examine
+> R                         # Registers
+> B 0450                    # Breakpoint
+> T 10                      # Trace 10 instructions
+> D 0400                    # Display memory
 ```
