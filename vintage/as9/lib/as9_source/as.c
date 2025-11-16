@@ -324,9 +324,10 @@ void process()
                 if(Cflag)Ctotal += Cycles;
                 }
 
+        /*
         if ( Wflag && 2 == Pass )
             if ( EOS!=*Optr ) {
-                /* Yes I'm ashamed f this hack, (AH) */
+                // Yes I'm ashamed f this hack, (AH)
                 if ( ']' == *Optr ) Optr += 1;
                 Optr = skip_white(Optr);
                 if ( EOS!=*Optr && ';'!=*Optr ){
@@ -334,4 +335,5 @@ void process()
                    warn("Comment doesnot start with comment symbol");
                    }
             }
+        */
 }

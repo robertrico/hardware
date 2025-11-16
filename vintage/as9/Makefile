@@ -23,7 +23,7 @@ ROM_CHIP  ?= AT28C256
 ROM_SIZE  = 32768
 
 # Serial port for ASSIST09 loading
-SERIAL_PORT ?= /dev/tty.usbserial-AB0JK5WC
+SERIAL_PORT ?= /dev/tty.usbserial-0001
 
 # Colors for output
 BOLD      = \033[1m
@@ -243,9 +243,10 @@ load:
 	echo "$(BOLD)S19 File:$(RESET)     $${S19_FILE}"; \
 	echo "$(BOLD)Serial Port:$(RESET)  $(SERIAL_PORT)"; \
 	echo ""; \
-	echo "$(YELLOW)⚠ Make sure you've typed 'L' in ASSIST09 first!$(RESET)"; \
-	echo ""; \
-	read -p "Press ENTER when ASSIST09 is waiting at 'L' prompt... " dummy; \
+	echo "$(BOLD)Sending 'L' command to ASSIST09...$(RESET)"; \
+	printf "L\r" > "$(SERIAL_PORT)"; \
+	sleep 0.0005; \
+	echo "$(GREEN)✓$(RESET) Load command sent"; \
 	echo ""; \
 	echo "$(BOLD)Sending S19 data...$(RESET)"; \
 	echo ""; \

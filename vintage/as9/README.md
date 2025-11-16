@@ -720,10 +720,40 @@ ASSIST09 is **not an assembler** - it's a **monitor ROM** that runs on your 6809
 - Command-line interface via serial terminal
 - Memory examination/modification commands
 - Breakpoint debugging
-- S-record loading via serial (XMODEM compatible)
+- S-record loading via serial (plain text format)
 - Program execution from RAM
 
 The AS9 assembler in this repository runs on your modern laptop and generates S19 files that ASSIST09 can load.
+
+### Serial Port Configuration
+
+**IMPORTANT:** The ASSIST09 ROM in this repository ([src/assist09/assist09.asm](src/assist09/assist09.asm)) is configured for:
+
+- **Baud Rate: 57,600 baud** (tested and working)
+- **Data Format: 8-N-1** (8 data bits, no parity, 1 stop bit)
+- **Control Register: $51** (÷16 divider)
+
+This configuration works with a **3.6864 MHz clock** to the ACIA.
+
+**To change the baud rate**, modify line 844 in [src/assist09/assist09.asm](src/assist09/assist09.asm):
+
+```assembly
+COON LDA #3 RESET ACIA CODE
+ LDX <VECTAB+.ACIA LOAD ACIA ADDRESS
+ STA ,X STORE INTO STATUS REGISTER
+ LDA #$51 SET CONTROL (current value - 57,600 baud)
+ STA ,X REGISTER UP
+```
+
+**Common baud rate values** (with 3.6864 MHz ACIA clock):
+
+| Control Value | Divider | Calculated Baud | Actual Working Baud | Notes |
+|---------------|---------|-----------------|---------------------|-------|
+| `$15` | ÷1 | 3,686,400 | - | Too fast - not usable |
+| `$51` | ÷16 | 230,400 | **57,600** | **Default in this ROM** ✓ |
+| `$95` | ÷64 | 57,600 | - | Alternate configuration |
+
+**Note:** The actual working baud rate of 57,600 with control value `$51` suggests there may be additional clock division in the hardware (likely ÷4 between oscillator and ACIA).
 
 ### Development Workflow
 
@@ -752,7 +782,7 @@ LOOP    BRA     LOOP            ; Loop forever
         END     START
 ```
 
-**2. Assemble on Your Laptop**
+**2. Build Your Project**
 
 ```bash
 # Build the S-record file
@@ -764,11 +794,11 @@ make build PROJECT=test_program
 **3. Connect to Your SBC**
 
 ```bash
-# Using screen (replace with your serial device)
-screen /dev/ttyUSB0 9600
+# Using screen (recommended - allows easy exit)
+screen /dev/ttyUSB0 57600
 
 # Or using minicom
-minicom -D /dev/ttyUSB0 -b 9600
+minicom -D /dev/ttyUSB0 -b 57600
 ```
 
 You should see the ASSIST09 prompt:
@@ -777,32 +807,48 @@ ASSIST09
 >
 ```
 
-**4. Load Code via XMODEM**
+**4. Load Code Using `make load` (Recommended Method)**
 
-**In ASSIST09 (on SBC):**
+This is the easiest and most reliable way to load code:
+
+**In Terminal 1 (Connected to ASSIST09):**
 ```
 > L         (press L and Enter to start Load command)
 ```
 
 ASSIST09 will wait for the S-record transfer.
 
-**On Your Laptop (while connected via serial):**
+**In Terminal 2 (On Your Laptop):**
+```bash
+# Load the S19 file to ASSIST09
+make load PROJECT=test_program SERIAL_PORT=/dev/ttyUSB0
 
-Using `minicom`:
-1. Press `Ctrl-A`, then `S` (Send file)
-2. Select `xmodem`
+# Press ENTER when prompted
+# Watch as each S-record line is sent with proper timing
+```
+
+The `make load` command:
+- Sends S-records character-by-character with 10ms delays
+- Adds proper CR after each line
+- Handles S9 (end) record correctly
+- Prevents buffer overflow issues
+
+**Alternative: Manual Methods**
+
+If you can't use `make load`, these manual methods also work:
+
+**Using the slow loader script:**
+```bash
+./load_slow.sh /dev/ttyUSB0 build/test_program/main.s19
+```
+
+**Using minicom (less reliable):**
+1. Press `Ctrl-A`, then `Y` or `S` (Send file)
+2. Select **"ascii"** protocol (NOT xmodem/ymodem/zmodem)
 3. Navigate to `build/test_program/main.s19`
 4. Press Enter to send
 
-Using `sx` command directly:
-```bash
-sx build/test_program/main.s19 > /dev/ttyUSB0 < /dev/ttyUSB0
-```
-
-Using `lrzsz` (modern alternative):
-```bash
-lsz --xmodem build/test_program/main.s19 > /dev/ttyUSB0 < /dev/ttyUSB0
-```
+**Note:** Despite the README previously mentioning XMODEM, ASSIST09's `L` command expects **plain S-record text**, not XMODEM protocol packets. The character-by-character sending with delays in `make load` is what makes it reliable.
 
 **5. Verify Load**
 
@@ -850,17 +896,25 @@ Your program starts running! To break execution:
 ### Typical Development Loop
 
 ```bash
-# Edit code on laptop
-vim src/test_program/main.asm
+# Terminal 1: Connected to ASSIST09
+screen /dev/ttyUSB0 57600
 
-# Assemble
+# Terminal 2: Edit and build
+vim src/test_program/main.asm
 make build PROJECT=test_program
 
-# In ASSIST09 terminal, load and run
-> L                  # Send via XMODEM from laptop
-> G 0400             # Execute
+# Terminal 1: In ASSIST09
+> L                  # Start loader
+
+# Terminal 2: Upload
+make load PROJECT=test_program SERIAL_PORT=/dev/ttyUSB0
+# (Press ENTER when prompted)
+
+# Terminal 1: Execute and test
+> G 0400             # Execute at $0400
 > (Ctrl-X to break)
 > R                  # Check registers
+> M 0400             # Verify memory
 ```
 
 Repeat this cycle for rapid iterative development without burning any ROMs!
@@ -882,33 +936,36 @@ $F000-$FFFF   ASSIST09 ROM
 ### Troubleshooting
 
 **"Load doesn't complete":**
-- Ensure XMODEM protocol is selected (not YMODEM or ZMODEM)
-- Check baud rate matches (typically 9600 or 115200)
-- Verify S19 file exists and is not corrupted
+- Use `make load` instead of manual methods - it handles timing correctly
+- Check baud rate matches (**57,600 baud** for this ASSIST09 ROM)
+- Verify S19 file exists: `ls build/your_project/main.s19`
+- Ensure you pressed `L` in ASSIST09 before running `make load`
+- Check serial port: `ls /dev/tty.* | grep usb`
+
+**"make load says serial port not found":**
+```bash
+# Find your serial port
+ls /dev/tty.* | grep -i usb
+
+# Specify it explicitly
+make load PROJECT=test_program SERIAL_PORT=/dev/tty.usbserial-1234
+```
 
 **"Code doesn't execute":**
 - Check that ORG address matches G command address
 - Verify RAM exists at the target address
-- Use `M` command to confirm code loaded correctly
+- Use `M 0400` command to confirm code loaded correctly
+- Ensure you're using RAM addresses ($0400-$7FFF), not ROM addresses
 
 **"Breakpoints don't work":**
 - RAM must be writable at breakpoint address
 - ROM addresses can't have breakpoints
 - Clear old breakpoints with `B -`
 
-### Installing XMODEM Tools
-
-**macOS:**
-```bash
-brew install lrzsz
-```
-
-**Linux (Debian/Ubuntu):**
-```bash
-sudo apt install lrzsz
-```
-
-**Alternative:** Use `minicom` which has built-in XMODEM support.
+**"minicom ASCII upload doesn't work":**
+- Don't use minicom's built-in upload - use `make load` instead
+- `make load` sends data with proper character delays that ASSIST09 needs
+- minicom's ASCII mode often sends too fast and causes buffer overflows
 
 ---
 
@@ -971,12 +1028,17 @@ make new PROJECT=mytest
 vim src/mytest/main.asm    # Use ORG $0400 for RAM
 make build PROJECT=mytest
 
-# 2. Connect to SBC
-screen /dev/ttyUSB0 9600
+# 2. Terminal 1 - Connect to SBC
+screen /dev/ttyUSB0 57600
 
-# 3. In ASSIST09 monitor
+# 3. Terminal 1 - In ASSIST09 monitor
 > L                         # Load command
-# (send build/mytest/main.s19 via XMODEM from laptop)
+
+# 4. Terminal 2 - Upload S19 file
+make load PROJECT=mytest SERIAL_PORT=/dev/ttyUSB0
+# (Press ENTER when prompted)
+
+# 5. Terminal 1 - Execute
 > G 0400                    # Execute at $0400
 
 # Common ASSIST09 commands

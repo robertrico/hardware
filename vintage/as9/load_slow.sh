@@ -25,9 +25,13 @@ if [ ! -f "$S19_FILE" ]; then
 fi
 
 echo "Loading $S19_FILE to $SERIAL_PORT..."
-echo "Make sure you've typed 'L' in ASSIST09 first!"
-echo ""
-read -p "Press ENTER when ASSIST09 is waiting at 'L' prompt..."
+echo "Sending 'L' command to ASSIST09..."
+
+# Send 'L' command followed by carriage return
+printf "L\r" > "$SERIAL_PORT"
+
+# Wait 0.5ms (500 microseconds) for ASSIST09 to process the L command
+sleep 0.0005
 
 # Send each line character by character with small delays
 while IFS= read -r line; do
@@ -35,7 +39,7 @@ while IFS= read -r line; do
     for ((i=0; i<${#line}; i++)); do
         char="${line:$i:1}"
         printf "%s" "$char" > "$SERIAL_PORT"
-        sleep 0.01  # 10ms between characters
+        sleep 0.001  # 1ms between characters (57600 baud)
     done
 
     # Only send CR after S1 records, not after S9
@@ -46,11 +50,11 @@ while IFS= read -r line; do
     else
         echo "  (S9 - no CR sent, ASSIST09 will exit)"
     fi
-    sleep 0.1
+    sleep 0.01
 done < "$S19_FILE"
 
 # Wait a moment for ASSIST09 to process the S9 and return to prompt
-sleep 0.5
+sleep 0.1
 
 echo ""
 echo "Done! Load complete."
