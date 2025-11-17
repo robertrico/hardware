@@ -140,34 +140,103 @@ INSMODE_ CMPA   #ESC            ; Escape = back to command mode
         LBRA    MAIN
 
 ; Movement commands
-MOVELEFT LBSR   MVLEFT
+; Strategy: Get character at current position, erase echo, move, restore character
+MOVELEFT PSHS   A,X
+        ; Save character at current buffer position
+        LBSR    GETBUFPOS
+        LDA     ,X              ; Save the character that should be here
+        PSHS    A               ; Push it to stack
+        ; Erase echoed 'h'
+        LDA     #BS
+        LBSR    PUTCHR
+        PULS    A               ; Get saved character
+        LBSR    PUTCHR          ; Put it back
+        LDA     #BS
+        LBSR    PUTCHR
+        ; Now move cursor
+        LBSR    MVLEFT
         LBSR    UPDCUR
+        PULS    X,A
         LBRA    MAIN
 
-MOVERIGHT LBSR  MVRIGHT
+MOVERIGHT PSHS  A,X
+        ; Save character at current buffer position
+        LBSR    GETBUFPOS
+        LDA     ,X              ; Save the character that should be here
+        PSHS    A               ; Push it to stack
+        ; Erase echoed 'l'
+        LDA     #BS
+        LBSR    PUTCHR
+        PULS    A               ; Get saved character
+        LBSR    PUTCHR          ; Put it back
+        LDA     #BS
+        LBSR    PUTCHR
+        ; Now move cursor
+        LBSR    MVRIGHT
         LBSR    UPDCUR
+        PULS    X,A
         LBRA    MAIN
 
-MOVEUP  LBSR    MVUP
+MOVEUP  PSHS    A,X
+        ; Save character at current buffer position
+        LBSR    GETBUFPOS
+        LDA     ,X              ; Save the character that should be here
+        PSHS    A               ; Push it to stack
+        ; Erase echoed 'k'
+        LDA     #BS
+        LBSR    PUTCHR
+        PULS    A               ; Get saved character
+        LBSR    PUTCHR          ; Put it back
+        LDA     #BS
+        LBSR    PUTCHR
+        ; Now move cursor
+        LBSR    MVUP
         LBSR    UPDCUR
+        PULS    X,A
         LBRA    MAIN
 
-MOVEDOWN LBSR   MVDOWN
+MOVEDOWN PSHS   A,X
+        ; Save character at current buffer position
+        LBSR    GETBUFPOS
+        LDA     ,X              ; Save the character that should be here
+        PSHS    A               ; Push it to stack
+        ; Erase echoed 'j'
+        LDA     #BS
+        LBSR    PUTCHR
+        PULS    A               ; Get saved character
+        LBSR    PUTCHR          ; Put it back
+        LDA     #BS
+        LBSR    PUTCHR
+        ; Now move cursor
+        LBSR    MVDOWN
         LBSR    UPDCUR
+        PULS    X,A
         LBRA    MAIN
 
 ; Mode switching
 SETCMD_ LBSR    SETCMD
         LBRA    MAIN
 
-GOINS   LBSR    SETINS
-        LBRA    MAIN
-
-GOAPP   LBSR    MVRIGHT         ; Append = move right then insert
+GOINS   PSHS    A
+        LDA     #BS             ; Erase echoed 'i'
+        LBSR    PUTCHR
+        PULS    A
         LBSR    SETINS
         LBRA    MAIN
 
-DOREDRAW LBSR   REDRAW          ; Redraw screen
+GOAPP   PSHS    A
+        LDA     #BS             ; Erase echoed 'a'
+        LBSR    PUTCHR
+        PULS    A
+        LBSR    MVRIGHT         ; Append = move right then insert
+        LBSR    SETINS
+        LBRA    MAIN
+
+DOREDRAW PSHS   A
+        LDA     #BS             ; Erase echoed 'r'
+        LBSR    PUTCHR
+        PULS    A
+        LBSR    REDRAW          ; Redraw screen
         LBSR    UPDCUR
         LBRA    MAIN
 
@@ -508,7 +577,11 @@ DOBK2   PULS    B,X,A
 ; =========================================
 
 CMDWRITE ; Write (save) - copy text buffer to save area silently
-        PSHS    X,Y
+        PSHS    A,X,Y
+
+        ; Erase echoed 'w'
+        LDA     #BS
+        LBSR    PUTCHR
 
         ; Write magic marker 'VI'
         LDY     #SAVEBUF
@@ -524,10 +597,14 @@ CMDWR1  LDA     ,X+
         CMPX    #BUFEND
         BLO     CMDWR1
 
-        PULS    Y,X
+        PULS    Y,X,A
         LBRA    MAIN            ; Back to main loop
 
 CMDQUIT ; Quit to ASSIST09
+        PSHS    A
+        LDA     #BS             ; Erase echoed 'q'
+        LBSR    PUTCHR
+        PULS    A
         SWI                     ; Return to monitor
         FCB     MONITR          ; Function 8: Enter ASSIST09 monitor
 
