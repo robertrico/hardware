@@ -68,28 +68,31 @@ INSMODE EQU     1               ; Insert mode
 START   LDS     #STACK          ; Initialize stack pointer
 
         ; Initialize editor
-        LBSR    LOADBUF         ; Load saved text if any (checks for 'VI' marker)
-
-        ; If no saved file found, initialize buffer with spaces
-        ; LOADBUF leaves Z flag set if no 'VI' marker found
-        ; We need to check if buffer was loaded
+        ; Check for saved file
         LDX     #SAVEBUF
-        LDA     ,X
+        LDA     ,X+
         CMPA    #'V'
         BNE     INIT1           ; No marker - initialize buffer
+        LDA     ,X
+        CMPA    #'I'
+        BNE     INIT1           ; No marker - initialize buffer
 
-        ; Buffer was loaded - skip initialization
+        ; Found 'VI' marker - load saved text
+        LBSR    LOADBUF
         BRA     INIT2
 
-INIT1   LBSR    INITBUF         ; Initialize text buffer with spaces
+INIT1   ; No saved file - initialize with spaces
+        LBSR    INITBUF         ; Initialize text buffer with spaces
 
 INIT2   LBSR    CLRSCR          ; Clear screen
-        LBSR    SHOWBUF         ; Display loaded text
 
-        CLR     CURX            ; Start at (0,0)
+        ; Position cursor at (0,0)
+        CLR     CURX
         CLR     CURY
-        LBSR    SETCMD          ; Start in command mode
-        LBSR    UPDCUR          ; Position cursor
+        LBSR    UPDCUR
+
+        ; Start in COMMAND mode
+        CLR     MODE            ; 0 = command mode
 
 ; Main editor loop
 MAIN    LBSR    GETCHR          ; Get character
@@ -112,8 +115,10 @@ CMDMODE_ CMPA   #'h             ; Left
         LBEQ    GOAPP
         CMPA    #'r             ; Redraw screen
         LBEQ    DOREDRAW
-        CMPA    #':             ; Colon command
-        LBEQ    COLONCMD
+        CMPA    #'w             ; Write (save)
+        LBEQ    CMDWRITE
+        CMPA    #'q             ; Quit
+        LBEQ    CMDQUIT
         LBRA    MAIN            ; Ignore other keys
 
 ; Insert mode handling
@@ -409,12 +414,18 @@ MVD1    PULS    A,PC
 ; =========================================
 
 ; Set command mode
-SETCMD  PSHS    A
+SETCMD  PSHS    A,X
         CLR     MODE
         ; ESC was echoed by ASSIST09, send BS to erase it
         LDA     #BS
         LBSR    PUTCHR
-        PULS    A,PC
+        ; Show [CMD] indicator
+        LEAX    CMDMSG,PCR
+        LBSR    PRINT
+        PULS    X,A,PC
+
+CMDMSG  FCC     " [CMD]"
+        FCB     BS,BS,BS,BS,BS,BS,0
 
 ; Set insert mode
 SETINS  PSHS    A
@@ -455,8 +466,28 @@ DONEWLINE PSHS  A
         LBRA    MAIN
 
 ; Handle backspace in insert mode
-DOBACKSP PSHS   A,X
-        LBSR    MVLEFT          ; Move cursor left in buffer
+DOBACKSP PSHS   A,X,B
+        ; Check if at (0,0) - can't backspace
+        LDA     CURX
+        BNE     DOBK1           ; Not at left edge
+        LDA     CURY
+        BEQ     DOBK2           ; At (0,0) - do nothing
+
+DOBK1   ; Not at (0,0) - process backspace
+        ; Check if at left edge of a line
+        LDA     CURX
+        BNE     DOBK3           ; Not at left edge - simple case
+
+        ; At left edge - move to end of previous line
+        LDA     #COLS-1
+        STA     CURX
+        LBSR    MVUP
+        BRA     DOBK4
+
+DOBK3   ; Simple case - just move left
+        LBSR    MVLEFT
+
+DOBK4   ; Erase character at current position
         LBSR    GETBUFPOS       ; Get buffer position
         LDA     #' '            ; Replace with space in buffer
         STA     ,X
@@ -468,83 +499,15 @@ DOBACKSP PSHS   A,X
         LBSR    PUTCHR
         LDA     #BS             ; Backspace again
         LBSR    PUTCHR
-        ; Terminal cursor is now in correct position - don't call UPDCUR
 
-        PULS    X,A
+DOBK2   PULS    B,X,A
         LBRA    MAIN            ; Go back to main loop
 
 ; =========================================
-; Colon Commands
+; Save/Quit Commands
 ; =========================================
 
-; Handle colon command
-COLONCMD PSHS   A,B,X
-        ; Display : at bottom of screen
-        LDA     #':
-        LBSR    PUTCHR
-
-        ; Get command
-        LDX     #CMDBUF
-        CLRB
-
-COLCMD1 LBSR    GETCHR
-
-        ; Check for enter
-        CMPA    #CR
-        BEQ     COLCMD2
-
-        ; Check for backspace
-        CMPA    #BS
-        BNE     COLCMD1A
-        TSTB
-        BEQ     COLCMD1
-        DECB
-        LEAX    -1,X
-        LDA     #BS
-        LBSR    PUTCHR
-        LDA     #' '
-        LBSR    PUTCHR
-        LDA     #BS
-        LBSR    PUTCHR
-        BRA     COLCMD1
-
-COLCMD1A ; Store character
-        CMPB    #15             ; Max command length
-        BHS     COLCMD1
-        STA     ,X+
-        INCB
-        LBSR    PUTCHR
-        BRA     COLCMD1
-
-COLCMD2 CLR     ,X              ; Null terminate
-        LBSR    NEWLINE
-
-        ; Parse command
-        LDX     #CMDBUF
-        LDA     ,X+             ; Get first character
-        BEQ     COLCMD3         ; Empty command
-
-        ; Check for 'w' or 'wq'
-        CMPA    #'w
-        BNE     COLCMD_Q        ; Not 'w', check for 'q'
-
-        ; It's 'w' - check if followed by 'q'
-        LDA     ,X
-        BEQ     CMDWRITE        ; Just 'w'
-        CMPA    #'q
-        BEQ     CMDWQ           ; It's 'wq'
-        LBRA    COLCMD3         ; Unknown command starting with 'w'
-
-COLCMD_Q ; Check for 'q' (quit)
-        CMPA    #'q
-        LBEQ    CMDQUIT
-
-COLCMD3 ; Unknown command - just redraw and continue
-        LBSR    REDRAW
-        LBSR    UPDCUR
-        PULS    X,B,A,PC
-
-CMDWRITE ; Write (save) - copy text buffer to save area
+CMDWRITE ; Write (save) - copy text buffer to save area silently
         PSHS    X,Y
 
         ; Write magic marker 'VI'
@@ -562,50 +525,11 @@ CMDWR1  LDA     ,X+
         BLO     CMDWR1
 
         PULS    Y,X
-
-        ; Show save message
-        LEAX    SAVEMSG,PCR
-        LBSR    PRINT
-        LBSR    GETCHR          ; Wait for keypress
-
-        LBSR    REDRAW
-        LBSR    SETCMD          ; Back to command mode
-        LBSR    UPDCUR
-        PULS    X,B,A
         LBRA    MAIN            ; Back to main loop
 
-CMDWQ   ; Write and quit
-        PSHS    X,Y
-
-        ; Write magic marker 'VI'
-        LDY     #SAVEBUF
-        LDA     #'V'
-        STA     ,Y+
-        LDA     #'I'
-        STA     ,Y+
-
-        ; Copy text buffer to save area
-        LDX     #TEXTBUF
-CMDWQ1  LDA     ,X+
-        STA     ,Y+
-        CMPX    #BUFEND
-        BLO     CMDWQ1
-
-        PULS    Y,X
-
-        ; Show save message
-        LEAX    SAVEMSG,PCR
-        LBSR    PRINT
-        LBSR    GETCHR
-        ; Fall through to quit
-
 CMDQUIT ; Quit to ASSIST09
-        CLRA                    ; Clear A register for clean exit
         SWI                     ; Return to monitor
         FCB     MONITR          ; Function 8: Enter ASSIST09 monitor
-
-SAVEMSG FCC     "File saved. Press any key..."
-        FCB     0
 
 ; =========================================
 ; Data Section
