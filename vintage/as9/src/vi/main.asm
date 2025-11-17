@@ -39,7 +39,7 @@ DEL     EQU     $7F             ; Delete key
 
 ; Screen dimensions
 COLS    EQU     80              ; Screen width
-ROWS    EQU     24              ; Screen height (standard terminal)
+ROWS    EQU     24              ; Text rows (status line is row 0, text is rows 1-24)
 
 ; Memory allocation in user RAM ($0179-$6FCF)
 ; Text buffer: 80 cols × 24 rows = 1920 bytes = $780
@@ -89,10 +89,15 @@ INIT2   LBSR    CLRSCR          ; Clear screen
         ; Position cursor at (0,0)
         CLR     CURX
         CLR     CURY
-        LBSR    UPDCUR
 
         ; Start in COMMAND mode
         CLR     MODE            ; 0 = command mode
+
+        ; Draw status line
+        LBSR    UPDSTATUS
+
+        ; Position cursor in text area
+        LBSR    UPDCUR
 
 ; Main editor loop
 MAIN    LBSR    GETCHR          ; Get character
@@ -284,15 +289,16 @@ CLRSEQ  FCB     ESC,'[,'2,'J    ; Clear screen
         FCB     0
 
 ; Update cursor position on screen (ANSI ESC[row;colH)
+; Row 1 is status line, so text starts at row 2 (CURY=0 -> screen row 2)
 UPDCUR  PSHS    A,X
         LDA     #ESC
         LBSR    PUTCHR
         LDA     #'[
         LBSR    PUTCHR
 
-        ; Row (Y + 1, since ANSI is 1-based)
+        ; Row (Y + 2, since row 1 is status line and ANSI is 1-based)
         LDA     CURY
-        INCA
+        ADDA    #2
         LBSR    PUTNUM
 
         LDA     #';
@@ -361,7 +367,14 @@ DIVM2   PSHS    B               ; Save quotient
 NUMBUF  RMB     4               ; Number buffer
 
 ; Show buffer content line-by-line (optimized for terminal redraw)
+; Starts at row 2 (row 1 is status line)
 SHOWBUF PSHS    A,B,X,Y
+        ; Position cursor at row 2, column 1
+        LDA     #ESC
+        LBSR    PUTCHR
+        LEAX    TEXTPOS,PCR
+        LBSR    PRINT
+
         LDX     #TEXTBUF        ; Start of text buffer
         LDB     #ROWS           ; 24 rows to display
 SHOWB1  LDY     #COLS           ; 80 columns per row
@@ -378,10 +391,13 @@ SHOWB2  LDA     ,X+             ; Get character
         BNE     SHOWB1          ; Continue until all rows done
         PULS    Y,X,B,A,PC
 
+TEXTPOS FCB     '[,'2,';,'1,'H,0        ; Position to row 2, col 1
+
 ; Redraw entire screen from buffer
 REDRAW  PSHS    A,B,X,Y
         LBSR    CLRSCR
-        LBSR    SHOWBUF
+        LBSR    UPDSTATUS       ; Draw status line
+        LBSR    SHOWBUF         ; Draw text
 
         ; Reset cursor position
         CLR     CURX
@@ -488,19 +504,56 @@ SETCMD  PSHS    A,X
         ; ESC was echoed by ASSIST09, send BS to erase it
         LDA     #BS
         LBSR    PUTCHR
-        ; Show [CMD] indicator
-        LEAX    CMDMSG,PCR
-        LBSR    PRINT
+        ; Update status line
+        LBSR    UPDSTATUS
         PULS    X,A,PC
-
-CMDMSG  FCC     " [CMD]"
-        FCB     BS,BS,BS,BS,BS,BS,0
 
 ; Set insert mode
 SETINS  PSHS    A
         LDA     #INSMODE
         STA     MODE
+        ; Update status line
+        LBSR    UPDSTATUS
         PULS    A,PC
+
+; Update status line (row 1)
+UPDSTATUS PSHS  A,X
+        ; Save current cursor position
+        PSHS    A,B
+        LDA     CURX
+        LDB     CURY
+        PSHS    A,B
+
+        ; Position cursor at row 1, column 1 for status line
+        LDA     #ESC
+        LBSR    PUTCHR
+        LEAX    STATPOS,PCR
+        LBSR    PRINT
+
+        ; Print mode
+        LDB     MODE
+        BNE     UPDST1
+        ; Command mode
+        LEAX    CMDMSG,PCR
+        LBSR    PRINT
+        BRA     UPDST2
+UPDST1  ; Insert mode
+        LEAX    INSMSG,PCR
+        LBSR    PRINT
+
+UPDST2  ; Restore cursor position
+        PULS    B,A             ; Get saved CURY, CURX
+        STB     CURY
+        STA     CURX
+        PULS    B,A
+        LBSR    UPDCUR          ; Restore cursor to text area
+        PULS    X,A,PC
+
+STATPOS FCB     '[,'1,';,'1,'H,0        ; Position to row 1, col 1
+CMDMSG  FCC     "-- COMMAND --"
+        FCB     ESC,'[,'K,0             ; Clear to end of line
+INSMSG  FCC     "-- INSERT --"
+        FCB     ESC,'[,'K,0             ; Clear to end of line
 
 ; Insert character at cursor position
 ; Note: ASSIST09's INCHNP already echoes characters, so we don't echo here
