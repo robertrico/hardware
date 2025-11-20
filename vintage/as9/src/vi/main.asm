@@ -39,12 +39,12 @@ DEL     EQU     $7F             ; Delete key
 
 ; Screen dimensions
 COLS    EQU     80              ; Screen width
-ROWS    EQU     24              ; Text rows (status line is row 0, text is rows 1-24)
+ROWS    EQU     23              ; Text rows (status at ANSI row 1, text at ANSI rows 2-24)
 
 ; Memory allocation in user RAM ($0179-$6FCF)
-; Text buffer: 80 cols × 24 rows = 1920 bytes = $780
+; Text buffer: 80 cols × 23 rows = 1840 bytes = $730
 TEXTBUF EQU     $0800           ; Text buffer start (after program code)
-BUFEND  EQU     $0F80           ; Text buffer end ($0800 + $0780)
+BUFEND  EQU     $0F30           ; Text buffer end ($0800 + $0730)
 
 ; Editor state (after text buffer)
 CURX    EQU     $0F80           ; Cursor X position (0-79)
@@ -53,8 +53,8 @@ MODE    EQU     $0F82           ; 0=command, 1=insert
 CMDBUF  EQU     $0F90           ; Command buffer for : commands (16 bytes)
 
 ; Save buffer (after editor state) - includes 2-byte magic marker 'VI'
-; Need 2 + 1920 = 1922 bytes
-SAVEBUF EQU     $1200           ; Saved buffer: 2 + 1920 bytes ($1200-$197D)
+; Need 2 + 1840 = 1842 bytes
+SAVEBUF EQU     $1200           ; Saved buffer: 2 + 1840 bytes ($1200-$192D)
 
 ; Modes
 CMDMODE EQU     0               ; Command mode
@@ -81,8 +81,11 @@ START   LDS     #STACK          ; Initialize stack pointer
         LBSR    LOADBUF
         BRA     INIT2
 
-INIT1   ; No saved file - initialize with spaces
-        LBSR    INITBUF         ; Initialize text buffer with spaces
+INIT1   ; No saved file - leave buffer as-is (don't wipe RAM)
+        ; User can clear manually if needed
+        ; LBSR    INITBUF       ; DISABLED: Don't auto-wipe potentially valid data
+        ; But ensure SAVEBUF has valid 'VI' marker for future saves
+        LBSR    AUTOSAVE
 
 INIT2   LBSR    CLRSCR          ; Clear screen
 
@@ -376,20 +379,22 @@ SHOWBUF PSHS    A,B,X,Y
         LBSR    PRINT
 
         LDX     #TEXTBUF        ; Start of text buffer
-        LDB     #ROWS           ; 24 rows to display
+        LDB     #ROWS           ; 23 rows to display
 SHOWB1  LDY     #COLS           ; 80 columns per row
 SHOWB2  LDA     ,X+             ; Get character
         LBSR    PUTCHR          ; Display it
         LEAY    -1,Y            ; Decrement column counter
         BNE     SHOWB2          ; Continue until end of row
-        ; End of row - send CR/LF
+        ; End of row - decrement counter and check if more rows remain
+        DECB                    ; Decrement row counter
+        BEQ     SHOWB3          ; Last row done - don't send CR/LF to avoid scroll
+        ; Not last row - send CR/LF
         LDA     #CR
         LBSR    PUTCHR
         LDA     #LF
         LBSR    PUTCHR
-        DECB                    ; Decrement row counter
-        BNE     SHOWB1          ; Continue until all rows done
-        PULS    Y,X,B,A,PC
+        BRA     SHOWB1          ; Continue to next row
+SHOWB3  PULS    Y,X,B,A,PC
 
 TEXTPOS FCB     '[,'2,';,'1,'H,0        ; Position to row 2, col 1
 
@@ -398,11 +403,7 @@ REDRAW  PSHS    A,B,X,Y
         LBSR    CLRSCR
         LBSR    UPDSTATUS       ; Draw status line
         LBSR    SHOWBUF         ; Draw text
-
-        ; Reset cursor position
-        CLR     CURX
-        CLR     CURY
-
+        ; Don't reset cursor - preserve current position
         PULS    Y,X,B,A,PC
 
 ; =========================================
@@ -433,10 +434,10 @@ LOADBUF PSHS    A,B,X,Y
         CMPA    #'I'            ; Is it 'I'?
         BNE     LOADB1          ; No - skip load
 
-        ; Valid 'VI' marker found - copy 1920 bytes from X to TEXTBUF
+        ; Valid 'VI' marker found - copy 1840 bytes from X to TEXTBUF
         ; X is now at $1202 (first data byte after 'VI')
-        LDY     #TEXTBUF        ; Y = $0200
-        LDD     #1920           ; D = byte counter
+        LDY     #TEXTBUF        ; Y = $0800
+        LDD     #1840           ; D = byte counter
 LOADB2  LDA     ,X+             ; Copy byte from save area
         STA     ,Y+             ; To text buffer
         SUBD    #1              ; Decrement counter
@@ -561,6 +562,9 @@ INSCHAR PSHS    A,X,B
         LBSR    GETBUFPOS       ; X = buffer position
         STA     ,X              ; Store character
 
+        ; Auto-save to SAVEBUF after every character
+        LBSR    AUTOSAVE
+
         ; Check if we're at the right edge (column 79)
         LDB     CURX
         CMPB    #COLS-1
@@ -614,6 +618,9 @@ DOBK4   ; Erase character at current position
         LDA     #' '            ; Replace with space in buffer
         STA     ,X
 
+        ; Auto-save after backspace
+        LBSR    AUTOSAVE
+
         ; Erase character on screen: BS, space, BS
         LDA     #BS             ; Send backspace
         LBSR    PUTCHR
@@ -628,6 +635,25 @@ DOBK2   PULS    B,X,A
 ; =========================================
 ; Save/Quit Commands
 ; =========================================
+
+; Auto-save buffer to SAVEBUF (silent, no user feedback)
+; This runs after every character insert/delete to keep SAVEBUF current
+AUTOSAVE PSHS   A,X,Y
+        ; Write magic marker 'VI'
+        LDY     #SAVEBUF
+        LDA     #'V'
+        STA     ,Y+
+        LDA     #'I'
+        STA     ,Y+
+
+        ; Copy text buffer to save area
+        LDX     #TEXTBUF
+AUTOS1  LDA     ,X+
+        STA     ,Y+
+        CMPX    #BUFEND
+        BLO     AUTOS1
+
+        PULS    Y,X,A,PC
 
 CMDWRITE ; Write (save) - copy text buffer to save area silently
         PSHS    A,X,Y
