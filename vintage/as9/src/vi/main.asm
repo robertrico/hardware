@@ -680,10 +680,9 @@ CMDWR1  LDA     ,X+
         LBRA    MAIN            ; Back to main loop
 
 CMDQUIT ; Quit to ASSIST09
-        PSHS    A
         LDA     #BS             ; Erase echoed 'q'
         LBSR    PUTCHR
-        PULS    A
+        LBSR    CLRSCR          ; Clear screen and home cursor
         SWI                     ; Return to monitor
         FCB     MONITR          ; Function 8: Enter ASSIST09 monitor
 
