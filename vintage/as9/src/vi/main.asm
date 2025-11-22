@@ -48,12 +48,12 @@ TEXTBUF EQU     $0900           ; Text buffer start (after program code)
 BUFEND  EQU     $1030           ; Text buffer end ($0900 + $0730)
 
 ; Editor state (after text buffer)
-CURX    EQU     $0F80           ; Cursor X position (0-79)
-CURY    EQU     $0F81           ; Cursor Y position (0-79)
-MODE    EQU     $0F82           ; 0=command, 1=insert, 2=colon
-CMDBUF  EQU     $0F90           ; Command buffer for : commands (16 bytes)
-CMDLEN  EQU     $0FA0           ; Length of command in buffer
-NUMBUF  EQU     $0FA1           ; Number buffer for PUTNUM (4 bytes)
+CURX    EQU     $1030           ; Cursor X position (0-79)
+CURY    EQU     $1031           ; Cursor Y position (0-79)
+MODE    EQU     $1032           ; 0=command, 1=insert, 2=colon
+CMDBUF  EQU     $1040           ; Command buffer for : commands (16 bytes)
+CMDLEN  EQU     $1050           ; Length of command in buffer
+NUMBUF  EQU     $1051           ; Number buffer for PUTNUM (4 bytes)
 
 ; Save buffer (after editor state) - includes 2-byte magic marker 'VI'
 ; Need 2 + 1840 = 1842 bytes
@@ -85,11 +85,9 @@ START   LDS     #STACK          ; Initialize stack pointer
         LBSR    LOADBUF
         BRA     INIT2
 
-INIT1   ; No saved file - leave buffer as-is (don't wipe RAM)
-        ; User can clear manually if needed
-        ; LBSR    INITBUF       ; DISABLED: Don't auto-wipe potentially valid data
-        ; But ensure SAVEBUF has valid 'VI' marker for future saves
-        LBSR    AUTOSAVE
+INIT1   ; No saved file - initialize with blank buffer
+        LBSR    INITBUF         ; Clear text buffer with spaces
+        LBSR    AUTOSAVE        ; Save the blank buffer
 
 INIT2   LBSR    CLRSCR          ; Clear screen
 
@@ -669,7 +667,25 @@ UPDST3  ; Clear to end of line
         LDA     #'K
         LBSR    PUTCHR
 
-UPDST9  ; Restore cursor position
+        ; In colon mode, leave cursor in status bar
+        ; so ASSIST09 echoes go there, not to text area
+        PULS    B,A             ; Get saved CURY, CURX (but don't restore yet)
+        LDB     MODE
+        CMPB    #COLONMODE
+        BEQ     UPDST8          ; Stay in status bar for colon mode
+
+        ; Not colon mode - restore cursor to text area
+        STB     CURY
+        STA     CURX
+        PULS    B,A
+        LBSR    UPDCUR          ; Restore cursor to text area
+        PULS    X,A,PC
+
+UPDST8  ; Colon mode - discard saved position and leave cursor in status bar
+        PULS    B,A             ; Discard saved A,B
+        PULS    X,A,PC
+
+UPDST9  ; Restore cursor position (for command/insert modes)
         PULS    B,A             ; Get saved CURY, CURX
         STB     CURY
         STA     CURX
@@ -707,15 +723,14 @@ INSCH1  ; At right edge - stay at same position
 
 ; Handle newline in insert mode
 DONEWLINE PSHS  A
-        ; Move to start of next line
+        ; Move to start of next line in buffer
         CLR     CURX
         LBSR    MVDOWN
-        ; Send CR/LF manually
-        LDA     #CR
-        LBSR    PUTCHR
-        LDA     #LF
-        LBSR    PUTCHR
-        ; Flush any LF that might follow CR from terminal
+
+        ; Update screen cursor to match
+        ; Note: ASSIST09 already echoed CR, so we just need to update position
+        LBSR    UPDCUR
+
         PULS    A
         LBRA    MAIN
 
@@ -817,9 +832,8 @@ CMDNEW1 STA     ,X+
         ; Auto-save the cleared buffer
         LBSR    AUTOSAVE
 
-        ; Redraw screen
+        ; Redraw screen (REDRAW handles cursor positioning)
         LBSR    REDRAW
-        LBSR    UPDCUR
 
         PULS    X,A,PC
 
