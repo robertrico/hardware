@@ -43,22 +43,26 @@ ROWS    EQU     23              ; Text rows (status at ANSI row 1, text at ANSI 
 
 ; Memory allocation in user RAM ($0179-$6FCF)
 ; Text buffer: 80 cols × 23 rows = 1840 bytes = $730
-TEXTBUF EQU     $0800           ; Text buffer start (after program code)
-BUFEND  EQU     $0F30           ; Text buffer end ($0800 + $0730)
+; Program ends around $08BF (1215 bytes from $0400)
+TEXTBUF EQU     $0900           ; Text buffer start (after program code)
+BUFEND  EQU     $1030           ; Text buffer end ($0900 + $0730)
 
 ; Editor state (after text buffer)
 CURX    EQU     $0F80           ; Cursor X position (0-79)
 CURY    EQU     $0F81           ; Cursor Y position (0-79)
-MODE    EQU     $0F82           ; 0=command, 1=insert
+MODE    EQU     $0F82           ; 0=command, 1=insert, 2=colon
 CMDBUF  EQU     $0F90           ; Command buffer for : commands (16 bytes)
+CMDLEN  EQU     $0FA0           ; Length of command in buffer
+NUMBUF  EQU     $0FA1           ; Number buffer for PUTNUM (4 bytes)
 
 ; Save buffer (after editor state) - includes 2-byte magic marker 'VI'
 ; Need 2 + 1840 = 1842 bytes
-SAVEBUF EQU     $1200           ; Saved buffer: 2 + 1840 bytes ($1200-$192D)
+SAVEBUF EQU     $1100           ; Saved buffer: 2 + 1840 bytes ($1100-$182D)
 
 ; Modes
 CMDMODE EQU     0               ; Command mode
 INSMODE EQU     1               ; Insert mode
+COLONMODE EQU   2               ; Colon command mode
 
 ; =========================================
 ; Code Start
@@ -95,6 +99,7 @@ INIT2   LBSR    CLRSCR          ; Clear screen
 
         ; Start in COMMAND mode
         CLR     MODE            ; 0 = command mode
+        CLR     CMDLEN          ; Initialize command buffer length
 
         ; Draw status line
         LBSR    UPDSTATUS
@@ -106,7 +111,12 @@ INIT2   LBSR    CLRSCR          ; Clear screen
 MAIN    LBSR    GETCHR          ; Get character
 
         LDB     MODE            ; Check mode
-        BNE     INSMODE_        ; In insert mode?
+        LBEQ    CMDMODE_        ; Command mode?
+        CMPB    #INSMODE
+        LBEQ    INSMODE_        ; Insert mode?
+        CMPB    #COLONMODE
+        LBEQ    COLONMODE_      ; Colon command mode?
+        LBRA    MAIN            ; Unknown mode - ignore
 
 ; Command mode handling
 CMDMODE_ CMPA   #'h             ; Left
@@ -123,10 +133,8 @@ CMDMODE_ CMPA   #'h             ; Left
         LBEQ    GOAPP
         CMPA    #'r             ; Redraw screen
         LBEQ    DOREDRAW
-        CMPA    #'w             ; Write (save)
-        LBEQ    CMDWRITE
-        CMPA    #'q             ; Quit
-        LBEQ    CMDQUIT
+        CMPA    #':             ; Start colon command
+        LBEQ    GOCOLON
         LBRA    MAIN            ; Ignore other keys
 
 ; Insert mode handling
@@ -248,6 +256,97 @@ DOREDRAW PSHS   A
         LBSR    UPDCUR
         LBRA    MAIN
 
+; Enter colon command mode
+GOCOLON PSHS    A
+        ; Don't erase the ':', we want to see it
+        ; Initialize command buffer
+        CLR     CMDLEN
+        LDA     #COLONMODE
+        STA     MODE
+        LBSR    UPDSTATUS       ; Show : in status line
+        PULS    A
+        LBRA    MAIN
+
+; Colon mode handling
+COLONMODE_ CMPA #ESC           ; Escape = cancel command
+        LBEQ    CANCELCMD
+        CMPA    #CR             ; Enter = execute command
+        LBEQ    EXECCMD
+        CMPA    #BS             ; Backspace
+        LBEQ    COLONBS
+        CMPA    #DEL            ; Delete key
+        LBEQ    COLONBS
+        CMPA    #$20            ; Printable?
+        LBLO    MAIN            ; Ignore control chars
+        CMPA    #$7E
+        LBHI    MAIN
+
+        ; Add character to command buffer
+        LBSR    ADDCMDCHAR
+        LBRA    MAIN
+
+; Add character to command buffer
+ADDCMDCHAR PSHS A,B,X
+        LDB     CMDLEN
+        CMPB    #15             ; Buffer full?
+        BHS     ADDCMD1         ; Yes, ignore
+
+        ; Store character in buffer
+        LDX     #CMDBUF
+        ABX                     ; X = CMDBUF + CMDLEN
+        STA     ,X              ; Store character
+        INC     CMDLEN          ; Increment length
+
+        ; Update status line to show new character
+        LBSR    UPDSTATUS
+
+ADDCMD1 PULS    X,B,A,PC
+
+; Handle backspace in colon mode
+COLONBS PSHS    A
+        LDA     CMDLEN
+        BEQ     COLBS1          ; Empty buffer - ignore
+        DEC     CMDLEN          ; Remove last character
+        LBSR    UPDSTATUS       ; Update display
+COLBS1  PULS    A
+        LBRA    MAIN
+
+; Cancel colon command (ESC pressed)
+CANCELCMD PSHS  A
+        LDA     #BS             ; Erase ESC
+        LBSR    PUTCHR
+        LBSR    SETCMD          ; Back to command mode
+        PULS    A
+        LBRA    MAIN
+
+; Execute colon command (CR pressed)
+EXECCMD PSHS    A,B,X
+        ; Parse and execute command in CMDBUF
+        LDA     CMDLEN
+        BEQ     EXECMD3         ; Empty - just return to command mode
+
+        ; Check first character
+        LDX     #CMDBUF
+        LDA     ,X+
+
+        CMPA    #'w             ; Write command
+        BNE     EXECMD1
+        LBSR    CMDWRITE
+        BRA     EXECMD3
+
+EXECMD1 CMPA    #'q             ; Quit command
+        BNE     EXECMD2
+        ; Quit doesn't return - clean up stack first
+        PULS    X,B,A           ; Clean up EXECCMD's stack frame
+        LBRA    CMDQUIT         ; Jump to quit (never returns)
+
+EXECMD2 ; Unknown command - ignore
+
+EXECMD3 ; Return to command mode
+        LBSR    SETCMD
+        PULS    X,B,A
+        LBRA    MAIN
+
 ; =========================================
 ; Core I/O
 ; =========================================
@@ -332,23 +431,16 @@ PUTNUM  PSHS    A,B,X
         PULS    X,B,A,PC
 
 PUTN1   LDB     #10             ; Divisor
-PUTN2   TSTB                    ; Check if A is 0
-        BEQ     PUTN3
-        CMPA    #0
+PUTN2   CMPA    #0              ; Check if A is 0
         BEQ     PUTN3
 
-        PSHS    A               ; Save quotient
-        LDB     #10
         LBSR    DIVMOD          ; A = A/10, B = A%10
-        PULS    A
 
-        ADDB    #'0             ; Convert to ASCII
-        STB     ,X
-        LEAX    -1,X
+        ADDB    #'0             ; Convert remainder to ASCII
+        STB     ,X              ; Store digit
+        LEAX    -1,X            ; Move buffer pointer back
 
-        LDB     #10
-        LBSR    DIVMOD          ; A = A / 10
-        BRA     PUTN2
+        BRA     PUTN2           ; Continue with quotient in A
 
 PUTN3   LEAX    1,X             ; Move to first digit
         LBSR    PRINT
@@ -366,8 +458,6 @@ DIVM2   PSHS    B               ; Save quotient
         TFR     A,B             ; Remainder to B
         PULS    A               ; Quotient to A
         PULS    X,PC
-
-NUMBUF  RMB     4               ; Number buffer
 
 ; Show buffer content line-by-line (optimized for terminal redraw)
 ; Starts at row 2 (row 1 is status line)
@@ -533,16 +623,48 @@ UPDSTATUS PSHS  A,X
 
         ; Print mode
         LDB     MODE
-        BNE     UPDST1
-        ; Command mode
+        BEQ     UPDST0          ; Command mode
+        CMPB    #INSMODE
+        BEQ     UPDST1          ; Insert mode
+        CMPB    #COLONMODE
+        BEQ     UPDST2          ; Colon mode
+        BRA     UPDST9          ; Unknown mode
+
+UPDST0  ; Command mode
         LEAX    CMDMSG,PCR
         LBSR    PRINT
-        BRA     UPDST2
+        BRA     UPDST9
+
 UPDST1  ; Insert mode
         LEAX    INSMSG,PCR
         LBSR    PRINT
+        BRA     UPDST9
 
-UPDST2  ; Restore cursor position
+UPDST2  ; Colon mode - show : and command buffer
+        LDA     #':
+        LBSR    PUTCHR
+
+        ; Print command buffer (save B,X first since they're on stack)
+        PSHS    B,X
+        LDX     #CMDBUF
+        LDB     CMDLEN
+        BEQ     UPDST3          ; Empty buffer
+
+UPDST2L LDA     ,X+
+        LBSR    PUTCHR
+        DECB
+        BNE     UPDST2L
+
+UPDST3  ; Clear to end of line
+        PULS    X,B             ; Restore B,X
+        LDA     #ESC
+        LBSR    PUTCHR
+        LDA     #'[
+        LBSR    PUTCHR
+        LDA     #'K
+        LBSR    PUTCHR
+
+UPDST9  ; Restore cursor position
         PULS    B,A             ; Get saved CURY, CURX
         STB     CURY
         STA     CURX
@@ -570,8 +692,9 @@ INSCHAR PSHS    A,X,B
         CMPB    #COLS-1
         BHS     INSCH1          ; At edge - don't advance
 
-        ; Not at edge - just advance cursor
+        ; Not at edge - advance cursor
         LBSR    MVRIGHT         ; Move cursor right in buffer
+        LBSR    UPDCUR          ; Update screen cursor position
         PULS    B,X,A,PC
 
 INSCH1  ; At right edge - stay at same position
@@ -658,10 +781,6 @@ AUTOS1  LDA     ,X+
 CMDWRITE ; Write (save) - copy text buffer to save area silently
         PSHS    A,X,Y
 
-        ; Erase echoed 'w'
-        LDA     #BS
-        LBSR    PUTCHR
-
         ; Write magic marker 'VI'
         LDY     #SAVEBUF
         LDA     #'V'
@@ -676,12 +795,9 @@ CMDWR1  LDA     ,X+
         CMPX    #BUFEND
         BLO     CMDWR1
 
-        PULS    Y,X,A
-        LBRA    MAIN            ; Back to main loop
+        PULS    Y,X,A,PC
 
 CMDQUIT ; Quit to ASSIST09
-        LDA     #BS             ; Erase echoed 'q'
-        LBSR    PUTCHR
         LBSR    CLRSCR          ; Clear screen and home cursor
         SWI                     ; Return to monitor
         FCB     MONITR          ; Function 8: Enter ASSIST09 monitor
