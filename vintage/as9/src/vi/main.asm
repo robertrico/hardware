@@ -332,7 +332,7 @@ EXECCMD PSHS    A,B,X
         CMPA    #'w             ; Write command
         BNE     EXECMD1
         LBSR    CMDWRITE
-        BRA     EXECMD3
+        BRA     EXECMD4
 
 EXECMD1 CMPA    #'q             ; Quit command
         BNE     EXECMD2
@@ -340,9 +340,14 @@ EXECMD1 CMPA    #'q             ; Quit command
         PULS    X,B,A           ; Clean up EXECCMD's stack frame
         LBRA    CMDQUIT         ; Jump to quit (never returns)
 
-EXECMD2 ; Unknown command - ignore
+EXECMD2 CMPA    #'n             ; New file command
+        BNE     EXECMD3
+        LBSR    CMDNEW
+        BRA     EXECMD4
 
-EXECMD3 ; Return to command mode
+EXECMD3 ; Unknown command - ignore
+
+EXECMD4 ; Return to command mode
         LBSR    SETCMD
         PULS    X,B,A
         LBRA    MAIN
@@ -796,6 +801,27 @@ CMDWR1  LDA     ,X+
         BLO     CMDWR1
 
         PULS    Y,X,A,PC
+
+CMDNEW  ; New file - clear text buffer with spaces
+        PSHS    A,X
+        LDX     #TEXTBUF
+        LDA     #' '            ; Fill with spaces
+CMDNEW1 STA     ,X+
+        CMPX    #BUFEND
+        BLO     CMDNEW1
+
+        ; Reset cursor to (0,0)
+        CLR     CURX
+        CLR     CURY
+
+        ; Auto-save the cleared buffer
+        LBSR    AUTOSAVE
+
+        ; Redraw screen
+        LBSR    REDRAW
+        LBSR    UPDCUR
+
+        PULS    X,A,PC
 
 CMDQUIT ; Quit to ASSIST09
         LBSR    CLRSCR          ; Clear screen and home cursor
