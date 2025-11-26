@@ -140,7 +140,18 @@ int main(int argc, char **argv)
                           }
 
                 if ( Oflag )
-                    fprintf(Objfil,"S9\n"); /* ASSIST09-compatible ending - exits on S9 immediately */
+                {
+                    /* Generate proper S9 termination record */
+                    /* Format: S9 + byte_count(03) + address(0000) + checksum */
+                    int s9_chksum = 0x03 + 0x00 + 0x00;  /* count + addr_hi + addr_lo */
+                    s9_chksum = ~s9_chksum;              /* ones-complement */
+                    fprintf(Objfil,"S9");
+                    hexout(0x03);                        /* byte count: 3 (addr + chksum) */
+                    hexout(0x00);                        /* address high byte */
+                    hexout(0x00);                        /* address low byte */
+                    hexout(lobyte(s9_chksum));           /* checksum */
+                    fprintf(Objfil,"\n");
+                }
                 }
         exit(Err_count);
 }

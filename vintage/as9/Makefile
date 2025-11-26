@@ -245,25 +245,29 @@ load:
 	echo ""; \
 	echo "$(BOLD)Sending 'L' command to ASSIST09...$(RESET)"; \
 	printf "L\r" > "$(SERIAL_PORT)"; \
-	sleep 0.0005; \
+	sleep 0.5; \
 	echo "$(GREEN)✓$(RESET) Load command sent"; \
 	echo ""; \
 	echo "$(BOLD)Sending S19 data...$(RESET)"; \
 	echo ""; \
 	while IFS= read -r line; do \
-		echo "  → $${line}"; \
-		for ((i=0; i<$${#line}; i++)); do \
-			char="$${line:$$i:1}"; \
-			printf "%s" "$$char" > "$(SERIAL_PORT)"; \
+		if [[ "$$line" == S9* ]]; then \
+			echo "  → S9 (truncated - ASSIST09 ignores rest)"; \
+			printf "S" > "$(SERIAL_PORT)"; \
 			sleep 0.01; \
-		done; \
-		if [[ "$$line" != S9* ]]; then \
+			printf "9" > "$(SERIAL_PORT)"; \
+			echo ""; \
+			echo "$(BLUE)  (S9 record sent - ASSIST09 will exit loader)$(RESET)"; \
+			sleep 0.5; \
+		else \
+			echo "  → $${line}"; \
+			for ((i=0; i<$${#line}; i++)); do \
+				char="$${line:$$i:1}"; \
+				printf "%s" "$$char" > "$(SERIAL_PORT)"; \
+				sleep 0.01; \
+			done; \
 			printf "\r" > "$(SERIAL_PORT)"; \
 			sleep 0.1; \
-		else \
-			echo ""; \
-			echo "$(BLUE)  (S9 record - ASSIST09 will exit loader)$(RESET)"; \
-			sleep 0.5; \
 		fi; \
 	done < "$${S19_FILE}"; \
 	echo ""; \
