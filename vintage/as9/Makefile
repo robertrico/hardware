@@ -32,7 +32,7 @@ BLUE      = \033[34m
 YELLOW    = \033[33m
 RESET     = \033[0m
 
-.PHONY: help new build rom flash load clean clean-project assembler list examples
+.PHONY: help new build build2 rom flash load clean clean-project assembler list examples
 
 # Default target
 help:
@@ -40,7 +40,8 @@ help:
 	@echo ""
 	@echo "$(BOLD)Project Management:$(RESET)"
 	@echo "  make new PROJECT=<name>           - Create new project"
-	@echo "  make build PROJECT=<name>         - Build project (src/<name>/main.asm)"
+	@echo "  make build PROJECT=<name>         - Build project with AS9 (src/<name>/main.asm)"
+	@echo "  make build2 PROJECT=<name>        - Build project with LWASM"
 	@echo "  make rom PROJECT=<name>           - Build + create 32KB ROM image"
 	@echo "  make flash PROJECT=<name>         - Build + flash to 28C256 EEPROM"
 	@echo "  make clean-project PROJECT=<name> - Clean project build outputs"
@@ -136,6 +137,61 @@ build: $(AS9)
 		if [ -f "$(BUILD_DIR)/$(PROJECT)/$${BASENAME}.bin" ]; then \
 			SIZE=$$(wc -c < "$(BUILD_DIR)/$(PROJECT)/$${BASENAME}.bin" | tr -d ' '); \
 			echo "$(BLUE)💾 Binary:$(RESET)   $(BUILD_DIR)/$(PROJECT)/$${BASENAME}.bin ($${SIZE} bytes)"; \
+		fi; \
+		echo ""; \
+		echo "$(GREEN)✨ Build complete!$(RESET)"; \
+	else \
+		echo ""; \
+		echo "$(YELLOW)✗ Assembly failed - check source for errors$(RESET)"; \
+		exit 1; \
+	fi
+
+# Build project with LWASM
+build2:
+	@if [ -z "$(PROJECT)" ]; then \
+		echo "$(YELLOW)Error: PROJECT name required$(RESET)"; \
+		echo "Usage: make build2 PROJECT=<name>"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(SRC_DIR)/$(PROJECT)/$(SOURCE)" ]; then \
+		echo "$(YELLOW)Error: Source not found: $(SRC_DIR)/$(PROJECT)/$(SOURCE)$(RESET)"; \
+		echo "Create project first: make new PROJECT=$(PROJECT)"; \
+		exit 1; \
+	fi
+	@if ! command -v lwasm >/dev/null 2>&1; then \
+		echo "$(YELLOW)Error: lwasm not found$(RESET)"; \
+		echo "Install LWTOOLS from: https://www.lwtools.ca/"; \
+		exit 1; \
+	fi
+	@mkdir -p "$(BUILD_DIR)/$(PROJECT)"
+	@echo "$(BOLD)╔════════════════════════════════════════════════╗$(RESET)"
+	@echo "$(BOLD)║      6809_Bootstrap Build System (LWASM)       ║$(RESET)"
+	@echo "$(BOLD)╚════════════════════════════════════════════════╝$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Project:$(RESET)  $(PROJECT)"
+	@echo "$(BOLD)Source:$(RESET)   $(SRC_DIR)/$(PROJECT)/$(SOURCE)"
+	@echo "$(BOLD)Assembler:$(RESET) lwasm"
+	@echo "$(BOLD)Output:$(RESET)   $(BUILD_DIR)/$(PROJECT)/"
+	@echo ""
+	@BASENAME=$$(basename "$(SOURCE)" .asm); \
+	echo "Assembling..."; \
+	if lwasm \
+		--format=srec \
+		--list="$(BUILD_DIR)/$(PROJECT)/$${BASENAME}.lst" \
+		--symbols \
+		--output="$(BUILD_DIR)/$(PROJECT)/$${BASENAME}.s19" \
+		"$(SRC_DIR)/$(PROJECT)/$(SOURCE)"; then \
+		echo ""; \
+		echo "$(GREEN)✓ Assembly successful!$(RESET)"; \
+		echo ""; \
+		echo "Generated files in $(BUILD_DIR)/$(PROJECT)/:"; \
+		ls -lh "$(BUILD_DIR)/$(PROJECT)/" | tail -n +2 | awk '{printf "  %-25s %8s\n", $$9, $$5}'; \
+		echo ""; \
+		if [ -f "$(BUILD_DIR)/$(PROJECT)/$${BASENAME}.s19" ]; then \
+			echo "$(BLUE)📦 ROM file:$(RESET) $(BUILD_DIR)/$(PROJECT)/$${BASENAME}.s19"; \
+		fi; \
+		if [ -f "$(BUILD_DIR)/$(PROJECT)/$${BASENAME}.lst" ]; then \
+			echo "$(BLUE)📄 Listing:$(RESET)  $(BUILD_DIR)/$(PROJECT)/$${BASENAME}.lst"; \
 		fi; \
 		echo ""; \
 		echo "$(GREEN)✨ Build complete!$(RESET)"; \
