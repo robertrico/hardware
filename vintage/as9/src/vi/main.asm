@@ -9,16 +9,27 @@
 ; Memory Map (ASSIST09 System):
 ; $0000-$00FF  Zero page (ASSIST09 direct page when active)
 ; $0100-$01FF  Stack area (SP starts at $01FF, grows down)
-; $0400-$0761  Program code (865 bytes)
-; $0800-$0F7F  Text buffer (80x24 = 1920 bytes)
-; $0F80-$0F90  Editor state (cursor, mode)
-; $1200-$197D  Save buffer (2 + 1920 bytes with 'VI' marker)
-; $6FD0-$6FDC  DISASSEMBLER variables (reserved)
-; $6FE0-$6FFC  TRACE variables (reserved)
+; $0200-$03FF  Reserved for future use (512 bytes)
+; $0400-$0FFF  Program code (3KB max - currently ~1.3KB)
+; $1000-$173F  Text buffer (1840 bytes = 80×23)
+; $1740-$174F  Editor state variables (16 bytes)
+; $1750-$1E7F  SAVEBUF slot 0 (1842 bytes with 'VI' marker)
+; $1E80-$25AF  SAVEBUF slot 1 (1842 bytes)
+; $25B0-$2CDF  SAVEBUF slot 2 (1842 bytes)
+; $2CE0-$340F  SAVEBUF slot 3 (1842 bytes)
+; $3410-$3B3F  SAVEBUF slot 4 (1842 bytes)
+; $3B40-$426F  SAVEBUF slot 5 (1842 bytes)
+; $4270-$499F  SAVEBUF slot 6 (1842 bytes)
+; $49A0-$50CF  SAVEBUF slot 7 (1842 bytes)
+; $50D0-$57FF  SAVEBUF slot 8 (1842 bytes)
+; $5800-$5F2F  SAVEBUF slot 9 (1842 bytes)
+; $5F30-$6FCF  Free space (4256 bytes)
+; $6FD0-$6FDC  DISASSEMBLER variables (reserved by ASSIST09)
+; $6FE0-$6FFC  TRACE variables (reserved by ASSIST09)
 ; $7000-$7051  ASSIST09 workspace (DO NOT USE)
 ; $F800-$FFFF  ASSIST09 ROM
 
-STACK   EQU     $01FF           ; Safe stack area (grows down from $01FF to $0100)
+STACK   EQU     $01FF           ; Stack pointer (grows down from $01FF to $0100)
 
 ; =========================================
 ; ASSIST09 SWI Functions
@@ -40,24 +51,37 @@ DEL     EQU     $7F             ; Delete key
 ; Screen dimensions
 COLS    EQU     80              ; Screen width
 ROWS    EQU     23              ; Text rows (status at ANSI row 1, text at ANSI rows 2-24)
+BUFSIZ  EQU     1840            ; Text buffer size (COLS * ROWS)
 
-; Memory allocation in user RAM ($0179-$6FCF)
-; Text buffer: 80 cols × 23 rows = 1840 bytes = $730
-; Program ends around $08BF (1215 bytes from $0400)
-TEXTBUF EQU     $0900           ; Text buffer start (after program code)
-BUFEND  EQU     $1030           ; Text buffer end ($0900 + $0730)
+; =========================================
+; Memory Layout
+; =========================================
+; Text buffer (1840 bytes at page boundary for clean addressing)
+TEXTBUF EQU     $1000           ; Text buffer start (80×23 = 1840 bytes)
+BUFEND  EQU     $1730           ; Text buffer end ($1000 + $730)
 
-; Editor state (after text buffer)
-CURX    EQU     $1030           ; Cursor X position (0-79)
-CURY    EQU     $1031           ; Cursor Y position (0-79)
-MODE    EQU     $1032           ; 0=command, 1=insert, 2=colon
-CMDBUF  EQU     $1040           ; Command buffer for : commands (16 bytes)
-CMDLEN  EQU     $1050           ; Length of command in buffer
-NUMBUF  EQU     $1051           ; Number buffer for PUTNUM (4 bytes)
+; Editor state variables (20 bytes total, $1740-$1753)
+CURX    EQU     $1740           ; Cursor X position (0-79)
+CURY    EQU     $1741           ; Cursor Y position (0-79)
+MODE    EQU     $1742           ; 0=command, 1=insert, 2=colon
+BSKEY   EQU     $1743           ; Which key triggered backspace (BS or DEL)
+CMDBUF  EQU     $1744           ; Command buffer for : commands (10 bytes)
+CMDLEN  EQU     $174E           ; Length of command in buffer (1 byte)
+NUMBUF  EQU     $174F           ; Number buffer for PUTNUM (4 bytes, ends at $1752)
+        ; Gap: $1753 reserved for alignment
 
-; Save buffer (after editor state) - includes 2-byte magic marker 'VI'
-; Need 2 + 1840 = 1842 bytes
-SAVEBUF EQU     $1100           ; Saved buffer: 2 + 1840 bytes ($1100-$182D)
+; File save slots (10 slots, each 1842 bytes with 2-byte 'VI' marker + 1840 data)
+; Each slot is $732 bytes (1842 decimal)
+SAVEBUF EQU     $1754           ; Save slot 0 ($1754-$1E85)
+SLOT1   EQU     $1E86           ; Save slot 1 ($1E86-$25B7)
+SLOT2   EQU     $25B8           ; Save slot 2 ($25B8-$2CE9)
+SLOT3   EQU     $2CEA           ; Save slot 3 ($2CEA-$341B)
+SLOT4   EQU     $341C           ; Save slot 4 ($341C-$3B4D)
+SLOT5   EQU     $3B4E           ; Save slot 5 ($3B4E-$427F)
+SLOT6   EQU     $4280           ; Save slot 6 ($4280-$49B1)
+SLOT7   EQU     $49B2           ; Save slot 7 ($49B2-$50E3)
+SLOT8   EQU     $50E4           ; Save slot 8 ($50E4-$5815)
+SLOT9   EQU     $5816           ; Save slot 9 ($5816-$5F47)
 
 ; Modes
 CMDMODE EQU     0               ; Command mode
@@ -335,7 +359,7 @@ EXECCMD PSHS    A,B,X
 EXECMD1 CMPA    #'q             ; Quit command
         BNE     EXECMD2
         ; Quit doesn't return - clean up stack first
-        PULS    X,B,A           ; Clean up EXECCMD's stack frame
+        PULS    A,B,X           ; Clean up EXECCMD's stack frame
         LBRA    CMDQUIT         ; Jump to quit (never returns)
 
 EXECMD2 CMPA    #'n             ; New file command
@@ -345,10 +369,9 @@ EXECMD2 CMPA    #'n             ; New file command
 
 EXECMD3 ; Unknown command - ignore
 
-EXECMD4 ; Return to command mode
-        LBSR    SETCMD
-        PULS    X,B,A
-        LBRA    MAIN
+EXECMD4 ; Return to command mode (without erasing - no ESC was pressed)
+        LBSR    SETCMD0
+        PULS    A,B,X,PC
 
 ; =========================================
 ; Core I/O
@@ -417,7 +440,7 @@ UPDCUR  PSHS    A,X
         LDA     #'H
         LBSR    PUTCHR
 
-        PULS    X,A,PC
+        PULS    A,X,PC
 
 ; Print number in A (0-255) as decimal
 PUTNUM  PSHS    A,B,X
@@ -487,7 +510,7 @@ SHOWB2  LDA     ,X+             ; Get character
         LDA     #LF
         LBSR    PUTCHR
         BRA     SHOWB1          ; Continue to next row
-SHOWB3  PULS    Y,X,B,A,PC
+SHOWB3  PULS    A,B,X,Y,PC
 
 TEXTPOS FCB     '[,'2,';,'1,'H,0        ; Position to row 2, col 1
 
@@ -497,7 +520,7 @@ REDRAW  PSHS    A,B,X,Y
         LBSR    UPDSTATUS       ; Draw status line
         LBSR    SHOWBUF         ; Draw text
         ; Don't reset cursor - preserve current position
-        PULS    Y,X,B,A,PC
+        PULS    A,B,X,Y,PC
 
 ; =========================================
 ; Buffer Functions
@@ -513,7 +536,7 @@ INITBUF PSHS    A,X
 INITB1  STA     ,X+
         CMPX    #BUFEND
         BLO     INITB1
-        PULS    X,A,PC
+        PULS    A,X,PC
 
 ; Load buffer from storage
 ; Check for 'VI' marker, copy if found, else do nothing
@@ -536,7 +559,7 @@ LOADB2  LDA     ,X+             ; Copy byte from save area
         SUBD    #1              ; Decrement counter
         BNE     LOADB2          ; Continue until done
 
-LOADB1  PULS    Y,X,B,A,PC
+LOADB1  PULS    A,B,X,Y,PC
 
 ; Get buffer address for current cursor position
 ; Returns address in X
@@ -593,14 +616,24 @@ MVD1    PULS    A,PC
 ; =========================================
 
 ; Set command mode
+; Set command mode (erases echoed ESC character)
 SETCMD  PSHS    A,X
         CLR     MODE
+        CLR     CMDLEN          ; Clear command buffer
         ; ESC was echoed by ASSIST09, send BS to erase it
         LDA     #BS
         LBSR    PUTCHR
         ; Update status line
         LBSR    UPDSTATUS
-        PULS    X,A,PC
+        PULS    A,X,PC
+
+; Set command mode without erasing (for use after colon commands)
+SETCMD0 PSHS    A,X
+        CLR     MODE
+        CLR     CMDLEN          ; Clear command buffer
+        ; Update status line
+        LBSR    UPDSTATUS
+        PULS    A,X,PC
 
 ; Set insert mode
 SETINS  PSHS    A
@@ -659,7 +692,7 @@ UPDST2L LDA     ,X+
         BNE     UPDST2L
 
 UPDST3  ; Clear to end of line
-        PULS    X,B             ; Restore B,X
+        PULS    B,X             ; Restore B,X (match PSHS order!)
         LDA     #ESC
         LBSR    PUTCHR
         LDA     #'[
@@ -669,29 +702,29 @@ UPDST3  ; Clear to end of line
 
         ; In colon mode, leave cursor in status bar
         ; so ASSIST09 echoes go there, not to text area
-        PULS    B,A             ; Get saved CURY, CURX (but don't restore yet)
+        PULS    A,B             ; Get saved CURX, CURY (match PSHS order!)
         LDB     MODE
         CMPB    #COLONMODE
         BEQ     UPDST8          ; Stay in status bar for colon mode
 
         ; Not colon mode - restore cursor to text area
-        STB     CURY
         STA     CURX
-        PULS    B,A
+        STB     CURY
+        PULS    A,B             ; Match PSHS A,B from line 649
         LBSR    UPDCUR          ; Restore cursor to text area
-        PULS    X,A,PC
+        PULS    A,X,PC          ; Match PSHS A,X from line 647
 
 UPDST8  ; Colon mode - discard saved position and leave cursor in status bar
-        PULS    B,A             ; Discard saved A,B
-        PULS    X,A,PC
+        PULS    A,B             ; Discard saved A,B (match PSHS order!)
+        PULS    A,X,PC          ; Match PSHS A,X from line 647
 
 UPDST9  ; Restore cursor position (for command/insert modes)
-        PULS    B,A             ; Get saved CURY, CURX
-        STB     CURY
+        PULS    A,B             ; Get saved CURX, CURY (match PSHS order!)
         STA     CURX
-        PULS    B,A
+        STB     CURY
+        PULS    A,B             ; Match PSHS A,B from line 649
         LBSR    UPDCUR          ; Restore cursor to text area
-        PULS    X,A,PC
+        PULS    A,X,PC          ; Match PSHS A,X from line 647
 
 STATPOS FCB     '[,'1,';,'1,'H,0        ; Position to row 1, col 1
 CMDMSG  FCC     "-- COMMAND --"
@@ -736,6 +769,9 @@ DONEWLINE PSHS  A
 
 ; Handle backspace in insert mode
 DOBACKSP PSHS   A,X,B
+        ; Save the keycode for later (to know if BS or DEL)
+        STA     BSKEY           ; Save which key was pressed
+
         ; Check if at (0,0) - can't backspace
         LDA     CURX
         BNE     DOBK1           ; Not at left edge
@@ -764,12 +800,26 @@ DOBK4   ; Erase character at current position
         ; Auto-save after backspace
         LBSR    AUTOSAVE
 
-        ; Erase character on screen: BS, space, BS
-        LDA     #BS             ; Send backspace
+        ; Handle screen update
+        ; If DEL was pressed ($7F), ASSIST09 doesn't move cursor, so we need BS-space-BS
+        ; If BS was pressed ($08), ASSIST09 moved cursor, so we need space-BS
+        LDA     BSKEY           ; Get saved keycode
+        CMPA    #DEL            ; Check what key was pressed
+        BEQ     DOBK5           ; DEL needs full BS-space-BS
+
+        ; BS key - ASSIST09 already moved cursor back
+        LDA     #' '            ; Space to erase
         LBSR    PUTCHR
-        LDA     #' '            ; Space
+        LDA     #BS             ; Backspace to correct position
         LBSR    PUTCHR
-        LDA     #BS             ; Backspace again
+        BRA     DOBK2
+
+DOBK5   ; DEL key - ASSIST09 didn't move cursor
+        LDA     #BS             ; Move cursor back
+        LBSR    PUTCHR
+        LDA     #' '            ; Space to erase
+        LBSR    PUTCHR
+        LDA     #BS             ; Backspace to correct position
         LBSR    PUTCHR
 
 DOBK2   PULS    B,X,A
@@ -796,7 +846,7 @@ AUTOS1  LDA     ,X+
         CMPX    #BUFEND
         BLO     AUTOS1
 
-        PULS    Y,X,A,PC
+        PULS    A,X,Y,PC
 
 CMDWRITE ; Write (save) - copy text buffer to save area silently
         PSHS    A,X,Y
@@ -815,7 +865,7 @@ CMDWR1  LDA     ,X+
         CMPX    #BUFEND
         BLO     CMDWR1
 
-        PULS    Y,X,A,PC
+        PULS    A,X,Y,PC
 
 CMDNEW  ; New file - clear text buffer with spaces
         PSHS    A,X
@@ -832,13 +882,36 @@ CMDNEW1 STA     ,X+
         ; Auto-save the cleared buffer
         LBSR    AUTOSAVE
 
-        ; Redraw screen (REDRAW handles cursor positioning)
-        LBSR    REDRAW
+        ; NOTE: REDRAW disabled for debugging - use 'r' command to refresh screen
+        ; LBSR    REDRAW
+        ; LBSR    UPDCUR
 
-        PULS    X,A,PC
+        PULS    A,X,PC
 
 CMDQUIT ; Quit to ASSIST09
-        LBSR    CLRSCR          ; Clear screen and home cursor
+        ; Clear screen and home cursor (fully inline to avoid any subroutine calls)
+        LDA     #ESC
+        SWI
+        FCB     OUTCH
+        LDA     #'[
+        SWI
+        FCB     OUTCH
+        LDA     #'2
+        SWI
+        FCB     OUTCH
+        LDA     #'J
+        SWI
+        FCB     OUTCH
+        LDA     #ESC
+        SWI
+        FCB     OUTCH
+        LDA     #'[
+        SWI
+        FCB     OUTCH
+        LDA     #'H
+        SWI
+        FCB     OUTCH
+        ; Return to ASSIST09
         SWI                     ; Return to monitor
         FCB     MONITR          ; Function 8: Enter ASSIST09 monitor
 
