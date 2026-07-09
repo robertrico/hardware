@@ -1,0 +1,4 @@
+﻿Designator,Quantity,Value,Mfg Part #,Description / Value,Package/Footprint,Type,Notes
+"C1, C2",2,0.1uF,CC0603KRX7R9BB104,Multilayer Ceramic Capacitors MLCC - SMD/SMT 50 V 0.1uF X7R 0603 10%,0603 (1608 metric),smt,"Unpolarized capacitor, small symbol"
+"J1, J2",2,Conn_01x12_Socket,,,,tht,Excluded from BOM
+U1,1,SN74LVC8T245,SN74LVC8T245DBQR,Translation - Voltage Levels 8-Bit Dual-Supply Bu s Xcvr,DBQ24-L / QSOP-24,smt,8-Bit Dual-Supply Bus Transceiver With Configurable Voltage Translation and 3-State Outputs

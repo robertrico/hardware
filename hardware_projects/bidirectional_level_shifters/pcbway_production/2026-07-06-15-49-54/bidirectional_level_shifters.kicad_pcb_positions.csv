@@ -1,0 +1,6 @@
+﻿pos_x,pos_y,rotation,side,designator,mpn,pack,footprint,value,mount_type
+104.925,-65.0,0.0,top,C1,,,C_0603_1608Metric,C_Small,smt
+108.875,-64.95,180.0,top,C2,,,C_0603_1608Metric,C_Small,smt
+100.35,-55.71,180.0,bottom,J1,,,PinHeader_1x12_P2.54mm_Vertical,Conn_01x12_Socket,tht
+113.1,-55.71,180.0,bottom,J2,,,PinHeader_1x12_P2.54mm_Vertical,Conn_01x12_Socket,tht
+106.7965,-70.3575,0.0,top,U1,,,DBQ24-L,SN74LVC8T245,smt

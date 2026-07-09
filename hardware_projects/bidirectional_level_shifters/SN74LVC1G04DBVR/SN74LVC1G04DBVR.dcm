@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP SN74LVC1G04DBVR
+D Single Inverter
+K
+F http://www.ti.com/lit/gpn/sn74lvc1g04
+$ENDCMP
+#
+#End Doc Library
