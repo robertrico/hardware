@@ -26,6 +26,27 @@ os2/
 
 ---
 
+## Getting the disk images
+
+`drives/`, `media/`, and `software/` are gitignored — the actual image
+and archive files aren't committed (large binaries, and copyrighted
+install media in `media/`/`software/`). Only directory structure,
+`86box.cfg` configs, and symlinks (`machines/*/drive_c.img ->
+../../drives/*.img`) are tracked.
+
+- **`drives/*.img`** — hard-disk images with OS/2 already installed.
+  Not downloaded; they're the output of working through this guide.
+  Recreate one with `./boot.sh new at_max` (or `ps2m70_max` /
+  `warp_max`), then follow the Stages below to install onto it.
+- **`media/*.img`** — OS/2 install floppies, drivers, and dev tools.
+  Run `./library.sh` to search/extract matching disk images from a PCjs
+  disk library; for material PCjs doesn't have, source WinWorldPC or
+  archive.org by product name (e.g. "OS/2 1.21", "OS/2 Warp 3").
+- **`software/*.7z`** — original vendor archives (e.g. `msos2_121_525.7z`
+  from WinWorldPC) kept for provenance; same sourcing as `media/`.
+
+---
+
 ## How this guide is structured
 
 Six stages, each a clean stopping point:

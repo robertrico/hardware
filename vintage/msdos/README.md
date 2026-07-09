@@ -56,3 +56,26 @@ mcopy -i media/dev/scratch.img myfile.c ::MYFILE.C
 ./boot.sh xt_5160 -a scratch.img
 # then from DOS: COPY A:MYFILE.C C:\
 ```
+
+## Getting the disk images
+
+`drives/` and `media/` are gitignored — the actual `.img` files aren't
+committed (they're large binary disk images, and `media/` in particular
+is copyrighted install media). Only the directory structure, machine
+configs, and symlinks (`machines/*/drive_c.img -> ../../drives/*.img`)
+are tracked.
+
+- **`drives/*.img`** — these are hard-disk images with an OS already
+  installed. They aren't downloaded from anywhere; they're a build
+  artifact of following **GUIDE.md**. Recreate one with:
+  ```bash
+  ./boot.sh new xt_5160    # creates a fresh, empty drive image
+  ```
+  then walk through GUIDE.md to install DOS/Windows onto it.
+- **`media/*.img`** — install floppies for DOS, Windows 1.x/2.x/3.x, and
+  period dev tools (MASM, MS-C, Windows SDK). Source these yourself from
+  archive.org or WinWorldPC (search by product name, e.g. "MS-DOS 5.0",
+  "Windows 3.11"), or extract from a PCjs disk library. `p7zip` handles
+  most WinWorld archives (`brew install p7zip`).
+- **`software/`** — original vendor archives kept for provenance; same
+  sourcing as `media/`.
