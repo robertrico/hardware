@@ -1,0 +1,62 @@
+6809 / NitrOS-9 / CoCo 3 Reference Library
+===========================================
+
+QUICK LOOKUP (keep these handy while coding)
+---------------------------------------------
+6809_Cheatsheet.pdf           - One-page 6809 instruction cheat sheet
+MC6809_Reference_Card.pdf     - Official Motorola fold-out reference card
+OS9_Quick_Reference.pdf       - OS-9 commands, system calls, quick ref (Farna Systems, 1994)
+
+6809 INSTRUCTION SET
+---------------------------------------------
+6809_6309_Programming_Reference_Darren_Atkinson.pdf
+    Best single reference for 6809 instructions. Every opcode, addressing
+    mode, and flag effect. Also covers 6309 extensions.
+
+MC6809_Programming_Manual.pdf
+    Original Motorola programming manual. Detailed explanations of
+    architecture, addressing modes, and instruction set.
+
+6809_Assembly_Language_Programming_Leventhal.pdf
+    The classic textbook by Lance Leventhal. Full tutorial from basics
+    through advanced techniques with worked examples.
+
+NitrOS-9 / OS-9 SYSTEM CALLS & INTERNALS
+---------------------------------------------
+NitrOS9_Technical_Reference.pdf
+    NitrOS-9 v0.1 tech ref by Boisy Pitre. System calls, memory map,
+    module format, I/O system.
+
+NitrOS9_EOU_Technical_Reference.pdf
+    Most up-to-date NitrOS-9 EOU Level 2 tech ref. Corrected and new
+    system calls. Use this as your primary OS-9 syscall reference.
+
+OS9_Quick_Reference.pdf
+    Condensed OS-9 reference: shell commands, system calls, module
+    headers, error codes. Great for quick lookups.
+
+Inside_OS9_Level_II.pdf
+    Kevin Darling's deep dive into OS-9 internals (1987). How the
+    kernel works, memory management, I/O, device drivers.
+
+CoCo 3 HARDWARE
+---------------------------------------------
+CoCo3_Hardware_Reference.pdf
+    Chris Lomont's all-in-one CoCo hardware programming guide.
+    GIME registers, memory map, I/O ports, video modes, interrupts.
+
+YOUR WORKFLOW: vim -> asm
+=========================
+For OS-9 system calls (I$Read, I$Write, F$Exit, etc.):
+    -> NitrOS9_EOU_Technical_Reference.pdf
+
+For 6809 instruction encoding/flags while writing:
+    -> 6809_6309_Programming_Reference_Darren_Atkinson.pdf
+    -> 6809_Cheatsheet.pdf
+
+For CoCo 3 hardware registers (GIME, PIA, etc.):
+    -> CoCo3_Hardware_Reference.pdf
+
+For OS-9 module header format (needed for every asm program):
+    -> NitrOS9_Technical_Reference.pdf (Module Format section)
+    -> OS9_Quick_Reference.pdf
