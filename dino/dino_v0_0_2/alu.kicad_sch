@@ -1,15 +1,35 @@
 (kicad_sch
-	(version 20250114)
+	(version 20260306)
 	(generator "eeschema")
-	(generator_version "9.0")
+	(generator_version "10.0")
 	(uuid "1e54dbbc-5450-45e2-b003-c9006733c86d")
 	(paper "USLetter")
 	(title_block
-		(title "Dino v0.0.2")
-		(date "2025-08-14")
-		(rev "v1.1.0")
+		(title "Dino v0.0.3")
+		(date "2026-07-12")
+		(rev "v1.2.0")
 		(comment 3 "An 8-bit computer with 16-bit addressing and 16-bit control words")
 		(comment 4 "A Turing-Complete 8-bit \"Computer\"")
 	)
 	(lib_symbols)
+	(text "We need to implement two TMP_A and TMP_B latches as \"Shadow Latches\""
+		(exclude_from_sim no)
+		(at 86.36 93.726 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "26deb76b-418a-4a7e-903b-36137b141acd")
+	)
+	(text "We need to introduce an extra ALU latch \nsince Reg A can be an operand and resultant. \nWe plan to have A store the result, so there's a step in between\n"
+		(exclude_from_sim no)
+		(at 85.598 83.058 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "35619743-f6e8-4e6e-a648-74ebc723f3b5")
+	)
 )
