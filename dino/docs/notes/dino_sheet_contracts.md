@@ -25,8 +25,8 @@ types: OUT(tri) means drives-when-enabled (a tri-state bus driver).
 - OUT   ~{ALU_OUT}  -> ALU Module
 - OUT   ~{REG_A_LOAD}, ~{REG_B_LOAD}  -> ALU Module, Register Modules
 - OUT   ~{MAR_HI_LOAD}, ~{MAR_LO_LOAD}  -> Memory Address Regiser
-- OUT   ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}, ~{ROM_OUT}  -> Memory Data Register
-- OUT   ~{RAM_OUT}  -> Memory, Memory Data Register
+- OUT   ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}  -> Memory Data Register
+- OUT   ~{RAM_OUT}, ~{ROM_OUT}  -> Memory, Memory Data Register
 - OUT   ~{SW_OUT}  -> Output
 - OUT   ~{PC_CLEAR}, ~{PC_LOAD}  -> Program Counter
 - OUT   ~{REG_A_OUT}, ~{REG_B_OUT}, ~{REG_C_LOAD}, ~{REG_C_OUT}, ~{REG_OUT_LOAD}  -> Register Modules
@@ -50,7 +50,7 @@ types: OUT(tri) means drives-when-enabled (a tri-state bus driver).
 - BIDIR MDR0-7  <-> Memory, Register Modules
 
 ## Memory
-- IN    ~{RAM_OUT}  <- Control Word Module
+- IN    ~{RAM_OUT}, ~{ROM_OUT}  <- Control Word Module
 - IN    ~{RAM_EN}  <- Memory Address Regiser
 - IN    M0-14, M15=ROM_EN  <- Memory Address Regiser, Program Counter
 - IN    WRITE_DIR  <- Memory Data Register

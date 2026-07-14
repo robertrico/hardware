@@ -3233,26 +3233,6 @@
 		(uuid "fad87b46-8c3d-4443-9dbf-3bb29f00e06a")
 	)
 	(no_connect
-		(at 54.61 194.31)
-		(uuid "19a9b8ea-cbb9-470b-807e-13c1ab8cbfc8")
-	)
-	(no_connect
-		(at 35.56 194.31)
-		(uuid "2ab3554a-5e0c-4416-b056-c7d3706aa686")
-	)
-	(no_connect
-		(at 54.61 199.39)
-		(uuid "671f3357-4041-4bb9-b4a0-ac5f552796d1")
-	)
-	(no_connect
-		(at 35.56 199.39)
-		(uuid "9c4c065a-39a4-4f46-b02b-07e912771999")
-	)
-	(no_connect
-		(at 50.8 196.85)
-		(uuid "a27af312-b2e2-4615-bf05-54fb98a777f7")
-	)
-	(no_connect
 		(at 93.98 27.94)
 		(uuid "a399c99a-6cb8-451a-a498-d446bfb8ae5c")
 	)
@@ -3263,10 +3243,6 @@
 	(no_connect
 		(at 57.15 115.57)
 		(uuid "be40c3be-14f3-42ef-9c1e-aa58bc07d81a")
-	)
-	(no_connect
-		(at 69.85 196.85)
-		(uuid "ef71d6b1-5759-4188-8753-45e612d1e08d")
 	)
 	(bus_entry
 		(at 148.59 76.2)
@@ -5039,16 +5015,6 @@
 			(type default)
 		)
 		(uuid "bba1e140-0896-4372-a0e3-81402f0adbf5")
-	)
-	(wire
-		(pts
-			(xy 109.22 83.82) (xy 109.22 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "bbbed75f-8a7c-4b0c-81ab-7ba243b2afae")
 	)
 	(wire
 		(pts
@@ -8160,7 +8126,157 @@
 			)
 		)
 	)
-	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{RAM_OUT} <- Control Word Module\nIN: ~{RAM_EN} <- Memory Address Regiser\nIN: M0-14, M15=ROM_EN <- Memory Address Regiser, Program Counter\nIN: WRITE_DIR <- Memory Data Register\nIN: ~{CLK} <- root\nOUT: MDR0-7 -> Memory Data Register, Register Modules"
+	(label "~{ROM_OUT}"
+		(at 194.31 83.82 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7a5882a4-e31a-5e75-bb32-baddfd49f221")
+	)
+	(wire
+		(pts
+			(xy 35.56 194.31) (xy 30.48 194.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0ced477e-60d3-591b-81ba-7a42f19e1acc")
+	)
+	(label "~{RAM_OUT}"
+		(at 30.48 194.31 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "e1b0f8e0-035e-55b7-8f6b-589bca5c54c6")
+	)
+	(wire
+		(pts
+			(xy 35.56 199.39) (xy 30.48 199.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "40cc87b4-53ef-514d-85a3-5571c9a0fa84")
+	)
+	(label "~{WRITE_DIR}"
+		(at 30.48 199.39 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9a651144-7a58-592e-9b77-85b6c612d65e")
+	)
+	(wire
+		(pts
+			(xy 50.8 196.85) (xy 55.88 196.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "20a5b195-c38e-5000-a8da-86035aa33c33")
+	)
+	(label "RAM_MDR_DIS"
+		(at 55.88 196.85 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "08658557-4302-52c3-96b6-6f58a59c8283")
+	)
+	(wire
+		(pts
+			(xy 54.61 194.31) (xy 49.53 194.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4be5f100-9db7-5d88-bce7-61eea2bab720")
+	)
+	(label "RAM_MDR_DIS"
+		(at 49.53 194.31 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9b87e843-783e-56ca-a982-e7e2d6989ce4")
+	)
+	(wire
+		(pts
+			(xy 54.61 199.39) (xy 49.53 199.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a6dab066-ab14-52a7-a337-f77f0bd92880")
+	)
+	(label "RAM_MDR_DIS"
+		(at 49.53 199.39 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "923f6e84-d90e-5bcc-b705-b3fcf845ce95")
+	)
+	(wire
+		(pts
+			(xy 69.85 196.85) (xy 74.93 196.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a6b5c288-8904-5c09-90af-f887949f60f6")
+	)
+	(label "~{RAM_MDR_EN}"
+		(at 74.93 196.85 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "dfb3fd52-d151-5029-82c5-a173b8703d6b")
+	)
+	(wire
+		(pts
+			(xy 109.22 83.82) (xy 104.14 83.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1c78c83a-c398-5a2b-ae28-b07874b9f03e")
+	)
+	(label "~{RAM_MDR_EN}"
+		(at 104.14 83.82 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3bc42daa-4ef9-55fe-a9d5-90bf27a65049")
+	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{RAM_OUT}, ~{ROM_OUT} <- Control Word Module\nIN: ~{RAM_EN} <- Memory Address Regiser\nIN: M0-14, M15=ROM_EN <- Memory Address Regiser, Program Counter\nIN: WRITE_DIR <- Memory Data Register\nIN: ~{CLK} <- root\nOUT: MDR0-7 -> Memory Data Register, Register Modules"
 		(exclude_from_sim no)
 		(at 15.24 209.39 0)
 		(effects

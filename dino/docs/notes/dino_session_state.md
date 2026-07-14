@@ -411,9 +411,9 @@ are untouched historical record and still accurate for what they cover.
 
 ## Review findings 2026-07-14 (Rico's netlist-verified review of the test spec)
 
-    THREE SCHEMATIC BUGS confirmed against netlists, FIXES STAGED as
-    sheet_ops (blocked on KiCad being closed — apply then rerun lint +
-    audit + contract restamp):
+    THREE SCHEMATIC BUGS confirmed against netlists — ALL FIXED AND
+    VERIFIED 2026-07-14 (lint 0 findings project-wide, kicad-cli netlist
+    confirms every new net, contracts restamped):
     1. microcode U9/U15: ~WE (27) and A12 (2) floating AND no_connect-
        flagged — the NC flags silenced ERC on a real hazard. Fix:
        ~WE -> +5V (matches memory sheet's U24), A12 -> GND.

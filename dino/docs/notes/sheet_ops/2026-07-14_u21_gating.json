@@ -32,6 +32,11 @@
    "pin": "U51/11",
    "label": "~{RAM_MDR_EN}",
    "dir": "right"
+  },
+  {
+   "pin": "U21/19",
+   "label": "~{RAM_MDR_EN}",
+   "dir": "left"
   }
  ]
 }

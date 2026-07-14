@@ -4682,17 +4682,6 @@
 		)
 		(uuid "2396dd87-3bca-42c5-a466-0ce6ce74e434")
 	)
-	(text "We need to implement two TMP_A and TMP_B latches as \"Shadow Latches\""
-		(exclude_from_sim no)
-		(at 14.224 26.416 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "26deb76b-418a-4a7e-903b-36137b141acd")
-	)
 	(text "111"
 		(exclude_from_sim no)
 		(at 25.146 53.086 0)
@@ -4702,17 +4691,6 @@
 			)
 		)
 		(uuid "29d32957-a7aa-4954-ad7e-4a9734b86cf7")
-	)
-	(text "We need to introduce an extra ALU latch \nsince Reg A can be an operand and resultant. \nWe plan to have A store the result, so there's a step in between\n"
-		(exclude_from_sim no)
-		(at 13.716 21.082 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "35619743-f6e8-4e6e-a648-74ebc723f3b5")
 	)
 	(text "BSUB"
 		(exclude_from_sim no)
