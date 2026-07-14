@@ -118,11 +118,11 @@ def build_report(path):
                 num = child(pin, 'number')[1]
                 key = (unit, num)
                 if key not in libpins_raw[lib_id]:  # first style wins; styles are usually identical or one is empty
-                    libpins_raw[lib_id][key] = (child(pin, 'name')[1], float(at[1]), float(at[2]))
+                    libpins_raw[lib_id][key] = (child(pin, 'name')[1], float(at[1]), float(at[2]), pin[1])
     libpins = defaultdict(list)
     for lib_id, pins in libpins_raw.items():
-        for (unit, num), (name, x, y) in pins.items():
-            libpins[lib_id].append((unit, num, name, x, y))
+        for (unit, num), (name, x, y, et) in pins.items():
+            libpins[lib_id].append((unit, num, name, x, y, et))
 
     pinpts, powernets = [], []
     for s in children(root, 'symbol'):
@@ -133,12 +133,12 @@ def build_report(path):
         mirror = mir[1] if mir else None
         unit = int(child(s, 'unit')[1]) if child(s, 'unit') else 1
         ref = next((p[2] for p in children(s, 'property') if p[1] == 'Reference'), '?')
-        for (u, num, name, px, py) in libpins.get(lib, []):
+        for (u, num, name, px, py, et) in libpins.get(lib, []):
             if u not in (0, unit):
                 continue
             dx, dy = transform(px, py, rot, mirror)
             pt = (round(sx + dx, 3), round(sy + dy, 3))
-            pinpts.append((ref, num, name, pt))
+            pinpts.append((ref, num, name, pt, et))
             if lib.startswith('power:'):
                 powernets.append((lib.split(':')[1], pt))
 
@@ -204,12 +204,32 @@ def build_report(path):
     for name, pt in powernets:
         netname[find(pt)].add(name)
     members = defaultdict(list)
-    for ref, num, name, pt in pinpts:
+    for ref, num, name, pt, et in pinpts:
         if not ref.startswith('#'):
             members[find(pt)].append(f"{ref}.{num}({name})")
 
+    # --lint support: anonymous nets with >=2 pins and no driving pin.
+    # (Labeled driverless nets are cross-sheet territory -- xsheet audit's
+    # job; an ANONYMOUS multi-pin net with no driver can never be driven
+    # from another sheet and is always a bug. Caught U24.~OE/U19.CE.)
+    DRIVERS = {'output', 'tri_state', 'bidirectional', 'power_in'}
+    lint = []
+    for root_pt, mem in members.items():
+        if netname[root_pt]:
+            continue  # labeled: may be driven cross-sheet
+        if len(mem) < 2:
+            continue
+        types = [et for ref, num, name, pt, et in pinpts
+                 if find(pt) == root_pt and not ref.startswith('#')]
+        pwr = any(n for n, p in powernets if find(p) == root_pt)
+        # passive pins (R/C/switch legs) can source a net -- RC front ends
+        # and LED chains are legitimate; only all-input nets are dead.
+        if (not pwr and not any(x in DRIVERS for x in types)
+                and 'passive' not in types):
+            lint.append('DRIVERLESS anon net: ' + ', '.join(sorted(mem)))
+
     lines = []
-    for ref, num, name, pt in sorted(pinpts, key=lambda p: (p[0], int(p[1]))):
+    for ref, num, name, pt, et in sorted(pinpts, key=lambda p: (p[0], int(p[1]))):
         if ref.startswith('#'):
             continue
         r = find(pt)
@@ -217,15 +237,22 @@ def build_report(path):
         others = sorted(m for m in members[r] if m != f"{ref}.{num}({name})")
         nc = ' [NC]' if pt in ncs else ''
         lines.append(f"{ref:5s} pin {num:>2s} {name:8s} net={nn:20s}{nc} -> {', '.join(others) or '(nothing)'}")
-    return lines
+    return lines, lint
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
-    report = build_report(sys.argv[1])
-    pattern = sys.argv[2] if len(sys.argv) > 2 else None
+    args = [a for a in sys.argv[1:] if a != '--lint']
+    do_lint = '--lint' in sys.argv
+    report, lint = build_report(args[0])
+    if do_lint:
+        for l in lint:
+            print(l)
+        print(f"{len(lint)} lint finding(s)")
+        sys.exit(1 if lint else 0)
+    pattern = args[1] if len(args) > 1 else None
     rx = re.compile(pattern) if pattern else None
     for line in report:
         if rx is None or rx.search(line):

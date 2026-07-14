@@ -409,6 +409,42 @@ are untouched historical record and still accurate for what they cover.
     - IS0-7, LOAD_MODE (input_output.kicad_sch): no driver found — part of
       that sheet's pre-existing, untouched-this-session gap list above.
 
+## Review findings 2026-07-14 (Rico's netlist-verified review of the test spec)
+
+    THREE SCHEMATIC BUGS confirmed against netlists, FIXES STAGED as
+    sheet_ops (blocked on KiCad being closed — apply then rerun lint +
+    audit + contract restamp):
+    1. microcode U9/U15: ~WE (27) and A12 (2) floating AND no_connect-
+       flagged — the NC flags silenced ERC on a real hazard. Fix:
+       ~WE -> +5V (matches memory sheet's U24), A12 -> GND.
+       (2026-07-14_eeprom_we_a12.json)
+    2. memory: U24.~OE <-> U19.CE anonymous net with NO DRIVER — the ROM
+       read path is dead as drawn; missing ~{ROM_OUT} label. Fix: label
+       that wire ~{ROM_OUT} (manual label edit + restamp).
+    3. memory: U21 (RAM-side '245) CE = ~RAM_EN alone — whenever MAR
+       parks on a RAM address with no RAM op in flight, U21 buffers
+       floating RAM DQ onto MDR against legitimate register drivers
+       (happens INSIDE normal instructions, e.g. ALU T-states after a
+       RAM operand fetch). Fix: U51 spare NANDs, CE = AND(~RAM_OUT,
+       ~WRITE_DIR) via new net ~{RAM_MDR_EN} + intermediate RAM_MDR_DIS.
+       (2026-07-14_u21_gating.json + manual U21.19 relabel + NC removal
+       on U51.8-13.) Test memory.idle.release retires the class.
+
+    Tooling from the review: kicad_netlist.py --lint (flags anonymous
+    multi-pin nets with no driving pin, passives exempt) — catches bug 2
+    mechanically; validated: exactly 1 finding project-wide, the real bug.
+
+    Spec corrections applied to dino_test_bringup_design.md: registers
+    tests moved W->MDR bus (register file's '245s live on MDR — W only
+    via the MDR sheet's U25 bridge); taps test moved control_word ->
+    microcode module; pc clear test polarity/gating corrected
+    (~PC_CLEAR active-low AND CLK-low gated; RESET leg ungated); INT-B
+    bridge emulation made explicit + INT-B2 rerun through real U25 after
+    stage 10; INT-E program now includes JNZ taken/not-taken; TO0-15
+    check demoted to eyes/scope; power/grounding + series-resistor +
+    floats()-charge-trick + generated-pinmap + per-chip-CRC + coverage-
+    linter refinements folded in.
+
 ## Recurring bug pattern (ledger, ongoing)
 
     STRIKES 1-4 (2026-07-12, register/clock/PC phase — see prior session
