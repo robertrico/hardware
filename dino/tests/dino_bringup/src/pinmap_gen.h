@@ -7,28 +7,28 @@ typedef struct { const char *signal; const char *megapin; char dir; } sigpin_t;
 typedef struct { const char *module; const sigpin_t *sig; uint8_t n; } modmap_t;
 
 static const sigpin_t sig_root[] = {
-    {"END", "PD7/D38", 'O'},
-    {"HALT", "PG2/D39", 'O'},
-    {"CLK", "PG1/D40", 'I'},
-    {"RESET", "PG0/D41", 'I'},
-    {"T0", "PB3/D50", 'I'},
-    {"T1", "PB2/D51", 'I'},
-    {"T2", "PB1/D52", 'I'},
-    {"T3", "PB0/D53", 'I'},
-    {"~{CLK}", "PE4/D2", 'I'},
-    {"~{RESET}", "PE5/D3", 'I'}
+    {"CW12=END", "PL4/D45", 'O'},
+    {"CW15=HALT", "PL7/D42", 'O'},
+    {"CLK", "PD7/D38", 'I'},
+    {"RESET", "PG2/D39", 'I'},
+    {"T0", "PG1/D40", 'I'},
+    {"T1", "PG0/D41", 'I'},
+    {"T2", "PB3/D50", 'I'},
+    {"T3", "PB2/D51", 'I'},
+    {"~{CLK}", "PB1/D52", 'I'},
+    {"~{RESET}", "PB0/D53", 'I'}
 };
 static const sigpin_t sig_alu[] = {
     {"CLK", "PD7/D38", 'O'},
-    {"SA1", "PG2/D39", 'O'},
-    {"SA0", "PG1/D40", 'O'},
-    {"SA2", "PG0/D41", 'O'},
-    {"~{ALU_OUT}", "PB3/D50", 'O'},
-    {"~{CLK}", "PB2/D51", 'O'},
-    {"~{REG_A_LOAD}", "PB1/D52", 'O'},
-    {"~{REG_B_LOAD}", "PB0/D53", 'O'},
-    {"~{RESET}", "PE4/D2", 'O'},
-    {"FLAG_Z", "PE5/D3", 'I'},
+    {"CW10=SA1", "PL2/D47", 'O'},
+    {"CW11=SA0", "PL3/D46", 'O'},
+    {"CW9=SA2", "PL1/D48", 'O'},
+    {"~{ALU_OUT}", "PG2/D39", 'O'},
+    {"~{CLK}", "PG1/D40", 'O'},
+    {"~{REG_A_LOAD}", "PG0/D41", 'O'},
+    {"~{REG_B_LOAD}", "PB3/D50", 'O'},
+    {"~{RESET}", "PB2/D51", 'O'},
+    {"FLAG_Z", "PB1/D52", 'I'},
     {"W0", "PA0/D22", 'B'},
     {"W1", "PA1/D23", 'B'},
     {"W2", "PA2/D24", 'B'},
@@ -70,7 +70,7 @@ static const sigpin_t sig_control_word[] = {
 };
 static const sigpin_t sig_mar[] = {
     {"CLK", "PD7/D38", 'O'},
-    {"PC_MAR_MUX", "PG2/D39", 'O'},
+    {"CW14=PC_MAR_MUX", "PG2/D39", 'O'},
     {"W0", "PA0/D22", 'O'},
     {"W1", "PA1/D23", 'O'},
     {"W2", "PA2/D24", 'O'},
@@ -98,7 +98,7 @@ static const sigpin_t sig_mar[] = {
     {"M9", "PL1/D48", 'I'},
     {"~{PC_MAR_MUX}", "PB3/D50", 'I'},
     {"~{RAM_EN}", "PB2/D51", 'I'},
-    {"ROM_EN", "PB1/D52", 'B'}
+    {"M15=ROM_EN", "PL7/D42", 'B'}
 };
 static const sigpin_t sig_mdr[] = {
     {"CLK", "PD7/D38", 'O'},
@@ -141,7 +141,7 @@ static const sigpin_t sig_memory[] = {
     {"M12", "PL4/D45", 'O'},
     {"M13", "PL5/D44", 'O'},
     {"M14", "PL6/D43", 'O'},
-    {"ROM_EN", "PD7/D38", 'O'},
+    {"M15=ROM_EN", "PL7/D42", 'O'},
     {"M2", "PC2/D35", 'O'},
     {"M3", "PC3/D34", 'O'},
     {"M4", "PC4/D33", 'O'},
@@ -150,11 +150,11 @@ static const sigpin_t sig_memory[] = {
     {"M7", "PC7/D30", 'O'},
     {"M8", "PL0/D49", 'O'},
     {"M9", "PL1/D48", 'O'},
-    {"WRITE_DIR", "PG2/D39", 'O'},
-    {"~{CLK}", "PG1/D40", 'O'},
-    {"~{RAM_EN}", "PG0/D41", 'O'},
-    {"~{RAM_OUT}", "PB3/D50", 'O'},
-    {"~{ROM_OUT}", "PB2/D51", 'O'},
+    {"WRITE_DIR", "PD7/D38", 'O'},
+    {"~{CLK}", "PG2/D39", 'O'},
+    {"~{RAM_EN}", "PG1/D40", 'O'},
+    {"~{RAM_OUT}", "PG0/D41", 'O'},
+    {"~{ROM_OUT}", "PB3/D50", 'O'},
     {"MDR0", "PF0/A0", 'I'},
     {"MDR1", "PF1/A1", 'I'},
     {"MDR2", "PF2/A2", 'I'},
@@ -179,12 +179,12 @@ static const sigpin_t sig_microcode[] = {
     {"T3", "PG0/D41", 'O'},
     {"CW0", "PC0/D37", 'I'},
     {"CW1", "PC1/D36", 'I'},
-    {"SA1", "PB3/D50", 'I'},
-    {"SA0", "PB2/D51", 'I'},
-    {"END", "PB1/D52", 'I'},
-    {"PC_UP", "PB0/D53", 'I'},
-    {"PC_MAR_MUX", "PE4/D2", 'I'},
-    {"HALT", "PE5/D3", 'I'},
+    {"CW10=SA1", "PL2/D47", 'I'},
+    {"CW11=SA0", "PL3/D46", 'I'},
+    {"CW12=END", "PL4/D45", 'I'},
+    {"CW13=PC_UP", "PL5/D44", 'I'},
+    {"CW14=PC_MAR_MUX", "PL6/D43", 'I'},
+    {"CW15=HALT", "PL7/D42", 'I'},
     {"CW2", "PC2/D35", 'I'},
     {"CW3", "PC3/D34", 'I'},
     {"CW4", "PC4/D33", 'I'},
@@ -192,7 +192,7 @@ static const sigpin_t sig_microcode[] = {
     {"CW6", "PC6/D31", 'I'},
     {"CW7", "PC7/D30", 'I'},
     {"CW8", "PL0/D49", 'I'},
-    {"SA2", "PG5/D4", 'I'}
+    {"CW9=SA2", "PL1/D48", 'I'}
 };
 static const sigpin_t sig_io[] = {
     {"OB0", "PK0/A8", 'O'},
@@ -215,7 +215,7 @@ static const sigpin_t sig_io[] = {
 };
 static const sigpin_t sig_pc[] = {
     {"CLK", "PD7/D38", 'O'},
-    {"PC_UP", "PG2/D39", 'O'},
+    {"CW13=PC_UP", "PG2/D39", 'O'},
     {"RESET", "PG1/D40", 'O'},
     {"~{CLK}", "PG0/D41", 'O'},
     {"~{PC_CLEAR}", "PB3/D50", 'O'},
@@ -228,7 +228,7 @@ static const sigpin_t sig_pc[] = {
     {"M12", "PL4/D45", 'I'},
     {"M13", "PL5/D44", 'I'},
     {"M14", "PL6/D43", 'I'},
-    {"ROM_EN", "PB0/D53", 'I'},
+    {"M15=ROM_EN", "PL7/D42", 'I'},
     {"M2", "PC2/D35", 'I'},
     {"M3", "PC3/D34", 'I'},
     {"M4", "PC4/D33", 'I'},

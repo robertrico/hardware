@@ -234,12 +234,17 @@ POOL = ["PD7/D38","PG2/D39","PG1/D40","PG0/D41","PB3/D50","PB2/D51","PB1/D52",
 
 
 def bus_pin(signal):
-    for rx, port, dmap in MEGA_PORT_BY_PREFIX:
-        m = rx.match(signal)
-        if m:
-            n = m.group(1)
-            bit = int(n) & 7
-            return f"{port}{bit}/{dmap[n]}"
+    """Fixed-port pin for a bus bit, trying every alias component
+    ('M15=ROM_EN' matches via 'M15'). Returns (pin, priority) where priority
+    is the MEGA_PORT_BY_PREFIX index — lower wins a within-module pin clash
+    (M before CW: the rig reads the M bus as whole ports)."""
+    for pri, (rx, port, dmap) in enumerate(MEGA_PORT_BY_PREFIX):
+        for comp in signal.split("="):
+            m = rx.match(comp)
+            if m:
+                n = m.group(1)
+                bit = int(n) & 7
+                return f"{port}{bit}/{dmap[n]}", pri
     return None
 
 
@@ -262,13 +267,24 @@ def emit_pinmap(contracts, out_path):
     mods = []
     for sheet in sorted(contracts):
         tok = mod_token(sheet)
-        rows, pool = [], list(POOL)
+        cands, pool = [], list(POOL)
         for kind, d in (("IN", 'O'), ("OUT", 'I'), ("BIDIR", 'B')):
             # rig direction is the DUT's inverse: DUT IN => rig Output
             for label, _others in sorted(contracts[sheet][kind]):
                 for signal in expand(label):
-                    pin = bus_pin(signal) or pool.pop(0)
-                    rows.append((signal, pin, d))
+                    cands.append((signal, bus_pin(signal), d))
+        # Resolve within-module bus-pin clashes (e.g. CW14=PC_MAR_MUX vs M14
+        # both wanting PL6): the lowest-priority-index signal keeps the port
+        # pin, the loser falls to the pool. Emit alias joins in full so the
+        # hookup table shows both names.
+        best = {}
+        for i, (_s, bp, _d) in enumerate(cands):
+            if bp and (bp[0] not in best or bp[1] < cands[best[bp[0]]][1][1]):
+                best[bp[0]] = i
+        rows = []
+        for i, (signal, bp, d) in enumerate(cands):
+            pin = bp[0] if bp and best[bp[0]] == i else pool.pop(0)
+            rows.append((signal, pin, d))
         arr = ",\n    ".join(f'{{"{s}", "{p}", \'{d}\'}}' for s, p, d in rows)
         lines.append(f"static const sigpin_t sig_{tok}[] = {{\n    {arr}\n}};")
         mods.append((tok, len(rows)))
@@ -280,11 +296,10 @@ def emit_pinmap(contracts, out_path):
 
 
 def expand(label):
-    """'W0-7' stays compressed in contracts; expand merged labels and ranges.
-    Handles 'CW14=PC_MAR_MUX' (alias: emit BOTH names? no — the DUT-side
-    name is what's on the breadboard; emit the LAST alias component) and
-    plain names."""
-    label = label.split("=")[-1]
+    """Expand a compressed numeric range ('W0-7' -> W0..W7). Defensive only:
+    build_contracts() emits uncompressed per-bit labels. Alias joins like
+    'CW14=PC_MAR_MUX' pass through whole — emit_pinmap() keeps the full join
+    as the signal name and pins it by whichever component is a bus bit."""
     m = re.match(r"^(.*?)(\d+)-(\d+)$", label)
     if not m:
         return [label]

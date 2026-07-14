@@ -19,6 +19,12 @@ for m in re.finditer(r'\{"MDR0",\s*"([^"]+)"', t):
 # every module block present (sheet names, lowercased tokens)
 for mod in ("root", "mar", "memory", "control_word"):
     assert f'"{mod}"' in t, f"module {mod} missing"
+# alias-joined bus bits still land on their bus port (Task 3 reads whole ports)
+for m in re.finditer(r'\{"([^"]*M15[^"]*)",\s*"([^"]+)"', t):
+    assert m.group(2).startswith("PL7"), f"{m.group(1)} must be PL7/D42, got {m.group(2)}"
+assert re.search(r'\{"[^"]*M15[^"]*",\s*"PL7', t), "no M15 signal mapped to PL7"
+for m in re.finditer(r'\{"([^"]*SA2[^"]*)",\s*"([^"]+)"', t):
+    assert m.group(2).startswith("PL1/D48"), f"{m.group(1)} (=CW9) must be PL1/D48, got {m.group(2)}"
 # no signal assigned two different pins within one module
 for block in re.findall(r'static const sigpin_t sig_\w+\[\] = \{(.*?)\};', t, re.S):
     pins = re.findall(r'\{"([^"]+)",\s*"([^"]+)",\s*\'(\w)\'\}', block)
