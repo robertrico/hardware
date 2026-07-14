@@ -1,13 +1,23 @@
-# DINO session state: decisions not captured elsewhere (updated 2026-07-13, late evening)
+# DINO session state: decisions not captured elsewhere (updated 2026-07-13, session close)
+
+SESSION CLOSED OUT 2026-07-13. Committed (local only, not pushed) as
+"DINO v0.0.3: complete ALU/control-word, add MAR+reset sheets, wire reset
+circuit". Everything below is verified against the committed files via a
+fresh full netlist sweep, not memory — safe to start the next session
+straight from the TODO list at the bottom. NEXT SESSION STARTS ON: MAR
+sheet (item 1). Reset circuit and control word are DONE, not TODO items
+anymore — don't re-litigate them, they're netlist-clean.
 
 Companion to: 121_elimination_plan, pc_193_integration, alu_74f382_design,
-clock_refactor, design_notes, register_conversion. This file holds what
-lives only in conversation. THIS FILE IS AUTHORITATIVE over any conflicting
+clock_refactor, design_notes, register_conversion (the last two of which
+are now archived in Done/, along with the 0_0_1 wiring summary and the
+prior handoff doc — see docs/notes/Done/). This file holds what lives
+only in conversation. THIS FILE IS AUTHORITATIVE over any conflicting
 detail in the companion docs above — several settled today (flags chip,
 Cn build, Z-detect build) superseded open questions those docs still show
 as blank. The alu doc's §8 has been annotated RESOLVED with pointers back
-here; the others (clock/pc/register/121) are untouched historical record
-and still accurate for what they cover.
+here; the others (clock/pc/register/121, still in docs/notes/, not Done/)
+are untouched historical record and still accurate for what they cover.
 
 ## Control word bit map (COMPLETE, all 16 bits assigned and wired, v0.0.3)
 
@@ -103,26 +113,28 @@ and still accurate for what they cover.
     - MDR, Memory, Registers A/B: netlist-clean, no changes needed this
       session beyond the earlier sessions' work.
     - Microcode sheet: IRB mirror-reversal bug found and fixed (see below).
+    - Reset circuit (reset.kicad_sch, now merged onto the root sheet — see
+      below): RC+button+74HC14 front end, U27B synchronizer, fan-out to
+      flags/T-state-counter/PC-clear. Netlist-verified clean, zero
+      floating pins. DONE, not a TODO anymore.
 
-    IN PROGRESS:
-    - MAR sheet: NOW IN THE REPO (mar.kicad_sch), referenced from the root
-      sheet's hierarchy — but still a BLANK PAGE, 0 symbols placed. Owes:
-      A15/~A15 decode -> RAM_EN/ROM_EN, 16-bit M-bus drive via 2x '245,
-      MAR_LO/HI '373s with NOR stamps off /MAR_LO_LOAD, /MAR_HI_LOAD.
-    - Reset sheet: NOW IN THE REPO (reset.kicad_sch), referenced from the
-      root sheet's hierarchy. Front-end stub placed (C1, R1, SW2 — the
-      RC + momentary button from the design below) but COMPLETELY
-      UNWIRED, and no Schmitt-trigger inverter placed yet. U27B's side
-      of the synchronizer (on the root sheet) also not yet wired to this.
+    IN PROGRESS (this is where tomorrow starts):
+    - MAR sheet (mar.kicad_sch): stub components now PLACED but NOT wired
+      — U54 (a '245, DIR/A0-7/B0-7/CE), U55 (a '373), U58 (another '373),
+      U59 (a second '245). Matches the intended shape (MAR_LO/HI latches
+      + 2x '245 for M-bus drive) but every pin is still floating. Still
+      owes: A15/~A15 decode -> RAM_EN/ROM_EN, the NOR stamps off
+      /MAR_LO_LOAD//MAR_HI_LOAD for U55/U58's LE pins, and the CE/OE/DIR
+      wiring on U54/U59.
     - input_output.kicad_sch: PARTIAL PROGRESS this session — the R18/
       R21-24 floating-leg gaps are FIXED. Still open: LED anodes D1-D8
       (pin 2) floating, SW1 pins 10-16 floating, SWITCH-GATE1 GND/VCC
       floating, C48 pin 1 floating.
 
     STILL OPEN:
-    - Full-hierarchy compile-and-audit once MAR + reset are actually
-      wired (both sheets exist now but are empty/stub — re-run the sweep
-      once there's real content).
+    - Full-hierarchy compile-and-audit once MAR has real content (10 of
+      11 sheets are netlist-clean as of session close; MAR is the only
+      one with placed-but-unwired stubs).
 
 ## ALU sheet — full as-built wiring (COMPLETE)
 
@@ -206,7 +218,7 @@ and still accurate for what they cover.
        apply to '138 outputs also applied here — it doesn't. Both sheets
        now plain "PC_UP", exact match confirmed.
 
-## Reset circuit (DESIGNED this session, not yet drawn)
+## Reset circuit (COMPLETE this session — wired, netlist-verified clean, committed)
 
     Math: Y1 4.096MHz / 4 (U20 divider tap + U27A toggle) = 1.024MHz system
     clock, matches "~1MHz" everywhere else in the docs.
@@ -257,20 +269,29 @@ and still accurate for what they cover.
     the totem-pole, unlike a floating LS input which just reads as a weak
     high. Don't leave them open.
 
-    What /RESET (and RESET) should drive once built:
-    - Flags register (U49, ALU sheet): DONE this session, Mr=/RESET.
-    - T-state counter (U6, root sheet): ~MR currently tied permanently
-      high (disabled) — wire to ~{RESET} instead. Synchronous clear,
-      restarts instruction fetch cleanly at T0 every reset.
-    - Program Counter (U1-U4, '193s): each has a genuine async CLEAR pin
-      (active high, pin 14) currently unused — wire to RESET (active-high
-      net from U27B.Q) -> PC starts at 0x0000 every reset.
+    What /RESET (and RESET) drive — ALL DONE, verified clean:
+    - Flags register (U49, ALU sheet): Mr=~{RESET}. Done.
+    - T-state counter (U6, root sheet): ~MR=~{RESET} (from U27B.~Q
+      direct — nothing else drives this pin, no merge needed). Done.
+    - Program Counter (U1-U4, '193s): NOT a direct tie — RESET merges
+      with the existing microcode-driven PC_CLEAR via 2 of U10's spare
+      NOR gates (OR-from-NOR: gate2=NOR(PC_CLEAR,RESET), gate3=inverter
+      on gate2's output) into PC_CLEAR_OR_RESET, feeding all four CLEAR
+      pins. This was almost a bug — a direct tie would have bus-fought
+      with U10's existing gate1 output on the same net. Caught before
+      wiring. Done.
     - Registers A/B/C, MDR/IR, output register (all '373-based, no clear
       pin exists): DECIDED not worth hardware-clearing — same mux-based
       trick as the flags fix would cost real hardware, and first
       LDAI/LDBI/instruction fetch overwrites them before they're ever
       read. Open to revisiting if Rico wants deterministic power-up state
       for debugging — his call, flagged not decided-forever.
+
+    The standalone reset.kicad_sch sheet from earlier in the session was
+    deleted from the hierarchy and rebuilt directly on the root sheet
+    instead (R1/C1/SW2/U56/C62, all confirmed above) — the leftover file
+    is deprecated (moved to dino_v0_0_2/deprecated/), not deleted from
+    disk, matching the existing archival pattern for orphaned sheets.
 
 ## Orphan-signal sweep (cross-sheet: used somewhere, driven nowhere)
 
@@ -344,22 +365,25 @@ and still accurate for what they cover.
     commit edges per state: falling = ALU result + flags freeze; rising =
     destinations + shadows capture, '163 advances, PC++.
 
-## TODO, in order
+## TODO, in order (NEXT SESSION STARTS HERE)
 
-    1. Draw the MAR sheet (mar.kicad_sch exists, wired into the hierarchy,
-       currently blank): A15/~A15 decode -> RAM_EN/ROM_EN, 16-bit M-bus
-       drive via 2x '245, MAR_LO/HI '373s + NOR stamps off /MAR_LO_LOAD,
-       /MAR_HI_LOAD.
-    2. Wire the reset sheet (reset.kicad_sch exists, wired into the
-       hierarchy, has C1/R1/SW2 placed but unwired). Part confirmed:
-       74HC14N in stock. Place it, wire the RC+button+Schmitt front end
-       (2 gates in series, 4 spares tied to a defined level), then connect
-       to U27B on the root sheet per the sync design above. Wire /RESET to
-       U6's ~MR and RESET (active-high) to the PC's four CLEAR pins.
-    3. input_output.kicad_sch: finish the remaining floating gaps (LED
-       anodes D1-D8, SW1 pins 10-16, SWITCH-GATE1 power pins, C48).
-    4. Decide (not urgent): hardware-clear registers A/B/C/MDR/IR/output,
+    1. MAR sheet (mar.kicad_sch) — START HERE. Stub parts already placed
+       (U54 '245, U55 '373, U58 '373, U59 '245) but zero pins wired.
+       Needs: A15/~A15 decode -> RAM_EN/ROM_EN; NOR stamps off
+       /MAR_LO_LOAD//MAR_HI_LOAD feeding U55/U58's LE pins (same pattern
+       as the ALU sheet's TMP_A/TMP_B stamps — NOR(/xxx_LOAD, CLK));
+       U54/U59's DIR/CE/OE for the 16-bit M-bus drive (2x '245, one per
+       byte); OE grounded on U55/U58 (same pattern as TMP_A/TMP_B, only
+       output-enabled to feed the '245s, never bus-shared directly).
+    2. input_output.kicad_sch: finish the remaining floating gaps (LED
+       anodes D1-D8, SW1 pins 10-16, SWITCH-GATE1 power pins, C48). Not
+       urgent, pre-existing, no dependency on MAR work.
+    3. Decide (not urgent): hardware-clear registers A/B/C/MDR/IR/output,
        or accept undefined-until-loaded as final.
-    5. Full-hierarchy compile-and-audit once MAR + reset have real content
-       (rerun the netlist sweep across all 11 sheets).
+    4. Full-hierarchy compile-and-audit once MAR has real content (10 of
+       11 sheets already clean; rerun the sweep once MAR is wired).
+    5. Testing strategy: dino_cpu_testing_strategy.md is STALE (describes
+       a superseded 555/'163 clock and an overlapping ROM/RAM map) —
+       needs a rewrite pass to match the actual built architecture before
+       it's useful. Flagged by the docs-cleanup agent, not yet done.
     6. Finish line unchanged: LDAI/LDBI/SUB/JNZ/OUT/HALT countdown demo.
