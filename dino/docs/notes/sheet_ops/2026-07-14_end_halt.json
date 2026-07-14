@@ -1,0 +1,38 @@
+{
+  "_comment": "TODO 8+9: END resets T-states (U6 sync ~MR = NOR(RESET, END)); HALT freezes the T-state counter (U6 CET = ~HALT, clock keeps running). CET was detached from the +5V chain and U6.~MR's label renamed to ~{END_OR_RESET} before this ran.",
+  "sheet": "dino_v0_0_2/dino_v0_0_2.kicad_sch",
+  "applied_marker": "U61",
+  "donors": {"74xx:74LS02": "dino_v0_0_2/alu.kicad_sch"},
+  "symbols": [
+    {"ref": "U61", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [165.1, 170.18], "unit": 1},
+    {"ref": "U61", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [165.1, 182.88], "unit": 2},
+    {"ref": "U61", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [185.42, 170.18], "unit": 3},
+    {"ref": "U61", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [185.42, 182.88], "unit": 4},
+    {"ref": "U61", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [203.2, 176.53], "unit": 5},
+    {"ref": "C65", "lib": "Device:C_Small", "value": "0.1µF", "desc": "Unpolarized capacitor, small symbol", "at": [210.82, 176.53], "unit": 1}
+  ],
+  "connect": [
+    {"pin": "U61/2", "label": "RESET", "dir": "left"},
+    {"pin": "U61/3", "label": "END", "dir": "left"},
+    {"pin": "U61/1", "label": "~{END_OR_RESET}", "dir": "right"},
+
+    {"pin": "U61/5", "label": "HALT", "dir": "left"},
+    {"pin": "U61/6", "label": "HALT", "dir": "left"},
+    {"pin": "U61/4", "label": "~{HALT}", "dir": "right"},
+
+    {"pin": "U61/8", "power": "GND"},
+    {"pin": "U61/9", "power": "GND"},
+    {"pin": "U61/10", "nc": true},
+    {"pin": "U61/11", "power": "GND"},
+    {"pin": "U61/12", "power": "GND"},
+    {"pin": "U61/13", "nc": true},
+
+    {"pin": "U61/14", "power": "+5V"},
+    {"pin": "U61/7", "power": "GND"},
+    {"pin": "C65/1", "power": "+5V"},
+    {"pin": "C65/2", "power": "GND"}
+  ],
+  "labels": [
+    {"at": [138.43, 111.76], "text": "~{HALT}", "dir": "left"}
+  ]
+}

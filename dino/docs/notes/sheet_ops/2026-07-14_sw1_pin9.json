@@ -1,0 +1,11 @@
+{
+ "_comment": "SW1 pin 9 common: stub wire stopped short of GND rail.",
+ "sheet": "dino_v0_0_2/input_output.kicad_sch",
+ "applied_marker": null,
+ "connect": [
+  {
+   "pin": "SW1/9",
+   "power": "GND"
+  }
+ ]
+}

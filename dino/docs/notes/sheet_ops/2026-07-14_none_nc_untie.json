@@ -1,0 +1,13 @@
+{
+  "_comment": "TODO 7: NONE/NC '138 don't-care outputs untied (totem-pole bus fight). Stub wires + shared labels already deleted; this adds the no_connect flags.",
+  "sheet": "dino_v0_0_2/control_word.kicad_sch",
+  "applied_marker": null,
+  "connect": [
+    {"pin": "U28/15", "nc": true},
+    {"pin": "U29/15", "nc": true},
+    {"pin": "U30/15", "nc": true},
+    {"pin": "U28/7", "nc": true},
+    {"pin": "U29/7", "nc": true},
+    {"pin": "U29/10", "nc": true}
+  ]
+}

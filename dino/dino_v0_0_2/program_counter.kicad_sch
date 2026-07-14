@@ -6244,7 +6244,7 @@
 		)
 		(uuid "30957667-d56a-480a-87b8-45359f79bdc7")
 	)
-	(label "PC_MAR_MUX"
+	(label "~{PC_MAR_MUX}"
 		(at 254 119.38 0)
 		(effects
 			(font

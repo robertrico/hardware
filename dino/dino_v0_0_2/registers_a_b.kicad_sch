@@ -9435,6 +9435,84 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 52.07 154.94 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "01871eeb-3333-4277-8784-e3ac23c8f96c")
+		(property "Reference" "#PWR0129"
+			(at 52.07 146.05 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 52.07 148.59 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 52.07 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 52.07 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 52.07 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "cb3bef4c-1843-4e3c-ba2d-b2a340fc7713")
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
+					(reference "#PWR0129")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+5V")
 		(at 215.9 21.59 0)
 		(unit 1)
@@ -9956,6 +10034,84 @@
 			(project "dino_v0_0_2"
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
 					(reference "#PWR048")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 41.91 165.1 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "24f7087f-214c-4c3e-a498-0e20fb0ddb1c")
+		(property "Reference" "#PWR0127"
+			(at 41.91 156.21 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 41.91 158.75 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 41.91 165.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 41.91 165.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 41.91 165.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f3ef359b-ea9b-4184-a77f-4b994dc87722")
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
+					(reference "#PWR0127")
 					(unit 1)
 				)
 			)
@@ -10796,6 +10952,86 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C_Small")
+		(at 52.07 152.4 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "5b54ff30-dcdc-4ba3-a365-b605caade25a")
+		(property "Reference" "C64"
+			(at 52.07 143.51 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0.1µF"
+			(at 52.07 146.05 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 52.07 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 52.07 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 52.07 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "63c602be-33cb-4805-8196-f93c11068990")
+		)
+		(pin "2"
+			(uuid "fc23bacf-734a-4a3e-a181-622203adcc9e")
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
+					(reference "C64")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 163.83 144.78 0)
 		(unit 1)
@@ -11082,6 +11318,122 @@
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
 					(reference "U35")
 					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "74xx:74LS02")
+		(at 41.91 152.4 0)
+		(unit 5)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "64b67bea-1a7d-45fb-81b3-ca5fc48c86c4")
+		(property "Reference" "U66"
+			(at 41.91 143.51 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "74LS02"
+			(at 41.91 146.05 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 41.91 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 41.91 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "quad 2-input NOR gate"
+			(at 41.91 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "7"
+			(uuid "86970498-485c-4792-99f0-6dd350eaafc3")
+		)
+		(pin "14"
+			(uuid "f41231aa-ee27-49ae-a6da-14bfc93896df")
+		)
+		(pin "1"
+			(uuid "6a2a451e-301e-4605-9f43-b146c667ff54")
+		)
+		(pin "2"
+			(uuid "b6d3a62c-d22c-4b60-8601-d0c0dd361d49")
+		)
+		(pin "3"
+			(uuid "82aa88c0-243e-4bfb-b531-855fa88b71ef")
+		)
+		(pin "4"
+			(uuid "0ba880fd-3f69-4061-8732-1521d9853907")
+		)
+		(pin "5"
+			(uuid "761a50d5-909e-4b09-af68-1723ffaa9b0f")
+		)
+		(pin "6"
+			(uuid "eeb72c39-2e34-410f-be0d-fff5dc6fc3e9")
+		)
+		(pin "8"
+			(uuid "a3903276-3ff7-43a1-bcfa-24b125e5d007")
+		)
+		(pin "9"
+			(uuid "e184a871-440d-4be9-81cc-218c58864916")
+		)
+		(pin "10"
+			(uuid "f2b93279-090a-4d2e-b6dc-37189db42fe3")
+		)
+		(pin "11"
+			(uuid "e1d37d2f-45a1-471f-bedb-6056a5ab2db2")
+		)
+		(pin "12"
+			(uuid "5b22a39a-5be6-4138-ad09-f6fcbfb74962")
+		)
+		(pin "13"
+			(uuid "a4e59a98-24be-48b8-aa0b-9942d9fc20da")
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
+					(reference "U66")
+					(unit 5)
 				)
 			)
 		)
@@ -11437,6 +11789,84 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+5V")
+		(at 52.07 149.86 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8248d60b-c754-4b87-b3d6-1b03cb1605bf")
+		(property "Reference" "#PWR0128"
+			(at 52.07 140.97 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 52.07 143.51 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 52.07 149.86 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 52.07 149.86 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 52.07 149.86 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "7459b4f8-5009-4273-8fa1-eaa6442c9be6")
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
+					(reference "#PWR0128")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 106.68 195.58 0)
 		(unit 1)
@@ -11780,6 +12210,84 @@
 			(project "dino_v0_0_2"
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
 					(reference "#PWR035")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 41.91 139.7 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a82f5ab4-f99c-4676-a10f-cd31f728fe17")
+		(property "Reference" "#PWR0126"
+			(at 41.91 130.81 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 41.91 133.35 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 41.91 139.7 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 41.91 139.7 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 41.91 139.7 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2a336a6a-3da2-4cb8-94e0-000239ad2d89")
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/de772b95-eca4-4f61-9f12-d1e28130490b"
+					(reference "#PWR0126")
 					(unit 1)
 				)
 			)

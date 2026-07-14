@@ -1,12 +1,25 @@
-# DINO session state: decisions not captured elsewhere (updated 2026-07-13, session close)
+# DINO session state: decisions not captured elsewhere (updated 2026-07-14)
 
-SESSION CLOSED OUT 2026-07-13. Committed (local only, not pushed) as
-"DINO v0.0.3: complete ALU/control-word, add MAR+reset sheets, wire reset
-circuit". Everything below is verified against the committed files via a
-fresh full netlist sweep, not memory — safe to start the next session
-straight from the TODO list at the bottom. NEXT SESSION STARTS ON: MAR
-sheet (item 1). Reset circuit and control word are DONE, not TODO items
-anymore — don't re-litigate them, they're netlist-clean.
+2026-07-14 session: MAR sheet wired complete (TODO item 1 done, including
+a new strike-6 polarity bug found+fixed on the PC sheet — see ledger).
+Then a full-schematic analysis pass (new tool:
+docs/notes/kicad_xsheet_audit.py) found and fixed STRIKE 7 (all seven raw
+control-word bus taps [15:9] were dangling label pairs — wired now) and
+U66's missing power unit (registers_a_b). Second pass same day: NONE/NC
+'138 bus fight untied (TODO 7), END and HALT circuits built (TODO 8-9,
+new U61 on root — see as-built section), TO0-15 decided as debug taps
+(TODO 11), COND design sketched (TODO 10, awaiting Rico's chip pick).
+Schematic editing is now driven by docs/notes/kicad_gen_sheet.py — a
+generic declarative generator (YAML/JSON ops files in
+docs/notes/sheet_ops/, deterministic uuid5 output, built-in collision
+check); the one-shot MAR generator was deleted in its favor. Working
+tree NOT yet committed. Third pass: COND/JNZ built (TODO 10, U62 on
+control word — every demo-blocking circuit now exists). NEXT SESSION:
+TODO 2 (input_output gaps), then microcode ROM images + demo program.
+Reset, control word decode, MAR, END, HALT, COND: DONE, netlist-clean,
+don't re-litigate. CAUTION: KiCad was open during these disk edits —
+always File->Revert/reopen before editing in the GUI, saving a stale
+view clobbers everything.
 
 Companion to: 121_elimination_plan, pc_193_integration, alu_74f382_design,
 clock_refactor, design_notes, register_conversion (the last two of which
@@ -36,7 +49,10 @@ are untouched historical record and still accurate for what they cover.
     briefly tried as active-low (bar) and reverted; see correction below.
 
     [11:9] ALU (SA2:SA1:SA0) — direct bus taps, no decode:
-    SA2=CW9, SA1=CW10, SA0=CW11 (confirmed by real wire, not just label text)
+    SA2=CW9, SA1=CW10, SA0=CW11 (NOW confirmed by real wire — see STRIKE 7:
+    until 2026-07-14 ALL seven tap pairs [15:9] were dangling label pairs
+    with no wire between them; the earlier "confirmed by real wire" note
+    here was wrong)
     000 CLR   001 BSUB   010 SUB   011 ADD
     100 XOR   101 OR     110 AND   111 SET
 
@@ -46,7 +62,9 @@ are untouched historical record and still accurate for what they cover.
 
     [5:3] U28 '138 (CW5:CW4:CW3 address) — W-bus source
     000 NONE  001 /ROM_OUT  010 /RAM_OUT  011 /REG_A_OUT
-    100 /REG_B_OUT  101 /REG_C_OUT  110 /ALU_OUT  111 NC
+    100 /REG_B_OUT  101 /REG_C_OUT  110 /ALU_OUT  111 /SW_OUT
+    (111 was the reserved-for-IN-port code; CLAIMED 2026-07-14 by the
+    input_output sheet's switch '244 — U28.O7's no_connect removed.)
 
     [2:0] U30 '138 (CW2:CW1:CW0 address) — W-bus destination
     000 NONE  001 /REG_A_LOAD  010 /REG_B_LOAD  011 /REG_C_LOAD
@@ -54,14 +72,24 @@ are untouched historical record and still accurate for what they cover.
     (dst=A also loads TMP_A; dst=B also loads TMP_B — shadows, not codes.)
 
     All three '138s share E1=E2=GND (always enabled), E3=+5V. Each has an
-    O0="NONE" code and (U28/U29 only) an unused "NC" code, tied together
-    across all three decoders as a shared don't-care sink — deliberate.
+    O0="NONE" code and (U28/U29 only) an unused "NC" code — these were
+    originally tied together across decoders as a "don't-care sink";
+    FIXED 2026-07-14: that tie was a real bus fight. '138 outputs are
+    totem-pole, NOT open-collector and NEVER high-Z — an unselected
+    output drives HIGH actively, so tying O0s together shorts LOW vs
+    HIGH on essentially every microword (universal T0 already does it).
+    The six pins (U28.15/.7, U29.15/.7/.10, U30.15) are now individually
+    open with no_connect flags — an unloaded totem-pole output floating
+    is completely fine, no pull-up or other part needed.
 
 ## Microcode addressing
 
     EEPROM address = {IR[7:0], T[3:0]} = opcode*16 + T. Four hex digits 0x0OOT.
     e.g. LDAI=0x11: rows 0x0110-0x011F. Space 0x0000-0x0FFF, A12 unused.
-    Two AT28C64B in parallel: U9 = word[15:8], U15 = word[7:0], same address.
+    Two AT28C64B in parallel: U9 = word[7:0] (CW0-7), U15 = word[15:8]
+    (CW8-15), same address. (CORRECTED 2026-07-14 — this line previously
+    had the byte roles swapped; netlist truth: U9 I/O0-7 -> CW0-7,
+    U15 I/O0-7 -> CW8-15. Matters for which hex file burns into which chip.)
     U17 (T-state buffer) -> A0-A3, ascending T0->A0..T3->A3, VERIFIED correct.
     U16 (IR buffer) -> A4-A11, ascending IRB0->A4..IRB7->A11, VERIFIED correct
     (this was drawn MIRROR-REVERSED earlier today — IRB0 landed on A11 instead
@@ -77,11 +105,19 @@ are untouched historical record and still accurate for what they cover.
           T3: MUX=MAR src=REG_A dst=RAM END
     LDA:  T3: MUX=MAR src=RAM dst=A END (T1/T2 as STA)
     JMP:  T3: MUX=MAR, [8:6]=PC_LOAD, END (T1/T2 as STA)
+    JNZ:  T3: MUX=MAR, [8:6]=011 (/COND), END (T1/T2 as STA) — loads PC
+          from the M-bus only when FLAG_Z=0, via the U62 gates (added
+          2026-07-14, see COND as-built section). JMP stays its own
+          opcode via [8:6]=010.
     ADD:  T1: ALU=ADD src=ALU dst=A END             = 0x1631
     ALU family = 0x1631 with [11:9] swapped: SUB 0x1431, AND 0x1C31,
     OR 0x1A31, XOR 0x1831, CLR 0x1031, SET 0x1E31, BSUB 0x1231
     OUT:  T1: src=REG_A, [8:6]=OUT_REG_LOAD, END
-    HALT: T1: bit15, END
+    HALT: T1: bit15 ONLY = 0x8000 — NO END BIT (RULE CHANGED 2026-07-14:
+      the halt hardware freezes the T-state counter via CET, parking the
+      CPU in the HALT microword forever; END would sync-clear T back to
+      T0 on the next edge and the CPU would fetch right past the halt.
+      '163 sync-MR overrides CET, so reset still exits a halted CPU.)
     Endianness: operands LO then HI (little-endian, 8008-lineage).
     PC++ count per instruction == byte length (T0 counts the opcode).
 
@@ -118,14 +154,9 @@ are untouched historical record and still accurate for what they cover.
       flags/T-state-counter/PC-clear. Netlist-verified clean, zero
       floating pins. DONE, not a TODO anymore.
 
-    IN PROGRESS (this is where tomorrow starts):
-    - MAR sheet (mar.kicad_sch): stub components now PLACED but NOT wired
-      — U54 (a '245, DIR/A0-7/B0-7/CE), U55 (a '373), U58 (another '373),
-      U59 (a second '245). Matches the intended shape (MAR_LO/HI latches
-      + 2x '245 for M-bus drive) but every pin is still floating. Still
-      owes: A15/~A15 decode -> RAM_EN/ROM_EN, the NOR stamps off
-      /MAR_LO_LOAD//MAR_HI_LOAD for U55/U58's LE pins, and the CE/OE/DIR
-      wiring on U54/U59.
+    COMPLETE (2026-07-14 session): MAR sheet (mar.kicad_sch) — fully wired,
+    verified clean by BOTH kicad_netlist.py AND kicad-cli netlist export
+    (see "MAR sheet — as-built" section below for full pin detail).
     - input_output.kicad_sch: PARTIAL PROGRESS this session — the R18/
       R21-24 floating-leg gaps are FIXED. Still open: LED anodes D1-D8
       (pin 2) floating, SW1 pins 10-16 floating, SWITCH-GATE1 GND/VCC
@@ -170,6 +201,72 @@ are untouched historical record and still accurate for what they cover.
       from 2 already-placed spare gates, zero new chips: U53 4th AND gate
       (SA1,SA0 -> AND) feeds U50's 4th NOR gate wired as an inverter
       (both inputs tied to the AND's output) -> ALU_CIN.
+
+## MAR sheet — as-built wiring (COMPLETE 2026-07-14)
+
+    U55 (MAR_LO '373): D0-7=W0-7, O0-7=MAR0-7, OE=GND, LE=LE_MAR_LO.
+    U58 (MAR_HI '373): D0-7=W0-7, O0-7=MAR8-15, OE=GND, LE=LE_MAR_HI.
+    U54 ('245 low byte):  A0-7=MAR0-7,  B0-7=M0-M7,  DIR=+5V (A->B one-way),
+      CE=PC_MAR_MUX (active-low CE: MAR drives M-bus when bit14=0 — matches
+      the bit-map convention PC=1/MAR=0 directly, no inverter needed).
+    U59 ('245 high byte): A0-7=MAR8-15, B0-7=M8-M15, DIR=+5V, CE=PC_MAR_MUX.
+    U60 (new quad '02, decoupled by C63) — all 4 gates used:
+      gate1 (1<-2,3):    LE_MAR_LO = NOR(~{MAR_LO_LOAD}, CLK)  [ALU-stamp pattern]
+      gate2 (4<-5,6):    LE_MAR_HI = NOR(~{MAR_HI_LOAD}, CLK)
+      gate3 (10<-8,9):   ~{RAM_EN} = NOR(M15,M15) i.e. INV(A15); the gate-input
+                         wire carries BOTH labels M15 and ROM_EN — ROM_EN is
+                         A15 direct (ROM /CE=A15 per memory map), no gate.
+      gate4 (13<-11,12): ~{PC_MAR_MUX} = NOR(PC_MAR_MUX,PC_MAR_MUX) — feeds the
+                         PC sheet's U13/U14 CE pins (see STRIKE 6 below).
+    Cross-sheet strings verified exact via grep on both endpoint files:
+    W0-7 (alu/mdr), M0-M14 (memory/program_counter), M15 (program_counter),
+    CLK, ~{MAR_LO_LOAD}/~{MAR_HI_LOAD} (control_word U30 O4/O5), PC_MAR_MUX
+    (control_word), ~{PC_MAR_MUX} (program_counter), ROM_EN + ~{RAM_EN}
+    (memory). Memory sheet has 2 dangling decorative M15 labels (no pin on
+    them) — harmless, its ROM /CE connects via the ROM_EN label.
+    Mux break/make note: gate4's ~10ns inverter delay means PC and MAR '245s
+    can both be enabled for ~1 gate delay on one edge of a PC_MAR_MUX flip
+    (make-before-break). Momentary LS bus contention, standard-practice
+    tolerable at 1MHz hobby scale; noted, not actioned.
+
+## END + HALT circuits — as-built (2026-07-14, second pass)
+
+    New U61 (quad '02 on the ROOT sheet, decoupled by C65):
+      gate1 (1<-2,3): ~{END_OR_RESET} = NOR(RESET, END) -> U6.~MR.
+        U6's ~MR label was renamed from ~{RESET} to ~{END_OR_RESET}
+        (U27B.~Q's own ~{RESET} label stays — the ALU flags register
+        still consumes it cross-sheet). '163 MR is SYNCHRONOUS: an END
+        microword clears T to 0 on the next rising CLK edge — exactly
+        "this is the instruction's last state, next state is T0".
+      gate2 (4<-5,6): ~{HALT} = NOR(HALT, HALT) i.e. inverter -> U6.CET.
+        CET was detached from the +5V strap (CEP stays high). HALT=1
+        freezes the T-state counter; the CPU parks in the HALT microword
+        with the clock still RUNNING (scope/LEDs/flags stay alive —
+        deliberate choice over oscillator gating, see TODO 9 notes).
+        Requires the HALT-microword rule change in the microword section.
+      gates 3,4: spares, inputs tied GND, outputs no_connect.
+    Reset interplay: '163 sync clear dominates the count enables, so
+    RESET works even while halted. Both verified in kicad_netlist.py AND
+    kicad-cli netlist export.
+
+## COND / JNZ logic — as-built (2026-07-14, third pass)
+
+    New U62 (quad '02 on the CONTROL WORD sheet, decoupled by C66).
+    U29 O2's decoder output was RENAMED ~{PC_LOAD} -> ~{PC_LOAD_JMP};
+    U62 gate3's output now owns the ~{PC_LOAD} name the PC sheet consumes
+    (same never-share-a-net merge pattern as PC_CLEAR_OR_RESET).
+      gate1 (1<-2,3):   COND_TAKEN  = NOR(~{COND}, FLAG_Z)
+                        high only when /COND asserted AND Z==0 (JNZ taken)
+      gate2 (4<-5,6):   PC_LOAD_JMP = INV(~{PC_LOAD_JMP})
+                        high on unconditional JMP's decoder code
+      gate3 (10<-8,9):  ~{PC_LOAD}  = NOR(COND_TAKEN, PC_LOAD_JMP)
+      gate4: spare, inputs GND, output no_connect.
+    Truth check: JMP -> load ✓; JNZ w/ Z=0 -> load ✓; JNZ w/ Z=1 -> no
+    load ✓; idle -> no load ✓. Two extra gate delays into the PC sheet's
+    existing ~PC_LOAD_STABLE conditioning — negligible at 1MHz.
+    FLAG_Z (ALU U49) gets its first consumer here. Semantics hardwired =
+    jump-if-Z-clear; a future JZ needs one spare inverter + a second
+    COND decoder code. Verified in kicad_netlist.py AND kicad-cli export.
 
 ## Bugs found and fixed this session (netlist-audit driven)
 
@@ -272,7 +369,8 @@ are untouched historical record and still accurate for what they cover.
     What /RESET (and RESET) drive — ALL DONE, verified clean:
     - Flags register (U49, ALU sheet): Mr=~{RESET}. Done.
     - T-state counter (U6, root sheet): ~MR=~{RESET} (from U27B.~Q
-      direct — nothing else drives this pin, no merge needed). Done.
+      direct). Done — BUT "no merge needed" was premature: the Phase 0.5
+      END bit is supposed to combine into this same pin (TODO item 8).
     - Program Counter (U1-U4, '193s): NOT a direct tie — RESET merges
       with the existing microcode-driven PC_CLEAR via 2 of U10's spare
       NOR gates (OR-from-NOR: gate2=NOR(PC_CLEAR,RESET), gate3=inverter
@@ -302,8 +400,8 @@ are untouched historical record and still accurate for what they cover.
       real wire (not just matching label text).
     - PC_UP, PC_MAR_MUX: both fixed, both now exact-string-matched across
       control_word and program_counter (see bugs list above).
-    - `~{RAM_EN}` / `ROM_EN` (memory sheet): waiting on the MAR sheet
-      (in progress) to source these — expected gap, not a bug.
+    - `~{RAM_EN}` / `ROM_EN` (memory sheet): RESOLVED 2026-07-14 — now
+      sourced by the MAR sheet's U60 gate3 / M15 direct tap.
     - CW0-15 flagged by the automated checker but is a FALSE POSITIVE: the
       EEPROM symbol's I/O pins are typed `input` in the KiCad library even
       though they're genuine outputs during a ROM read. Ignore that class
@@ -338,6 +436,71 @@ are untouched historical record and still accurate for what they cover.
     through a fixed-polarity primitive (a decoder, a specific counter pin)
     or is just a raw data bit with no hardware-imposed convention.
 
+    STRIKE 6 (2026-07-14, MAR session): PC_MAR_MUX POLARITY BUG on the PC
+    sheet, found before wiring MAR. U13/U14 ('245 PC->M drivers) had their
+    active-low CE tied to PC_MAR_MUX DIRECT — meaning PC would drive the
+    M-bus when bit14=0, but the bit map says PC=1/MAR=0 and every fetch
+    microword (T0=0x600E) sets bit14=1. As wired, T0 would have tri-stated
+    the address bus on every fetch. FIX: MAR sheet's new '02 gate4 makes
+    ~{PC_MAR_MUX}; the PC sheet's U13/U14 CE label was renamed
+    PC_MAR_MUX -> ~{PC_MAR_MUX} (one label, both '245s share the net).
+    MAR '245s take PC_MAR_MUX direct (low = MAR selected, correct as-is).
+    Zero microcode/doc churn — convention PC=1/MAR=0 stands. Same family
+    as strike 1-4 polarity errors: the '245 CE is a fixed-polarity
+    primitive (hardware active-low), so the raw active-high ROM bit needed
+    one inversion somewhere and had none.
+
+    STRIKE 7 (2026-07-14, full-schematic analysis pass): ALL SEVEN raw
+    control-word bus taps were dangling. The control_word sheet had the
+    tap labels drawn as PAIRS (SA2 next to CW9, END next to CW12, PC_UP
+    next to CW13, PC_MAR_MUX next to CW14, HALT next to CW15, SA1/CW10,
+    SA0/CW11) at matching Y coordinates — but with NO WIRE between any
+    pair. Bits [15:9] of the control word were connected to nothing.
+    Neither prior netlist sweep caught it because a pinless label is
+    invisible to a pins-only audit; ERC had 14 label_dangling errors the
+    whole time, drowned in island noise. FIXED: 7 wires drawn between the
+    pairs, pairings verified against the bit map (all matched — the
+    labels were placed correctly, just never joined). Lesson: dangling-
+    label ERC errors are the ONE non-noise class on these sheets — check
+    that list explicitly, it's short. Also: the previous session's
+    "confirmed by real wire" claim for SA2=CW9 was wrong; treat past
+    verification claims as re-checkable, not settled.
+
+    ALSO FOUND 2026-07-14 (same analysis pass): U66 (registers_a_b '02,
+    gates 3/4 = REG_C/OUT LE stamps) had NO POWER UNIT placed — no VCC or
+    GND anywhere in the schematic, invisible to pin audits because
+    unplaced units have no pins to audit. Only ERC's missing_power_pin
+    check saw it. FIXED: unit E placed + power symbols + C64 decoupler,
+    confirmed on +5V/GND in the kicad-cli netlist export.
+
+    Tooling lesson #2 (2026-07-14, second pass): PLACEMENT COLLISIONS.
+    First attempt at placing U61 checked the target area for SYMBOLS but
+    not WIRES — its stub endpoints landed on the root sheet's GND rail
+    and T-state bus, silently shorting END to GND and ~MR/CET into the
+    +5V/T3 nets. Caught immediately by the post-edit kicad_netlist.py
+    check (net printed as "END/GND" — a slash-joined name is the tell for
+    an accidental label union). Root sheet was git-reverted and redone.
+    kicad_gen_sheet.py now has a built-in collision pass: every new pin
+    point, stub endpoint, and label anchor is checked against existing
+    wire segments/pins/labels and the run is REFUSED (nothing written)
+    on any hit. Self-tested: a deliberately colliding ops file exits
+    with a listing.
+
+    Tooling lesson (2026-07-14): when GENERATING .kicad_sch text, inner
+    double-quotes in string fields MUST be escaped (\"). Sixteen generated
+    power-symbol Description strings ('...global label with name "+5V"')
+    went in unescaped; kicad_netlist.py's tolerant tokenizer shrugged and
+    reported the sheet clean, but kicad-cli's real parser silently dropped
+    every symbol after the first bad quote — power pins showed as
+    unconnected-() in the exported netlist. Caught by cross-checking with
+    `kicad-cli sch export netlist` (at /Applications/KiCad/KiCad.app/
+    Contents/MacOS/kicad-cli). Rule going forward: any scripted edit to a
+    .kicad_sch gets verified with BOTH kicad_netlist.py (per-sheet pin
+    audit) and a kicad-cli netlist export (authoritative connectivity);
+    kicad-cli ERC is too noisy to gate on (local-label islands make
+    pin_not_driven fire for every cross-sheet net) but its per-class
+    counts diffed against a git-baseline worktree catch regressions.
+
     Bus-trunk lesson (this session): a KiCad bus trunk is a routing-only
     graphic, not a conductor — treating it as one falsely shorts every bit
     riding it together (bit this session's netlist tool once; also caused
@@ -365,25 +528,87 @@ are untouched historical record and still accurate for what they cover.
     commit edges per state: falling = ALU result + flags freeze; rising =
     destinations + shadows capture, '163 advances, PC++.
 
-## TODO, in order (NEXT SESSION STARTS HERE)
+## TODO, in order (updated 2026-07-14)
 
-    1. MAR sheet (mar.kicad_sch) — START HERE. Stub parts already placed
-       (U54 '245, U55 '373, U58 '373, U59 '245) but zero pins wired.
-       Needs: A15/~A15 decode -> RAM_EN/ROM_EN; NOR stamps off
-       /MAR_LO_LOAD//MAR_HI_LOAD feeding U55/U58's LE pins (same pattern
-       as the ALU sheet's TMP_A/TMP_B stamps — NOR(/xxx_LOAD, CLK));
-       U54/U59's DIR/CE/OE for the 16-bit M-bus drive (2x '245, one per
-       byte); OE grounded on U55/U58 (same pattern as TMP_A/TMP_B, only
-       output-enabled to feed the '245s, never bus-shared directly).
-    2. input_output.kicad_sch: finish the remaining floating gaps (LED
-       anodes D1-D8, SW1 pins 10-16, SWITCH-GATE1 power pins, C48). Not
-       urgent, pre-existing, no dependency on MAR work.
-    3. Decide (not urgent): hardware-clear registers A/B/C/MDR/IR/output,
-       or accept undefined-until-loaded as final.
-    4. Full-hierarchy compile-and-audit once MAR has real content (10 of
-       11 sheets already clean; rerun the sweep once MAR is wired).
-    5. Testing strategy: dino_cpu_testing_strategy.md is STALE (describes
-       a superseded 555/'163 clock and an overlapping ROM/RAM map) —
-       needs a rewrite pass to match the actual built architecture before
-       it's useful. Flagged by the docs-cleanup agent, not yet done.
+    1. DONE 2026-07-14: MAR sheet wired and verified (kicad_netlist.py +
+       kicad-cli netlist export both clean; see as-built section above).
+       Includes the A15 decode, LE stamps, '245 M-bus drive, AND the
+       strike-6 PC_MAR_MUX polarity fix (~{PC_MAR_MUX} inverter on the
+       MAR sheet + U13/U14 CE relabel on the PC sheet).
+    2. DONE 2026-07-14: input_output sheet complete (Rico rewired the
+       topology in the GUI, remaining power hookups scripted). As-built:
+       - LED bank: OB0-7 (from OUT register U35, cross-sheet by label)
+         -> 330R -> LED anode, cathode -> GND. ACTIVE HIGH, lit = 1.
+       - IN port: R17-24 are 10k PULL-UPS (+5V -> ISx); SW1 closes
+         ISx -> GND (all commons pins 9-16 grounded). "All inputs high
+         unless the dipswitch gives them a path to ground." Series-R-
+         to-GND was rejected: an LS input's ~0.4mA source current
+         through 10k would sit at ~4V, far above VIL=0.8V.
+       - SWITCH-GATE1 ('244): A=IS0-7, Y=W0-W7 direct, both G-bars =
+         ~{SW_OUT} = U28 O7 (src code 111). IB bus eliminated.
+       - IN-instruction microword (draft): INA: T1: src=111(SW),
+         dst=REG_A, END. Not yet in the instruction table's final list.
+    3. DECIDED 2026-07-14 (Rico ack'd): registers stay UNDEFINED at
+       power-up — no hardware clear, ever. Same contract as vintage
+       CPUs (6809: A/B/X/Y undefined at reset). Flags are the one
+       exception and already hardware-clear (U49 Mr=~RESET) because
+       conditionals branch on them. The decision creates two HARD RULES:
+       - MICROCODE EEPROMs: ALL 4096 {opcode,T} rows programmed, no
+         gaps. Unused rows = SAFE-FILL 0x1000 (END) — garbage IR at
+         power-on or T overrun always snaps back to T0 fetch (works for
+         real now that the END hardware exists). T0 must be the
+         universal fetch word in all 256 opcode rows.
+       - PROGRAM ROM: unused bytes = the HALT opcode — PC running off
+         the program's end freezes observably instead of executing
+         garbage.
+       Programs init-before-read (CLR via ALU is free); LEDs show
+       garbage until the first OUT — cosmetic, accepted.
+    4. DONE 2026-07-14 (rolled into item 1): full-hierarchy check ran via
+       kicad-cli netlist export + ERC diff against the git HEAD baseline.
+       All 11 sheets now netlist-clean; ERC deltas vs baseline all
+       improvements (pin_not_connected 69->29, power_pin_not_driven 7->3;
+       remaining ppnd = the pre-existing input_output gaps in item 2).
+    5. Testing strategy: old dino_cpu_testing_strategy.md ARCHIVED to
+       Done/ 2026-07-14 (Rico: "ditch it"). Replacement to be written
+       fresh: a SHEET-TO-SHEET CONTRACT doc — for each module, the exact
+       signals it consumes/produces (name, polarity, timing edge), so
+       each board can be tested against its contract before integration.
+       The kicad_xsheet_audit.py merged-net output is the natural
+       starting skeleton.
     6. Finish line unchanged: LDAI/LDBI/SUB/JNZ/OUT/HALT countdown demo.
+
+    NEW ITEMS from the 2026-07-14 full-schematic analysis (see
+    docs/notes/kicad_xsheet_audit.py, rerun it any time):
+    7. DONE 2026-07-14: NONE/NC '138 outputs untied (see bit-map section
+       note). Rico confirmed — his "aren't they high-Z?" was the root of
+       the original tie; '138s are totem-pole, never high-Z.
+    8. DONE 2026-07-14: END circuit built — U61 gate1 on the root sheet,
+       ~MR = NOR(RESET, END). See "END + HALT — as-built".
+    9. DONE 2026-07-14: HALT built as T-STATE FREEZE (U61 gate2 ->
+       U6.CET), not oscillator gating. Rationale recorded: hobby CPUs
+       (SAP-1 lineage) usually gate the clock itself; real CPUs stop
+       sequencing, not the oscillator. Freeze wins here because (a) zero
+       glitch risk — CET is a synchronous enable, while AND-gating CLK
+       can emit runt pulses when HALT changes mid-phase; (b) the clock
+       stays alive for scope/LED observation while halted. REQUIRED
+       MICROCODE RULE CHANGE: HALT word = 0x8000, no END bit (see
+       microword section).
+    10. DONE 2026-07-14: COND/JNZ built — U62 on the control word sheet,
+       3 NOR gates (see "COND / JNZ — as-built"). JNZ microword row added
+       to the instruction table. Future JZ = spare inverter + second
+       COND code, not needed for the demo.
+    11. TO0-TO15 (root sheet U7/U8 one-hot T-state decode): DECIDED
+       2026-07-14 — keep as UNCOMMITTED DEBUG TAPS (scope / logic
+       analyzer / LED probes during bring-up). Deliberately no consumer
+       drawn; audits treat driven-but-unconsumed one-hot outputs as
+       expected here. Do not delete U7/U8.
+    12. Benign/known false positives, do NOT chase (documented here so
+       future audits skip them): CW0-8 "undriven" (EEPROM lib types I/O
+       pins as input); MAR0-15/PC0-15 "unconsumed" ('245 pins are
+       tri_state, audit sees no input-type consumer); U38/U40 GND
+       pin_to_pin power_out clash (F382 lib typing); #PWR02 ERC
+       power-not-driven quirk on the root sheet (+5V net verified real in
+       netlist export); U50.10 floating spare gate output (ALU); two
+       decorative M15 labels on the memory sheet; IS0-7 "undriven"
+       (pull-up + switch + buffer-input nets are all-passive-or-input —
+       no active driver exists by design).

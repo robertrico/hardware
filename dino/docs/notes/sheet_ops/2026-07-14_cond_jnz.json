@@ -1,0 +1,36 @@
+{
+  "_comment": "TODO 10: conditional-jump (JNZ) logic. U29.O2's decoder output was renamed ~{PC_LOAD_JMP} before this ran; U62 gate3's output takes over the ~{PC_LOAD} name the PC sheet consumes. take-jump = /COND asserted AND FLAG_Z low. gate1: COND_TAKEN=NOR(~COND,FLAG_Z); gate2: PC_LOAD_JMP=INV(~PC_LOAD_JMP); gate3: ~{PC_LOAD}=NOR(COND_TAKEN,PC_LOAD_JMP).",
+  "sheet": "dino_v0_0_2/control_word.kicad_sch",
+  "applied_marker": "U62",
+  "donors": {"74xx:74LS02": "dino_v0_0_2/alu.kicad_sch"},
+  "symbols": [
+    {"ref": "U62", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [55.88, 160.02], "unit": 1},
+    {"ref": "U62", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [55.88, 172.72], "unit": 2},
+    {"ref": "U62", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [86.36, 165.1], "unit": 3},
+    {"ref": "U62", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [55.88, 185.42], "unit": 4},
+    {"ref": "U62", "lib": "74xx:74LS02", "value": "74LS02", "desc": "quad 2-input NOR gate", "at": [114.3, 172.72], "unit": 5},
+    {"ref": "C66", "lib": "Device:C_Small", "value": "0.1µF", "desc": "Unpolarized capacitor, small symbol", "at": [124.46, 172.72], "unit": 1}
+  ],
+  "connect": [
+    {"pin": "U62/2", "label": "~{COND}", "dir": "left"},
+    {"pin": "U62/3", "label": "FLAG_Z", "dir": "left"},
+    {"pin": "U62/1", "label": "COND_TAKEN", "dir": "right"},
+
+    {"pin": "U62/5", "label": "~{PC_LOAD_JMP}", "dir": "left"},
+    {"pin": "U62/6", "label": "~{PC_LOAD_JMP}", "dir": "left"},
+    {"pin": "U62/4", "label": "PC_LOAD_JMP", "dir": "right"},
+
+    {"pin": "U62/8", "label": "COND_TAKEN", "dir": "left"},
+    {"pin": "U62/9", "label": "PC_LOAD_JMP", "dir": "left"},
+    {"pin": "U62/10", "label": "~{PC_LOAD}", "dir": "right"},
+
+    {"pin": "U62/11", "power": "GND"},
+    {"pin": "U62/12", "power": "GND"},
+    {"pin": "U62/13", "nc": true},
+
+    {"pin": "U62/14", "power": "+5V"},
+    {"pin": "U62/7", "power": "GND"},
+    {"pin": "C66/1", "power": "+5V"},
+    {"pin": "C66/2", "power": "GND"}
+  ]
+}
