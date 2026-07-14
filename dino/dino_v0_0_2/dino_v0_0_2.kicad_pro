@@ -3,6 +3,8 @@
     "3dviewports": [],
     "design_settings": {
       "defaults": {
+        "apply_defaults_to_fp_barcodes": false,
+        "apply_defaults_to_fp_dimensions": false,
         "apply_defaults_to_fp_fields": false,
         "apply_defaults_to_fp_shapes": false,
         "apply_defaults_to_fp_text": false,
@@ -48,7 +50,23 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.5
+          "border_display_style": 2,
+          "border_hatch_pitch": 0.5,
+          "corner_radius": 0.0,
+          "corner_smoothing": 0,
+          "fill_mode": 0,
+          "hatch_gap": 1.5,
+          "hatch_orientation": 0.0,
+          "hatch_smoothing_level": 0,
+          "hatch_smoothing_value": 0.1,
+          "hatch_thickness": 1.0,
+          "min_clearance": 0.5,
+          "min_island_area": 10.0,
+          "min_thickness": 0.25,
+          "pad_connection": 1,
+          "remove_islands": 0,
+          "thermal_relief_gap": 0.5,
+          "thermal_relief_spoke_width": 0.5
         }
       },
       "diff_pair_dimensions": [],
@@ -71,6 +89,7 @@
         "extra_footprint": "warning",
         "footprint": "error",
         "footprint_filters_mismatch": "ignore",
+        "footprint_symbol_field_mismatch": "warning",
         "footprint_symbol_mismatch": "warning",
         "footprint_type_mismatch": "ignore",
         "hole_clearance": "error",
@@ -88,6 +107,7 @@
         "mirrored_text_on_front_layer": "warning",
         "missing_courtyard": "ignore",
         "missing_footprint": "warning",
+        "missing_tuning_profile": "warning",
         "net_conflict": "warning",
         "nonmirrored_text_on_back_layer": "warning",
         "npth_inside_courtyard": "ignore",
@@ -107,9 +127,12 @@
         "too_many_vias": "error",
         "track_angle": "error",
         "track_dangling": "warning",
+        "track_not_centered_on_via": "ignore",
+        "track_on_post_machined_layer": "error",
         "track_segment_length": "error",
         "track_width": "error",
         "tracks_crossing": "error",
+        "tuning_profile_track_geometries": "ignore",
         "unconnected_items": "error",
         "unresolved_variable": "error",
         "via_dangling": "warning",
@@ -656,7 +679,7 @@
         "uuid": "e43166a5-d972-471d-b3cf-9f4f12c7f541"
       }
     ],
-    "used_designators": "R25-26,C20-21,#PWR15-16,#PWR22-25,U5,U22-23,U45,U57-58,U62-69",
+    "used_designators": "SW2,Y1,U5,U10,U20,U22-23,U27,U36,U38,U40,U45-50,U52-60,U62-69,#PWR6,#PWR15-16,#PWR22-101,C1,C7,C15-64,R1,R25-26",
     "variants": []
   },
   "sheets": [
@@ -681,12 +704,16 @@
       "Memory Data Register"
     ],
     [
-      "b0594337-21bc-457d-8ae7-405a6ec1dde7",
-      "Memory"
-    ],
-    [
       "de772b95-eca4-4f61-9f12-d1e28130490b",
       "Register Modules"
+    ],
+    [
+      "74677ff6-688a-4cba-8f99-ea3f81917a82",
+      "Memory Address Regiser"
+    ],
+    [
+      "b0594337-21bc-457d-8ae7-405a6ec1dde7",
+      "Memory"
     ],
     [
       "94d23a53-6e76-40e6-b4c3-1786dc89c3eb",
