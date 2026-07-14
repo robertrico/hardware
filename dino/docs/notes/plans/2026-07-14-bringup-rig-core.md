@@ -223,7 +223,7 @@ extern const modmap_t MODMAPS[];   /* defined in the header as static tables */
 #define MODMAP_COUNT <n>
 ```
 
-Bus signals map to fixed ports by name prefix (spec's allocation): `W* -> PA<bit>` (D22-29), `M0-7 -> PC<bit>` (D30-37), `M8-15 -> PL<bit>` (D42-49), `CW0-7 -> PC`, `CW8-15 -> PL`, `IRB*/IS*/OB* -> PK<bit>` (A8-15), `MDR* -> PF<bit>` (A0-7). All other (named control) signals get pool pins in sorted-name order from: PE4(D2), PE5(D3), PG5(D4), PE3(D5), PH3(D6), PH4(D7), PH5(D8), PH6(D9), PB4(D10), PB5(D11), PB6(D12), PB7(D13), PJ1(D14), PJ0(D15), PH1(D16), PH0(D17), PD3(D18), PD2(D19), PD1(D20), PD0(D21). The `megapin` string is the human hookup label (`"PA0/D22"` form).
+Bus signals map to fixed ports by name prefix (spec's allocation): `W* -> PA<bit>` (D22-29), `M0-7 -> PC<bit>` (D30-37), `M8-15 -> PL<bit>` (D42-49), `CW0-7 -> PC`, `CW8-15 -> PL`, `IRB*/IS*/OB* -> PK<bit>` (A8-15), `MDR* -> PF<bit>` (A0-7). All other (named control) signals get pool pins in sorted-name order from (board-audited 2026-07-14: main double-row header first for one-region hookups; D13 excluded — onboard LED load; D20/D21 excluded — clone I2C pullups would parallel the reset RC and break floats()/release semantics; D0/D1 are USB serial, never pooled): PD7(D38), PG2(D39), PG1(D40), PG0(D41), PB3(D50), PB2(D51), PB1(D52), PB0(D53), PE4(D2), PE5(D3), PG5(D4), PE3(D5), PH3(D6), PH4(D7), PH5(D8), PH6(D9), PJ1(D14), PJ0(D15), PH1(D16), PH0(D17), PD3(D18), PD2(D19). The `megapin` string is the human hookup label (`"PA0/D22"` form).
 
 - [ ] **Step 1: Write the failing host test**
 
@@ -281,9 +281,13 @@ MEGA_PORT_BY_PREFIX = [   # (regex over signal name, port letter, bit = captured
     (re.compile(r"^(?:IRB|IS|OB)(\d)$"), "PK", {str(i): f"A{8+i}" for i in range(8)}),
     (re.compile(r"^MDR(\d)$"), "PF", {str(i): f"A{i}" for i in range(8)}),
 ]
-POOL = ["PE4/D2","PE5/D3","PG5/D4","PE3/D5","PH3/D6","PH4/D7","PH5/D8","PH6/D9",
-        "PB4/D10","PB5/D11","PB6/D12","PB7/D13","PJ1/D14","PJ0/D15","PH1/D16",
-        "PH0/D17","PD3/D18","PD2/D19","PD1/D20","PD0/D21"]
+# Pool order: main double-row header first (one-region hookups), then PWM
+# header, then COMM header. NEVER: D0/D1 (USB serial), D13 (onboard LED),
+# D20/D21 (clone I2C pullups break high-Z release semantics).
+POOL = ["PD7/D38","PG2/D39","PG1/D40","PG0/D41","PB3/D50","PB2/D51","PB1/D52",
+        "PB0/D53","PE4/D2","PE5/D3","PG5/D4","PE3/D5","PH3/D6","PH4/D7",
+        "PH5/D8","PH6/D9","PJ1/D14","PJ0/D15","PH1/D16","PH0/D17",
+        "PD3/D18","PD2/D19"]
 
 
 def bus_pin(signal):
@@ -951,7 +955,7 @@ git commit -m "feat(dino-rig): test registry and UART shell with host-tested par
 - Consumes: harness pins/buses, `test_begin/check/end`.
 - Produces: `t_selftest_loopback` — with the documented loopback jumpers installed, every bus port and every pool pin proves drive+sample.
 
-Loopback harness (physical): PA<->PF byte-to-byte (W to MDR ports, 8 jumpers), PC<->PL byte-to-byte (8 jumpers), and pool pins jumpered in adjacent pairs in POOL order: D2<->D3, D4<->D5, D6<->D7, D8<->D9, D10<->D11, D12<->D13, D14<->D15, D16<->D17, D18<->D19, D20<->D21. `pins selftest` is not generated (selftest is not a sheet) — the pairing above is printed by the test itself on entry.
+Loopback harness (physical): PA<->PF byte-to-byte (W to MDR ports, 8 jumpers), PC<->PL byte-to-byte (8 jumpers), and pool pins jumpered in adjacent pairs in POOL order: D38<->D39, D40<->D41, D50<->D51, D52<->D53, D2<->D3, D4<->D5, D6<->D7, D8<->D9, D14<->D15, D16<->D17, D18<->D19. `pins selftest` is not generated (selftest is not a sheet) — the pairing above is printed by the test itself on entry.
 
 - [ ] **Step 1: Write src/mod_selftest.c**
 
@@ -962,10 +966,10 @@ Loopback harness (physical): PA<->PF byte-to-byte (W to MDR ports, 8 jumpers), P
 #include "uart.h"
 
 static const char *POOL_PAIRS[][2] = {
-    {"PE4/D2", "PE5/D3"}, {"PG5/D4", "PE3/D5"}, {"PH3/D6", "PH4/D7"},
-    {"PH5/D8", "PH6/D9"}, {"PB4/D10", "PB5/D11"}, {"PB6/D12", "PB7/D13"},
-    {"PJ1/D14", "PJ0/D15"}, {"PH1/D16", "PH0/D17"}, {"PD3/D18", "PD2/D19"},
-    {"PD1/D20", "PD0/D21"},
+    {"PD7/D38", "PG2/D39"}, {"PG1/D40", "PG0/D41"}, {"PB3/D50", "PB2/D51"},
+    {"PB1/D52", "PB0/D53"}, {"PE4/D2", "PE5/D3"},   {"PG5/D4", "PE3/D5"},
+    {"PH3/D6", "PH4/D7"},   {"PH5/D8", "PH6/D9"},   {"PJ1/D14", "PJ0/D15"},
+    {"PH1/D16", "PH0/D17"}, {"PD3/D18", "PD2/D19"},
 };
 
 static void byte_loop(const char *label,
@@ -989,7 +993,7 @@ static uint8_t m_rd_hi(void)   { DDRL = 0; PORTL = 0; settle(); return PINL; }
 void t_selftest_loopback(void) {
     test_begin("selftest", "loopback");
     uart_puts("jumpers: PA<->PF bytewise, PC<->PL bytewise, pool pairs:\r\n");
-    for (uint8_t i = 0; i < 10; i++) {
+    for (uint8_t i = 0; i < 11; i++) {
         uart_puts("  "); uart_puts(POOL_PAIRS[i][0]);
         uart_puts(" <-> "); uart_puts(POOL_PAIRS[i][1]); uart_puts("\r\n");
     }
@@ -999,7 +1003,7 @@ void t_selftest_loopback(void) {
     byte_loop("PC<->PL", m_wr_lo, m_rd_lo, m_wr_hi, m_rd_hi);
     DDRC = 0; PORTC = 0; DDRL = 0; PORTL = 0;
 
-    for (uint8_t i = 0; i < 10; i++) {
+    for (uint8_t i = 0; i < 11; i++) {
         hwpin_t a, b;
         pin_lookup(POOL_PAIRS[i][0], &a);
         pin_lookup(POOL_PAIRS[i][1], &b);
@@ -1061,7 +1065,7 @@ git commit -m "feat(dino-rig): loopback self-test (build-program stage 1)"
 **Interfaces:**
 - Consumes: harness, registry names `t_root_<name>` for: divider, tstate_walk, reset_sync, reset_tclear, end_clear, halt_freeze.
 - Root hookup (from `pins root` / contracts, all through pool pins): rig DRIVES: `CLKIN` (injected at the Y1-socket pin 8 / U20 clock input — Y1 removed), `END`, `HALT`, `RST_FORCE` (the RC node / button side, drives low to force reset), and samples: `CLK`, `~{CLK}`, `RESET`, `T0`, `T1`, `T2`, `T3`.
-- NOTE: `CLKIN` and `RST_FORCE` are RIG-SIDE names, not contract signals — the generated root bundle covers END/HALT/CLK/~CLK/RESET/T0-3; these two extras are declared in mod_root.c with fixed pool-pin overflow assignments `PD1/D20` and `PD0/D21` (last two pool pins, never reached by the generated root bundle which has <18 signals).
+- NOTE: `CLKIN` and `RST_FORCE` are RIG-SIDE names, not contract signals — the generated root bundle covers END/HALT/CLK/~CLK/RESET/T0-3; these two extras are declared in mod_root.c with fixed pool-pin overflow assignments `PD3/D18` and `PD2/D19` (last two pool pins, never reached by the generated root bundle which has <18 signals).
 
 - [ ] **Step 1: Write src/mod_root.c**
 
@@ -1078,17 +1082,17 @@ static hwpin_t P_T[4];
 static void bind(void) {
     /* pool assignments printed by `pins root` — keep in sync by running
        it after any contracts change; signals sorted per generator. */
-    pin_lookup("PE4/D2",  &P_END);     /* END        (rig drives)  */
-    pin_lookup("PE5/D3",  &P_HALT);    /* HALT       (rig drives)  */
-    pin_lookup("PG5/D4",  &P_CLK);     /* CLK        (rig samples) */
-    pin_lookup("PE3/D5",  &P_T[0]);    /* T0         (rig samples) */
-    pin_lookup("PH3/D6",  &P_T[1]);    /* T1 */
-    pin_lookup("PH4/D7",  &P_T[2]);    /* T2 */
-    pin_lookup("PH5/D8",  &P_T[3]);    /* T3 */
-    pin_lookup("PH6/D9",  &P_RESET);   /* RESET      (rig samples) */
-    pin_lookup("PB4/D10", &P_CLKN);    /* ~{CLK}     (rig samples) */
-    pin_lookup("PD1/D20", &P_CLKIN);   /* rig-side: Y1-socket injection */
-    pin_lookup("PD0/D21", &P_RSTF);    /* rig-side: RC-node force-low */
+    pin_lookup("PD7/D38", &P_END);     /* END        (rig drives)  */
+    pin_lookup("PG2/D39", &P_HALT);    /* HALT       (rig drives)  */
+    pin_lookup("PG1/D40", &P_CLK);     /* CLK        (rig samples) */
+    pin_lookup("PG0/D41", &P_T[0]);    /* T0         (rig samples) */
+    pin_lookup("PB3/D50", &P_T[1]);    /* T1 */
+    pin_lookup("PB2/D51", &P_T[2]);    /* T2 */
+    pin_lookup("PB1/D52", &P_T[3]);    /* T3 */
+    pin_lookup("PB0/D53", &P_RESET);   /* RESET      (rig samples) */
+    pin_lookup("PE4/D2",  &P_CLKN);    /* ~{CLK}     (rig samples) */
+    pin_lookup("PD3/D18", &P_CLKIN);   /* rig-side: Y1-socket injection */
+    pin_lookup("PD2/D19", &P_RSTF);    /* rig-side: RC-node force-low */
     drv(&P_END, false);
     drv(&P_HALT, false);
     rel(&P_RSTF);                      /* released = RC charges = no reset */
