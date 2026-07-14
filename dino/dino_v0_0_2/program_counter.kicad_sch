@@ -10503,4 +10503,15 @@
 			)
 		)
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{PC_CLEAR}, ~{PC_LOAD} <- Control Word Module\nIN: ~{PC_MAR_MUX} <- Memory Address Regiser\nIN: CW13=PC_UP <- Microcode_Decoder\nIN: CLK, RESET, ~{CLK} <- root\nOUT: M0-14, M15=ROM_EN -> Memory, Memory Address Regiser"
+		(exclude_from_sim no)
+		(at 15.24 200.5 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3209ea58-f057-5fa9-9676-9709a68f011c")
+	)
 )

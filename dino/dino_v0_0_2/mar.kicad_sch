@@ -7365,4 +7365,15 @@
 			)
 		)
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: W0-7 <- ALU Module, Memory Data Register, Output\nIN: ~{MAR_HI_LOAD}, ~{MAR_LO_LOAD} <- Control Word Module\nIN: CW14=PC_MAR_MUX <- Microcode_Decoder\nIN: CLK <- root\nOUT: ~{RAM_EN} -> Memory\nOUT: M0-14 -> Memory, Program Counter\nOUT: ~{PC_MAR_MUX} -> Program Counter\nBIDIR: M15=ROM_EN <-> Memory, Program Counter"
+		(exclude_from_sim no)
+		(at 15.24 205.58 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e8794c5a-5cf8-5ae3-b4d0-192017e882af")
+	)
 )

@@ -5366,4 +5366,15 @@
 			)
 		)
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: IRB0-7 <- Memory Data Register\nIN: T0-3 <- root\nOUT: CW10=SA1, CW11=SA0, CW9=SA2 -> ALU Module\nOUT: CW0-8 -> Control Word Module\nOUT: CW14=PC_MAR_MUX -> Memory Address Regiser\nOUT: CW13=PC_UP -> Program Counter\nOUT: CW12=END, CW15=HALT -> root"
+		(exclude_from_sim no)
+		(at 15.24 171.29 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "012c0129-1956-5f20-b871-ea40ff1f3a76")
+	)
 )

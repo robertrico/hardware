@@ -9506,4 +9506,15 @@
 			)
 		)
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{SW_OUT} <- Control Word Module\nIN: OB0-7 <- Register Modules\nOUT: W0-7 -> ALU Module, Memory Address Regiser, Memory Data Register"
+		(exclude_from_sim no)
+		(at 15.24 168.75 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ec263e8e-a52e-5c12-94c4-2489f7a58955")
+	)
 )

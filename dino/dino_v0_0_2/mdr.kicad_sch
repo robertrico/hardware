@@ -9698,4 +9698,15 @@
 			)
 		)
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}, ~{RAM_OUT}, ~{ROM_OUT} <- Control Word Module\nIN: CLK <- root\nOUT: WRITE_DIR -> Memory\nOUT: IRB0-7 -> Microcode_Decoder\nBIDIR: W0-7 <-> ALU Module, Memory Address Regiser, Output\nBIDIR: MDR0-7 <-> Memory, Register Modules"
+		(exclude_from_sim no)
+		(at 15.24 208.12 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fb4b02c2-8fca-5f0f-a8cb-20e61169c7bc")
+	)
 )

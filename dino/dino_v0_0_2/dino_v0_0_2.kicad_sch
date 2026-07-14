@@ -11500,4 +11500,15 @@
 		)
 	)
 	(embedded_fonts no)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: CW12=END, CW15=HALT <- Microcode_Decoder\nOUT: ~{RESET} -> ALU Module\nOUT: CLK -> ALU Module, Memory Address Regiser, Memory Data Register, Program Counter, Register Modules\nOUT: ~{CLK} -> ALU Module, Memory, Program Counter\nOUT: T0-3 -> Microcode_Decoder\nOUT: RESET -> Program Counter"
+		(exclude_from_sim no)
+		(at 15.24 211.93 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "58452d4c-1efb-592d-9fda-6f1567759754")
+	)
 )

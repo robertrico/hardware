@@ -14767,4 +14767,15 @@
 			)
 		)
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{REG_A_LOAD}, ~{REG_A_OUT}, ~{REG_B_LOAD}, ~{REG_B_OUT}, ~{REG_C_LOAD}, ~{REG_C_OUT}, ~{REG_OUT_LOAD} <- Control Word Module\nIN: CLK <- root\nOUT: MDR0-7 -> Memory, Memory Data Register\nOUT: OB0-7 -> Output"
+		(exclude_from_sim no)
+		(at 15.24 211.93 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6928a323-79ad-511d-8c67-268869999552")
+	)
 )

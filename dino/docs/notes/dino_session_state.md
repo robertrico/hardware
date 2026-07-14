@@ -568,13 +568,17 @@ are untouched historical record and still accurate for what they cover.
        All 11 sheets now netlist-clean; ERC deltas vs baseline all
        improvements (pin_not_connected 69->29, power_pin_not_driven 7->3;
        remaining ppnd = the pre-existing input_output gaps in item 2).
-    5. Testing strategy: old dino_cpu_testing_strategy.md ARCHIVED to
-       Done/ 2026-07-14 (Rico: "ditch it"). Replacement to be written
-       fresh: a SHEET-TO-SHEET CONTRACT doc — for each module, the exact
-       signals it consumes/produces (name, polarity, timing edge), so
-       each board can be tested against its contract before integration.
-       The kicad_xsheet_audit.py merged-net output is the natural
-       starting skeleton.
+    5. DONE 2026-07-14: sheet-to-sheet contracts are now GENERATED and
+       STAMPED. docs/notes/kicad_contracts.py derives every module's
+       boundary signals (IN with driving sheet / OUT with consumers /
+       BIDIR for shared buses) from the kicad-cli netlist, writes
+       docs/notes/dino_sheet_contracts.md, and with --stamp places a
+       MODULE CONTRACT text block on each physical sheet (idempotent —
+       rerun after any schematic change, old block is replaced;
+       verified electrically neutral). This is the bring-up test spec:
+       an MCU rig drives the IN list, observes the OUT list, per board.
+       Still manual: timing-edge annotations (which signals commit on
+       rising vs falling CLK) — add per sheet as bring-up reaches it.
     6. Finish line unchanged: LDAI/LDBI/SUB/JNZ/OUT/HALT countdown demo.
 
     NEW ITEMS from the 2026-07-14 full-schematic analysis (see
