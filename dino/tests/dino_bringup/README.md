@@ -23,6 +23,10 @@ serial, `pins <module>`.
 - 220-470R series resistor in every rig-DRIVEN jumper.
 - Y1 stays OUT of its socket until the free-run stage; the rig is the clock.
 - Loopback jumpers for `run selftest` are printed by the test itself.
+- `run selftest` (and therefore `run all`) drives the loopback pool pins,
+  which double as root's sampled lines — run selftest ONLY in the rig-only
+  loopback config, never with a DUT board wired (series resistors limit
+  the damage, but don't lean on them).
 
 ## Build-program progress (update as stages pass)
 - [ ] 1 rig self-test — implemented in firmware (mod_selftest.c), BENCH PENDING (not yet run on hardware)
