@@ -16,6 +16,13 @@ void rel(const hwpin_t *p);
 bool smp(const hwpin_t *p);
 bool floats(const hwpin_t *p);
 void settle(void);
+/* Poll a sampled pin until it reads `level` or timeout_ms elapses.
+   The armed-watcher core for guided tests (button presses etc). */
+bool await_level(const hwpin_t *p, bool level, uint16_t timeout_ms);
+/* Count rising edges on PD7 (Timer0 external clock pin T0) over gate_ms,
+   gated by Timer1. Both timers restored to reset state afterwards.
+   Caller must verify the signal actually lands on PD7. */
+uint32_t freq_count_t0(uint16_t gate_ms);
 void clk_bind(const hwpin_t *clk, const hwpin_t *clkn);
 void clk_lo(void);
 void clk_hi(void);
@@ -34,6 +41,7 @@ void bus_m_release(void);
 void test_begin(const char *module, const char *name);
 void test_check_u16(uint16_t got, uint16_t want, const char *label);
 void test_check_bool(bool got, bool want, const char *label);
+void test_check_range(uint16_t got, uint16_t lo, uint16_t hi, const char *label);
 bool test_end(void);
 extern uint16_t g_pass, g_fail;
 

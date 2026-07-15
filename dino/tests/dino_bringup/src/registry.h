@@ -7,12 +7,11 @@ typedef struct { const char *module; const char *name; testfn_t fn; } testcase_t
 
 #define TEST_TABLE(X) \
     X(selftest, loopback) \
-    X(root, divider) \
-    X(root, tstate_walk) \
-    X(root, reset_sync) \
-    X(root, reset_tclear) \
-    X(root, end_clear) \
-    X(root, halt_freeze)
+    X(root, clock) \
+    X(root, tstates) \
+    X(root, reset) \
+    X(root, halt) \
+    X(root, end)
 
 #define X_DECL(mod, name) void t_##mod##_##name(void);
 TEST_TABLE(X_DECL)

@@ -33,7 +33,12 @@ serial, `pins <module>`.
 ## Bench rules (from the spec — non-negotiable)
 - Bench 5V powers the DUT boards; Mega on USB; grounds commoned once.
 - 220-470R series resistor in every rig-DRIVEN jumper.
-- Y1 stays OUT of its socket until the free-run stage; the rig is the clock.
+- root runs LIVE: Y1 seated, DUT free-runs at 1.024MHz; rig monitors and
+  drives only contract signals (END/HALT driven, rest sampled). You press
+  the physical reset button when a test prints `ARM ...` — 10s window.
+  Note: RESET stays asserted a while after release (RC stretch, measured
+  0.25-2.2s bench-dependent); tests wait on the line, not a timer.
+- Later module stages: rig is the clock, Y1 OUT (per spec).
 - Loopback jumpers for `run selftest` are printed by the test itself.
 - `run selftest` (and therefore `run all`) drives the loopback pool pins,
   which double as root's sampled lines — run selftest ONLY in the rig-only
@@ -42,7 +47,7 @@ serial, `pins <module>`.
 
 ## Build-program progress (update as stages pass)
 - [ ] 1 rig self-test — implemented in firmware (mod_selftest.c), BENCH PENDING (not yet run on hardware)
-- [ ] 2 root — implemented in firmware (mod_root.c), BENCH PENDING (not yet run on hardware)
+- [x] 2 root — PASSING on bench 2026-07-15 (live-clock guided workflow, 5/5)
 - [ ] 3-13: see spec (modules land in plan 2)
 
 ## Regenerating

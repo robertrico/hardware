@@ -52,10 +52,13 @@ EEPROMs burned (TL866), countdown demo free-running.
 - Modules: breadboards, one per sheet. Rig connects with jumper bundles to
   the module's labeled nets (the MODULE CONTRACT text block on each sheet is
   the hookup list).
-- The rig is ALWAYS the clock during bring-up. Y1 (4.096MHz can) stays out of
-  its socket / the divider chain is disconnected at CLK/~CLK until the final
-  free-run stage. The rig drives CLK and ~CLK as two GPIOs (complementary,
-  never both high — see harness API).
+- The rig is the clock for module stages 3+ — Y1 (4.096MHz can) out of its
+  socket, rig drives CLK and ~CLK as two GPIOs (complementary, never both
+  high — see harness API). EXCEPTION (revised): the root stage runs LIVE,
+  Y1 seated, rig demoted to monitor + END/HALT driver, reset via the
+  physical button. Root's checks are statistical (see root section);
+  step-tracking a 1MHz counter from the Mega isn't possible and the hybrid
+  workflow beats fake tooling (CLKIN injection, RC force-low) anyway.
 
 ## Firmware architecture
 
@@ -155,22 +158,43 @@ Convention: every test drives only the module's IN list, samples only its
 OUT/BIDIR list (from dino_sheet_contracts.md). "Walk" = walking-1s and
 walking-0s. All patterns also include 0x00, 0xFF, 0xAA, 0x55.
 
-### root (clock + T-state + reset + END/HALT gates)
-Rig drives: XTAL side substitute — inject at U20 clock input or drive CLK
-chain manually; drives END, HALT (the two tap nets), button node.
-1. `divider`: inject N pulses at Y1 socket point, count CLK edges = N/4.
-   (Only test where the rig clocks something fast; still just counting.)
-2. `tstate.walk`: pulse CLK, T0-3 counts 0..15 wrapping. TO0-15 one-hot
-   decode is checked by EYE (LEDs/scope on the debug taps), not by rig —
-   16 jumpers for one assertion isn't worth doubling the root bundle
-   (review call).
-3. `reset.sync`: hold RC node low (rig drives), assert: RESET high within
-   one CLK; release: RESET falls only after next rising edge (sync release).
-4. `reset.tclear`: mid-count, assert reset, T -> 0.
-5. `end.clear`: END high for one step -> T returns to 0 on next rising edge,
-   END low -> counting resumes (verifies U61 gate1 + sync MR).
-6. `halt.freeze`: HALT high -> T stops advancing though CLK keeps stepping;
-   HALT low -> resumes; RESET while halted -> T clears (MR overrides CET).
+### root (clock + T-state + reset + END/HALT gates) — LIVE, guided
+Revised (2026-07-15): hybrid workflow. Y1 SEATED, DUT free-runs; no CLKIN
+injection, no RC force-low. Rig drives END, HALT (series R); samples CLK,
+~CLK, RESET, ~RESET, T0-3 — contract signals only, 10 jumpers + GND. Reset
+is the physical button; armed-watcher tests print `ARM press...`, then
+watch the RESET line (10s timeout = FAIL). Measured: RESET stays asserted
+for a bench-dependent stretch after button release (0.25-2.2s observed) —
+clock gated and T frozen for the duration; post-reset checks wait on the
+LINE, never on a hardcoded delay.
+Sampling rules (bench-taught): 16MHz rig vs 4.096MHz DUT is exactly 125:32,
+so a fixed-period poll phase-locks to the T counter and deterministically
+misses counts — coverage checks dither their sample spacing (LFSR). The T
+nibble spans two AVR ports, so bits sharing a port are read atomically as
+pairs (T1:T0, T3:T2); a 4-read composite stitches bits from different
+counts and is never used on a live counter. Counting ORDER is proven on
+T3:T2 (states last 4 CLK — tight poll can't skip one; every change must be
++1 mod 4). Frozen-value checks and a hardware edge count do the rest.
+1. `clock`: Timer0 external-clock count on CLK (PD7/T0 pin), 100ms gate:
+   expect 1024kHz +/-2%. ~CLK toggle check (complementarity at speed is
+   scope territory).
+2. `tstates`: burst capture — asm loop samples both T ports at 7 cycles/
+   sample (437ns, >=2 samples per T state), 1024 samples to SRAM, then an
+   offline walk requires every state change be +1 mod 16, rollover
+   included (~450 sequential states, ~28 rollovers per run; prints the
+   first stretch). Single-sample breaks are dropped as straddle glitches
+   when the next sample resyncs (port reads sit 3 cycles apart). Proves
+   full-nibble counting order; rate comes from `clock`. TO0-15 one-hot
+   decode still checked by EYE (LEDs/scope on debug taps), not by rig
+   (review call, unchanged).
+3. `reset` (armed): press+hold -> RESET=1, ~RESET=0, T frozen at 0;
+   release -> after RC stretch RESET=0, ~RESET=1, T counts again.
+   (Sync-release edge timing at 1MHz is not rig-observable — scope check
+   during free-run stage.)
+4. `halt`: HALT high -> T frozen (any value); low -> resumes. Then HALT
+   high + button press -> T frozen at 0 (MR overrides CET).
+5. `end`: END high -> T reads 0 (cleared every edge, verifies U61 gate1 +
+   sync MR); END low -> counting resumes.
 
 ### control_word (decoders + COND gates) — no CLK on this sheet
 Rig drives: CW0-8, FLAG_Z. Samples: all decoder outputs + COND_TAKEN,
@@ -351,6 +375,7 @@ integration test -> module becomes a trusted fixture for later stages.
 
     1. rig self-test        loopback jumpers: every pinmap pin drives+reads
     2. root                 clock/T/reset/END/HALT      (tests: root.*)
+                            LIVE stage: Y1 seated, guided (button + serial)
     3. control_word         rig-driven CW               (control_word.*)
     4. microcode            TL866 burn diag image, then real microcode
                             (microcode.*)  -> INT-A, then INT-D

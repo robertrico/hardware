@@ -97,6 +97,37 @@ bool smp(const hwpin_t *p) { return (*p->pinr & _BV(p->bit)) != 0; }
 
 void settle(void) { _delay_us(5); }
 
+bool await_level(const hwpin_t *p, bool level, uint16_t timeout_ms) {
+    /* ~5 polls per ms — button/RC events are milliseconds wide */
+    uint32_t polls = (uint32_t)timeout_ms * 5;
+    while (polls--) {
+        if (smp(p) == level) return true;
+        _delay_us(200);
+    }
+    return smp(p) == level;
+}
+
+uint32_t freq_count_t0(uint16_t gate_ms) {
+    /* Timer0 clocked by rising edges on T0/PD7; Timer1 at F_CPU/64 is the
+       gate (max gate_ms = 262 before TCNT1 wraps). TOV0 fires every 256
+       edges (~250us at 1MHz input) — the poll loop below never misses one. */
+    uint32_t edges = 0;
+    TCCR0A = 0;
+    TCNT0 = 0;
+    TIFR0 = _BV(TOV0);
+    TCCR1A = 0;
+    TCNT1 = 0;
+    TCCR0B = _BV(CS02) | _BV(CS01) | _BV(CS00);
+    TCCR1B = _BV(CS11) | _BV(CS10);
+    const uint16_t gate_ticks = (uint16_t)((F_CPU / 64UL / 1000UL) * gate_ms);
+    while (TCNT1 < gate_ticks)
+        if (TIFR0 & _BV(TOV0)) { TIFR0 = _BV(TOV0); edges += 256; }
+    TCCR0B = 0;
+    TCCR1B = 0;
+    if (TIFR0 & _BV(TOV0)) { TIFR0 = _BV(TOV0); edges += 256; }
+    return edges + TCNT0;
+}
+
 bool floats(const hwpin_t *p) {
     /* charge trick: park a level, release, see if it holds; repeat inverted.
        A driven net snaps to the driver on at least one polarity. */
@@ -177,6 +208,16 @@ void test_check_u16(uint16_t got, uint16_t want, const char *label) {
 
 void test_check_bool(bool got, bool want, const char *label) {
     test_check_u16(got ? 1 : 0, want ? 1 : 0, label);
+}
+
+void test_check_range(uint16_t got, uint16_t lo, uint16_t hi, const char *label) {
+    if (got >= lo && got <= hi) return;
+    s_ok = false;
+    fail_prefix(label);
+    uart_puts(" want="); uart_putdec(lo);
+    uart_puts(".."); uart_putdec(hi);
+    uart_puts(" got="); uart_putdec(got);
+    uart_puts("\r\n");
 }
 
 bool test_end(void) {
