@@ -23,7 +23,7 @@ static bool bind(void) {
     ok &= bind1("HALT",   &P_HALT);    /* HALT       (rig drives)  */
     ok &= bind1("CLK",    &P_CLK);     /* CLK        (rig samples) */
     ok &= bind1("~{CLK}", &P_CLKN);    /* ~{CLK}     (rig samples) */
-    ok &= bind1("RESET",  &P_RESET);   /* RESET      (rig samples) */
+    ok &= bind1("RESET",  &P_RESET);   /* RESET      (rig samples), a.k.a ~{RESET} at ALU */
     ok &= bind1("T0", &P_T[0]);        /* T0         (rig samples) */
     ok &= bind1("T1", &P_T[1]);        /* T1 */
     ok &= bind1("T2", &P_T[2]);        /* T2 */

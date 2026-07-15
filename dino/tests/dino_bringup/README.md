@@ -1,0 +1,34 @@
+# DINO bring-up rig
+
+Bare-metal ATmega2560 test rig for the DINO CPU. Spec:
+`../../docs/notes/dino_test_bringup_design.md` (test definitions,
+build-program order, power/grounding rules). Pin hookups: flash, connect
+serial, `pins <module>`.
+
+## Quick start
+    source env.sh          # port autodetect (override: DINO_RIG_PORT)
+    build                  # avr-gcc via Makefile
+    flash                  # avrdude through the Mega bootloader
+    monitor                # screen, 115200 (exit: ctrl-a k)
+
+## Shell
+    list                   # all tests grouped by module
+    run all                # everything (absent modules fail presence fast)
+    run root               # one module
+    run root.divider       # one test
+    pins root              # jumper hookup table (GND first, always)
+
+## Bench rules (from the spec — non-negotiable)
+- Bench 5V powers the DUT boards; Mega on USB; grounds commoned once.
+- 220-470R series resistor in every rig-DRIVEN jumper.
+- Y1 stays OUT of its socket until the free-run stage; the rig is the clock.
+- Loopback jumpers for `run selftest` are printed by the test itself.
+
+## Build-program progress (update as stages pass)
+- [ ] 1 rig self-test — implemented in firmware (mod_selftest.c), BENCH PENDING (not yet run on hardware)
+- [ ] 2 root — implemented in firmware (mod_root.c), BENCH PENDING (not yet run on hardware)
+- [ ] 3-13: see spec (modules land in plan 2)
+
+## Regenerating
+    python3 ../../docs/notes/kicad_contracts.py --pinmap   # after any schematic change
+    python3 ../../docs/notes/coverage_lint.py              # coverage invariant
