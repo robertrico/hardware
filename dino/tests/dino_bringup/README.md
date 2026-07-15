@@ -1,5 +1,8 @@
 # DINO bring-up rig
 
+**Bench procedure lives in [BRINGUP.md](BRINGUP.md)** — per-stage wiring
+tables, commands, expected output, failure meanings. Start there.
+
 Bare-metal ATmega2560 test rig for the DINO CPU. Spec:
 `../../docs/notes/dino_test_bringup_design.md` (test definitions,
 build-program order, power/grounding rules). Pin hookups: flash, connect
