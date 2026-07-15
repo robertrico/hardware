@@ -30,6 +30,13 @@ EEPROMs burned (TL866), countdown demo free-running.
   budget). Mega powered separately (USB), grounds COMMONED at one point.
 - One bulk electrolytic (10-47uF) per breadboard rail, plus the per-chip
   0.1uF already in the schematic.
+- Multi-board stacks (bench-learned, 2026-07-15): per-board bulk is NOT
+  sufficient when supply and return route through different boards — the
+  switching-current loop crosses the inter-board jumpers and no per-board
+  cap bypasses it. Add a bulk cap ACROSS each board boundary (board A +5V
+  to board B GND), and route hot+gnd onto each board as a pair. Symptom
+  when missed: threshold-referenced circuits (RC ramps into Schmitt
+  inputs) retrigger whenever the neighbor board switches.
 - Every rig jumper bundle's FIRST wire is ground (see pin budget section).
 
 ## Constraints and decisions

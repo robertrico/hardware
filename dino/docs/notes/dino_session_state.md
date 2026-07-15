@@ -445,6 +445,50 @@ are untouched historical record and still accurate for what they cover.
     floats()-charge-trick + generated-pinmap + per-chip-CRC + coverage-
     linter refinements folded in.
 
+## Bench session 2026-07-14/15: reset circuit bring-up (first hardware debug)
+
+    OUTCOME: reset circuit works as designed. Root cause of a full day of
+    symptoms: the CROSS-BOARD SUPPLY/RETURN LOOP on the stacked reset +
+    T-phase pair. Per-board bulk caps WERE present — but +5V distributed
+    on the top board and ground returning through the bottom board means
+    the T-counter's switching current loop crossed BOTH inter-board
+    jumpers, and no per-board cap bypasses that loop. The bouncing
+    differential shifted the '14's thresholds relative to the RC node;
+    the 10k/10uF ramp parks the node near VT+ for ~100ms, so every reset
+    release -> T-counter activity -> inter-board kick -> preset
+    retrigger: a system-level oscillator through power distribution.
+    FIX: a bulk cap ACROSS the board boundary (top board +5V to bottom
+    board GND), closing the loop locally. Rule for all multi-board
+    stacks: per-board bulk is necessary but NOT sufficient — bypass
+    across every board boundary the supply/return loop crosses (and
+    prefer routing hot+gnd as a PAIR onto each board).
+
+    Symptom fingerprints worth remembering (all were THIS one fault):
+    - RC node parked immovably at 2.6-2.7V (= '14 VT+; the average of
+      endless retriggering, not a DC divider, not leakage).
+    - RESET (U27B.Q) "stuck high" with tiny down-pulses.
+    - Removing the cap "fixed" it (node snapped through the vulnerable
+      threshold window too fast to retrigger).
+    - Removing one '14 inversion "fixed" it (second wrong canceling the
+      first: node misread as low + odd inversion = right output).
+    - Survived: 3x '74 swaps, new cap, moving to different '14 gates.
+
+    Debugging lessons (bench ledger, cousin of strikes 1-7):
+    1. Before calling a signal "stuck," state what it should REST at.
+       RESET is active-high: rest LOW. Half the session chased ~Q doing
+       its job. ("9 is supposed to be low?" was the turning point.)
+    2. "Rails look fine" is only true AT THE CHIP YOU'RE BLAMING. On
+       stacked/jumpered boards, each board's rail is its own rail.
+    3. When a fault survives chip swaps and rewiring, stop hunting wires
+       and bisect subsystems; and when a symptom needs the cap present
+       AND system activity, think power distribution, not logic.
+    4. False trail worth recording: assistant's early AC-coupling
+       explanation for the first 0V node reading delayed pursuing the
+       node's DC level — the single measurement that defined the fault.
+
+    Design change required: NONE. Schematic correct as drawn; the '14
+    double-inversion polarity logic verified correct on the bench.
+
 ## Recurring bug pattern (ledger, ongoing)
 
     STRIKES 1-4 (2026-07-12, register/clock/PC phase — see prior session
