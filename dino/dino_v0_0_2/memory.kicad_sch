@@ -3130,6 +3130,17 @@
 		)
 		(uuid "e9ff9cbe-d7ef-40dc-909b-0fd7bf3b3d64")
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{RAM_OUT}, ~{ROM_OUT} <- Control Word Module\nIN: ~{RAM_EN} <- Memory Address Regiser\nIN: M0-14, M15=ROM_EN <- Memory Address Regiser, Program Counter\nIN: WRITE_DIR <- Memory Data Register\nIN: ~{CLK} <- root\nOUT: MDR0-7 -> Memory Data Register, Register Modules"
+		(exclude_from_sim no)
+		(at 160.02 165.1 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ebfb4f68-dcb6-5b4f-add8-8de1c89d675a")
+	)
 	(junction
 		(at 121.92 40.64)
 		(diameter 0)
@@ -3171,6 +3182,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "621dac2b-53c9-4f35-a4fb-f6c92a87437a")
+	)
+	(junction
+		(at 194.31 104.14)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6bff2116-06c6-4096-9d10-d1a343fbdc4e")
 	)
 	(junction
 		(at 96.52 40.64)
@@ -3219,12 +3236,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "bf0af821-000e-41ff-a6e0-02fd98eed047")
-	)
-	(junction
-		(at 109.22 111.76)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "d3a16f34-20d7-492d-b193-562c54ebdc4c")
 	)
 	(junction
 		(at 151.13 96.52)
@@ -3748,6 +3759,16 @@
 	)
 	(wire
 		(pts
+			(xy 34.29 182.88) (xy 29.21 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0ced477e-60d3-591b-81ba-7a42f19e1acc")
+	)
+	(wire
+		(pts
 			(xy 93.98 105.41) (xy 116.84 105.41)
 		)
 		(stroke
@@ -3828,6 +3849,26 @@
 	)
 	(wire
 		(pts
+			(xy 194.31 104.14) (xy 194.31 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "18b96cea-125c-4720-adb3-eb8d6d8fdec5")
+	)
+	(wire
+		(pts
+			(xy 109.22 83.82) (xy 104.14 83.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1c78c83a-c398-5a2b-ae28-b07874b9f03e")
+	)
+	(wire
+		(pts
 			(xy 199.39 81.28) (xy 199.39 96.52)
 		)
 		(stroke
@@ -3865,6 +3906,16 @@
 			(type default)
 		)
 		(uuid "1f93751d-ec6b-4a2c-b451-55d6462bf694")
+	)
+	(wire
+		(pts
+			(xy 190.5 104.14) (xy 194.31 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "20e3a335-6dc6-4675-9cc8-6fc021d51754")
 	)
 	(wire
 		(pts
@@ -3958,7 +4009,7 @@
 	)
 	(wire
 		(pts
-			(xy 194.31 83.82) (xy 194.31 111.76)
+			(xy 194.31 83.82) (xy 194.31 104.14)
 		)
 		(stroke
 			(width 0)
@@ -4096,6 +4147,16 @@
 		)
 		(uuid "40505710-4580-49eb-84ec-426f7af0e38a")
 	)
+	(wire
+		(pts
+			(xy 34.29 187.96) (xy 29.21 187.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "40cc87b4-53ef-514d-85a3-5571c9a0fa84")
+	)
 	(bus
 		(pts
 			(xy 247.65 86.36) (xy 247.65 90.17)
@@ -4165,6 +4226,16 @@
 			(type default)
 		)
 		(uuid "4908be6a-c0fb-4536-a248-d6dfa2912ec8")
+	)
+	(wire
+		(pts
+			(xy 81.28 182.88) (xy 76.2 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4be5f100-9db7-5d88-bce7-61eea2bab720")
 	)
 	(wire
 		(pts
@@ -4255,16 +4326,6 @@
 			(type default)
 		)
 		(uuid "5798f942-d5fd-433c-8e81-52449f4a803a")
-	)
-	(wire
-		(pts
-			(xy 109.22 111.76) (xy 116.84 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "58c23ebe-11c0-41c9-90e3-41d9ff201858")
 	)
 	(wire
 		(pts
@@ -4868,6 +4929,26 @@
 	)
 	(wire
 		(pts
+			(xy 96.52 185.42) (xy 101.6 185.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a6b5c288-8904-5c09-90af-f887949f60f6")
+	)
+	(wire
+		(pts
+			(xy 81.28 187.96) (xy 76.2 187.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a6dab066-ab14-52a7-a337-f77f0bd92880")
+	)
+	(wire
+		(pts
 			(xy 245.11 96.52) (xy 236.22 96.52)
 		)
 		(stroke
@@ -5368,7 +5449,7 @@
 	)
 	(wire
 		(pts
-			(xy 93.98 111.76) (xy 109.22 111.76)
+			(xy 93.98 111.76) (xy 116.84 111.76)
 		)
 		(stroke
 			(width 0)
@@ -5486,6 +5567,16 @@
 		)
 		(uuid "080be479-6699-46b5-9c11-cfafcb7fdd80")
 	)
+	(label "RAM_MDR_DIS"
+		(at 49.53 185.42 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "08658557-4302-52c3-96b6-6f58a59c8283")
+	)
 	(label "MDR0"
 		(at 153.67 58.42 0)
 		(effects
@@ -5585,6 +5676,16 @@
 			(justify left bottom)
 		)
 		(uuid "3a192ea9-a576-438e-b008-bf77f544cbfc")
+	)
+	(label "~{RAM_MDR_EN}"
+		(at 104.14 83.82 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3bc42daa-4ef9-55fe-a9d5-90bf27a65049")
 	)
 	(label "WRITE_DIR"
 		(at 35.56 147.32 180)
@@ -5766,6 +5867,16 @@
 		)
 		(uuid "77283538-3468-4f80-98a8-589e3775ca70")
 	)
+	(label "~{ROM_OUT}"
+		(at 190.5 104.14 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7a5882a4-e31a-5e75-bb32-baddfd49f221")
+	)
 	(label "MDR5"
 		(at 148.59 71.12 180)
 		(effects
@@ -5806,6 +5917,16 @@
 		)
 		(uuid "8b87bec7-6573-4941-86d3-558429eab135")
 	)
+	(label "RAM_MDR_DIS"
+		(at 76.2 187.96 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "923f6e84-d90e-5bcc-b705-b3fcf845ce95")
+	)
 	(label "M12"
 		(at 245.11 104.14 180)
 		(effects
@@ -5835,6 +5956,26 @@
 			(justify right bottom)
 		)
 		(uuid "969eb423-e032-4639-966c-aa147e00f8a6")
+	)
+	(label "~{WRITE_DIR}"
+		(at 29.21 187.96 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9a651144-7a58-592e-9b77-85b6c612d65e")
+	)
+	(label "RAM_MDR_DIS"
+		(at 76.2 182.88 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9b87e843-783e-56ca-a982-e7e2d6989ce4")
 	)
 	(label "M9"
 		(at 245.11 92.71 180)
@@ -6026,6 +6167,26 @@
 		)
 		(uuid "dfa30353-fca7-466e-884a-37166f075b4d")
 	)
+	(label "~{RAM_MDR_EN}"
+		(at 101.6 185.42 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "dfb3fd52-d151-5029-82c5-a173b8703d6b")
+	)
+	(label "~{RAM_OUT}"
+		(at 29.21 182.88 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "e1b0f8e0-035e-55b7-8f6b-589bca5c54c6")
+	)
 	(label "M8"
 		(at 245.11 88.9 180)
 		(effects
@@ -6088,7 +6249,7 @@
 	)
 	(symbol
 		(lib_id "74xx:7400")
-		(at 62.23 196.85 0)
+		(at 88.9 185.42 0)
 		(unit 4)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6099,7 +6260,7 @@
 		(fields_autoplaced yes)
 		(uuid "246ccb34-75bf-42d3-9a8d-9384288fc0ad")
 		(property "Reference" "U51"
-			(at 62.2217 187.96 0)
+			(at 88.8917 176.53 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6109,7 +6270,7 @@
 			)
 		)
 		(property "Value" "7400"
-			(at 62.2217 190.5 0)
+			(at 88.8917 179.07 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6119,7 +6280,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 62.23 196.85 0)
+			(at 88.9 185.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6130,7 +6291,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn7400"
-			(at 62.23 196.85 0)
+			(at 88.9 185.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6141,7 +6302,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NAND gate"
-			(at 62.23 196.85 0)
+			(at 88.9 185.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6204,7 +6365,7 @@
 	)
 	(symbol
 		(lib_id "74xx:7400")
-		(at 43.18 196.85 0)
+		(at 41.91 185.42 0)
 		(unit 3)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6215,7 +6376,7 @@
 		(fields_autoplaced yes)
 		(uuid "26c606aa-ed31-4d29-aa8e-d14eab65da2a")
 		(property "Reference" "U51"
-			(at 43.1717 187.96 0)
+			(at 41.9017 176.53 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6225,7 +6386,7 @@
 			)
 		)
 		(property "Value" "7400"
-			(at 43.1717 190.5 0)
+			(at 41.9017 179.07 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6235,7 +6396,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 43.18 196.85 0)
+			(at 41.91 185.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6246,7 +6407,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn7400"
-			(at 43.18 196.85 0)
+			(at 41.91 185.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6257,7 +6418,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NAND gate"
-			(at 43.18 196.85 0)
+			(at 41.91 185.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8125,166 +8286,5 @@
 				)
 			)
 		)
-	)
-	(label "~{ROM_OUT}"
-		(at 194.31 83.82 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "7a5882a4-e31a-5e75-bb32-baddfd49f221")
-	)
-	(wire
-		(pts
-			(xy 35.56 194.31) (xy 30.48 194.31)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0ced477e-60d3-591b-81ba-7a42f19e1acc")
-	)
-	(label "~{RAM_OUT}"
-		(at 30.48 194.31 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "e1b0f8e0-035e-55b7-8f6b-589bca5c54c6")
-	)
-	(wire
-		(pts
-			(xy 35.56 199.39) (xy 30.48 199.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "40cc87b4-53ef-514d-85a3-5571c9a0fa84")
-	)
-	(label "~{WRITE_DIR}"
-		(at 30.48 199.39 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "9a651144-7a58-592e-9b77-85b6c612d65e")
-	)
-	(wire
-		(pts
-			(xy 50.8 196.85) (xy 55.88 196.85)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "20a5b195-c38e-5000-a8da-86035aa33c33")
-	)
-	(label "RAM_MDR_DIS"
-		(at 55.88 196.85 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "08658557-4302-52c3-96b6-6f58a59c8283")
-	)
-	(wire
-		(pts
-			(xy 54.61 194.31) (xy 49.53 194.31)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4be5f100-9db7-5d88-bce7-61eea2bab720")
-	)
-	(label "RAM_MDR_DIS"
-		(at 49.53 194.31 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "9b87e843-783e-56ca-a982-e7e2d6989ce4")
-	)
-	(wire
-		(pts
-			(xy 54.61 199.39) (xy 49.53 199.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a6dab066-ab14-52a7-a337-f77f0bd92880")
-	)
-	(label "RAM_MDR_DIS"
-		(at 49.53 199.39 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "923f6e84-d90e-5bcc-b705-b3fcf845ce95")
-	)
-	(wire
-		(pts
-			(xy 69.85 196.85) (xy 74.93 196.85)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a6b5c288-8904-5c09-90af-f887949f60f6")
-	)
-	(label "~{RAM_MDR_EN}"
-		(at 74.93 196.85 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "dfb3fd52-d151-5029-82c5-a173b8703d6b")
-	)
-	(wire
-		(pts
-			(xy 109.22 83.82) (xy 104.14 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1c78c83a-c398-5a2b-ae28-b07874b9f03e")
-	)
-	(label "~{RAM_MDR_EN}"
-		(at 104.14 83.82 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "3bc42daa-4ef9-55fe-a9d5-90bf27a65049")
-	)
-	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{RAM_OUT}, ~{ROM_OUT} <- Control Word Module\nIN: ~{RAM_EN} <- Memory Address Regiser\nIN: M0-14, M15=ROM_EN <- Memory Address Regiser, Program Counter\nIN: WRITE_DIR <- Memory Data Register\nIN: ~{CLK} <- root\nOUT: MDR0-7 -> Memory Data Register, Register Modules"
-		(exclude_from_sim no)
-		(at 15.24 209.39 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "ebfb4f68-dcb6-5b4f-add8-8de1c89d675a")
 	)
 )

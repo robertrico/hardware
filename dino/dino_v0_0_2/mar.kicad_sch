@@ -2364,6 +2364,17 @@
 			(embedded_fonts no)
 		)
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: W0-7 <- ALU Module, Memory Data Register, Output\nIN: ~{MAR_HI_LOAD}, ~{MAR_LO_LOAD} <- Control Word Module\nIN: CW14=PC_MAR_MUX <- Microcode_Decoder\nIN: CLK <- root\nOUT: ~{RAM_EN} -> Memory\nOUT: M0-14 -> Memory, Program Counter\nOUT: ~{PC_MAR_MUX} -> Program Counter\nBIDIR: M15=ROM_EN <-> Memory, Program Counter"
+		(exclude_from_sim no)
+		(at 177.546 164.338 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e8794c5a-5cf8-5ae3-b4d0-192017e882af")
+	)
 	(wire
 		(pts
 			(xy 138.43 95.25) (xy 143.51 95.25)
@@ -2463,6 +2474,16 @@
 			(type default)
 		)
 		(uuid "0fac9890-242d-4505-ba92-fa8024ebef8c")
+	)
+	(wire
+		(pts
+			(xy 95.25 72.39) (xy 110.49 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "109f3899-9d7b-41b9-8f5d-dac0a4615cd2")
 	)
 	(wire
 		(pts
@@ -2836,6 +2857,16 @@
 	)
 	(wire
 		(pts
+			(xy 95.25 69.85) (xy 95.25 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "92551602-fe68-4644-af36-8a2a896d0d7b")
+	)
+	(wire
+		(pts
 			(xy 181.61 59.69) (xy 186.69 59.69)
 		)
 		(stroke
@@ -2906,6 +2937,16 @@
 	)
 	(wire
 		(pts
+			(xy 97.79 118.11) (xy 113.03 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b41cc19c-baa0-46bd-990d-c0d2821ea616")
+	)
+	(wire
+		(pts
 			(xy 113.03 102.87) (xy 107.95 102.87)
 		)
 		(stroke
@@ -2953,6 +2994,16 @@
 			(type default)
 		)
 		(uuid "bfbfbc0b-6889-419b-aaf0-56c53bc55ac7")
+	)
+	(wire
+		(pts
+			(xy 97.79 115.57) (xy 97.79 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c0560b8a-1d29-41e3-8907-38a9ac82ab4a")
 	)
 	(wire
 		(pts
@@ -4105,84 +4156,6 @@
 			(project "dino_v0_0_2"
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/74677ff6-688a-4cba-8f99-ea3f81917a82"
 					(reference "U54")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 110.49 72.39 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "07d4923e-8417-4bdb-901d-c171dd63772a")
-		(property "Reference" "#PWR0112"
-			(at 110.49 76.2 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+5V"
-			(at 110.49 67.31 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 110.49 72.39 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 110.49 72.39 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 110.49 72.39 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "aae0eb77-7dfb-494c-8800-e49b135afde8")
-		)
-		(instances
-			(project "dino_v0_0_2"
-				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/74677ff6-688a-4cba-8f99-ea3f81917a82"
-					(reference "#PWR0112")
 					(unit 1)
 				)
 			)
@@ -5530,7 +5503,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 113.03 118.11 0)
+		(at 97.79 115.57 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5541,7 +5514,7 @@
 		(fields_autoplaced yes)
 		(uuid "6e243c26-3cdc-4401-a933-a7b5cb9ed4bc")
 		(property "Reference" "#PWR0115"
-			(at 113.03 121.92 0)
+			(at 97.79 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5552,7 +5525,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 113.03 113.03 0)
+			(at 97.79 110.49 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5562,7 +5535,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 113.03 118.11 0)
+			(at 97.79 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5573,7 +5546,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 113.03 118.11 0)
+			(at 97.79 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5584,7 +5557,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 113.03 118.11 0)
+			(at 97.79 115.57 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6364,6 +6337,84 @@
 			(project "dino_v0_0_2"
 				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/74677ff6-688a-4cba-8f99-ea3f81917a82"
 					(reference "#PWR0120")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 95.25 69.85 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9ed9a7c6-c75b-45b9-b3d8-981ed439c52e")
+		(property "Reference" "#PWR0130"
+			(at 95.25 73.66 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 95.25 64.77 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 95.25 69.85 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 95.25 69.85 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+5V\""
+			(at 95.25 69.85 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "aee767c2-6214-4bc1-8b24-e5b74e3d0e2d")
+		)
+		(instances
+			(project "dino_v0_0_2"
+				(path "/e43166a5-d972-471d-b3cf-9f4f12c7f541/74677ff6-688a-4cba-8f99-ea3f81917a82"
+					(reference "#PWR0130")
 					(unit 1)
 				)
 			)
@@ -7364,16 +7415,5 @@
 				)
 			)
 		)
-	)
-	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: W0-7 <- ALU Module, Memory Data Register, Output\nIN: ~{MAR_HI_LOAD}, ~{MAR_LO_LOAD} <- Control Word Module\nIN: CW14=PC_MAR_MUX <- Microcode_Decoder\nIN: CLK <- root\nOUT: ~{RAM_EN} -> Memory\nOUT: M0-14 -> Memory, Program Counter\nOUT: ~{PC_MAR_MUX} -> Program Counter\nBIDIR: M15=ROM_EN <-> Memory, Program Counter"
-		(exclude_from_sim no)
-		(at 15.24 205.58 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e8794c5a-5cf8-5ae3-b4d0-192017e882af")
 	)
 )

@@ -4662,9 +4662,20 @@
 			(embedded_fonts no)
 		)
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{ALU_OUT}, ~{REG_A_LOAD}, ~{REG_B_LOAD} <- Control Word Module\nIN: CW10=SA1, CW11=SA0, CW9=SA2 <- Microcode_Decoder\nIN: CLK, ~{CLK}, ~{RESET} <- root\nOUT: FLAG_Z -> Control Word Module\nBIDIR: W0-7 <-> Memory Address Regiser, Memory Data Register, Output"
+		(exclude_from_sim no)
+		(at 159.258 169.926 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "045634f3-dbf4-59a7-b6da-226c9ae72cc7")
+	)
 	(text "CLR"
 		(exclude_from_sim no)
-		(at 20.574 34.798 0)
+		(at 18.034 19.558 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4674,7 +4685,7 @@
 	)
 	(text "110"
 		(exclude_from_sim no)
-		(at 25.146 50.546 0)
+		(at 22.606 35.306 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4684,7 +4695,7 @@
 	)
 	(text "111"
 		(exclude_from_sim no)
-		(at 25.146 53.086 0)
+		(at 22.606 37.846 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4694,7 +4705,7 @@
 	)
 	(text "BSUB"
 		(exclude_from_sim no)
-		(at 20.574 37.338 0)
+		(at 18.034 22.098 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4704,7 +4715,7 @@
 	)
 	(text "011"
 		(exclude_from_sim no)
-		(at 25.146 42.672 0)
+		(at 22.606 27.432 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4714,7 +4725,7 @@
 	)
 	(text "000"
 		(exclude_from_sim no)
-		(at 25.146 34.798 0)
+		(at 22.606 19.558 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4724,7 +4735,7 @@
 	)
 	(text "AND\n"
 		(exclude_from_sim no)
-		(at 20.574 50.546 0)
+		(at 18.034 35.306 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4734,7 +4745,7 @@
 	)
 	(text "100"
 		(exclude_from_sim no)
-		(at 25.146 45.212 0)
+		(at 22.606 29.972 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4754,7 +4765,7 @@
 	)
 	(text "010"
 		(exclude_from_sim no)
-		(at 25.146 40.132 0)
+		(at 22.606 24.892 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4764,7 +4775,7 @@
 	)
 	(text "XOR"
 		(exclude_from_sim no)
-		(at 20.574 45.212 0)
+		(at 18.034 29.972 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4774,7 +4785,7 @@
 	)
 	(text "OR"
 		(exclude_from_sim no)
-		(at 20.574 47.752 0)
+		(at 18.034 32.512 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4784,7 +4795,7 @@
 	)
 	(text "SET"
 		(exclude_from_sim no)
-		(at 20.574 53.086 0)
+		(at 18.034 37.846 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4804,7 +4815,7 @@
 	)
 	(text "001"
 		(exclude_from_sim no)
-		(at 25.146 37.338 0)
+		(at 22.606 22.098 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4834,7 +4845,7 @@
 	)
 	(text "101"
 		(exclude_from_sim no)
-		(at 25.146 47.752 0)
+		(at 22.606 32.512 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4844,7 +4855,7 @@
 	)
 	(text "[11:9] ALU Bus\n"
 		(exclude_from_sim no)
-		(at 38.1 32.512 0)
+		(at 35.56 17.272 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4854,7 +4865,7 @@
 	)
 	(text "SUB"
 		(exclude_from_sim no)
-		(at 20.574 40.132 0)
+		(at 18.034 24.892 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4864,7 +4875,7 @@
 	)
 	(text "ADD"
 		(exclude_from_sim no)
-		(at 20.574 42.672 0)
+		(at 18.034 27.432 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4889,7 +4900,7 @@
 		(uuid "532e89e3-da75-441a-b9e3-69ad4f93cca3")
 	)
 	(junction
-		(at 38.1 123.19)
+		(at 36.83 88.9)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "592ed21f-24d1-4080-981f-d730b6b84d0a")
@@ -4913,7 +4924,7 @@
 		(uuid "813fb5bf-352d-4c16-90d5-73e633bc761c")
 	)
 	(junction
-		(at 175.26 137.16)
+		(at 104.14 140.97)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "95757891-78f1-4024-b9c4-25f3d54fa105")
@@ -4925,7 +4936,7 @@
 		(uuid "c58ddbb6-7446-4adc-aa7d-54129cf533e2")
 	)
 	(junction
-		(at 175.26 162.56)
+		(at 104.14 166.37)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "cddb6485-a32c-4efb-b05f-5a6fb84d0fc6")
@@ -4956,8 +4967,12 @@
 		(at 252.73 102.87)
 		(uuid "671aca34-3b2e-4110-8583-e759e76edd29")
 	)
+	(no_connect
+		(at 154.94 194.31)
+		(uuid "b0483768-dc72-4d35-acb1-0ac44ac7df4b")
+	)
 	(bus_entry
-		(at 34.29 41.91)
+		(at 31.75 26.67)
 		(size -2.54 -2.54)
 		(stroke
 			(width 0)
@@ -4966,7 +4981,7 @@
 		(uuid "434ce9a5-adc2-4fb7-93f0-f2a0b254e158")
 	)
 	(bus_entry
-		(at 34.29 45.72)
+		(at 31.75 30.48)
 		(size -2.54 -2.54)
 		(stroke
 			(width 0)
@@ -4975,7 +4990,7 @@
 		(uuid "672a7f65-ba27-478f-8be9-df7f8a2535bd")
 	)
 	(bus_entry
-		(at 34.29 49.53)
+		(at 31.75 34.29)
 		(size -2.54 -2.54)
 		(stroke
 			(width 0)
@@ -4985,7 +5000,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 125.73) (xy 40.64 125.73)
+			(xy 36.83 91.44) (xy 39.37 91.44)
 		)
 		(stroke
 			(width 0)
@@ -4995,7 +5010,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 137.16) (xy 175.26 137.16)
+			(xy 83.82 140.97) (xy 104.14 140.97)
 		)
 		(stroke
 			(width 0)
@@ -5025,7 +5040,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 123.19) (xy 38.1 125.73)
+			(xy 36.83 88.9) (xy 36.83 91.44)
 		)
 		(stroke
 			(width 0)
@@ -5035,7 +5050,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 137.16) (xy 194.31 137.16)
+			(xy 104.14 140.97) (xy 123.19 140.97)
 		)
 		(stroke
 			(width 0)
@@ -5065,7 +5080,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 120.65) (xy 40.64 120.65)
+			(xy 36.83 86.36) (xy 39.37 86.36)
 		)
 		(stroke
 			(width 0)
@@ -5105,7 +5120,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 135.89) (xy 175.26 137.16)
+			(xy 104.14 139.7) (xy 104.14 140.97)
 		)
 		(stroke
 			(width 0)
@@ -5115,7 +5130,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 162.56) (xy 194.31 162.56)
+			(xy 104.14 166.37) (xy 123.19 166.37)
 		)
 		(stroke
 			(width 0)
@@ -5155,7 +5170,7 @@
 	)
 	(wire
 		(pts
-			(xy 34.29 49.53) (xy 38.1 49.53)
+			(xy 31.75 34.29) (xy 35.56 34.29)
 		)
 		(stroke
 			(width 0)
@@ -5175,7 +5190,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 123.19) (xy 38.1 120.65)
+			(xy 36.83 88.9) (xy 36.83 86.36)
 		)
 		(stroke
 			(width 0)
@@ -5195,7 +5210,7 @@
 	)
 	(wire
 		(pts
-			(xy 34.29 41.91) (xy 38.1 41.91)
+			(xy 31.75 26.67) (xy 35.56 26.67)
 		)
 		(stroke
 			(width 0)
@@ -5205,7 +5220,7 @@
 	)
 	(wire
 		(pts
-			(xy 35.56 123.19) (xy 38.1 123.19)
+			(xy 34.29 88.9) (xy 36.83 88.9)
 		)
 		(stroke
 			(width 0)
@@ -5215,7 +5230,7 @@
 	)
 	(bus
 		(pts
-			(xy 31.75 38.1) (xy 31.75 50.8)
+			(xy 29.21 22.86) (xy 29.21 35.56)
 		)
 		(stroke
 			(width 0)
@@ -5295,7 +5310,7 @@
 	)
 	(wire
 		(pts
-			(xy 154.94 162.56) (xy 175.26 162.56)
+			(xy 83.82 166.37) (xy 104.14 166.37)
 		)
 		(stroke
 			(width 0)
@@ -5345,7 +5360,7 @@
 	)
 	(wire
 		(pts
-			(xy 34.29 45.72) (xy 38.1 45.72)
+			(xy 31.75 30.48) (xy 35.56 30.48)
 		)
 		(stroke
 			(width 0)
@@ -5395,7 +5410,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 162.56) (xy 175.26 165.1)
+			(xy 104.14 166.37) (xy 104.14 168.91)
 		)
 		(stroke
 			(width 0)
@@ -5554,7 +5569,7 @@
 		(uuid "0686a514-8a07-4cbb-bba8-300880160c4e")
 	)
 	(label "F01"
-		(at 69.85 148.59 180)
+		(at 19.05 135.89 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5584,7 +5599,7 @@
 		(uuid "0948c65c-47f8-4c5a-a762-8018cf4ba935")
 	)
 	(label "CLK"
-		(at 26.67 91.44 180)
+		(at 27.94 73.66 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5634,7 +5649,7 @@
 		(uuid "14110b32-f060-4e88-b5bc-18aab8f2b610")
 	)
 	(label "F23"
-		(at 69.85 153.67 180)
+		(at 19.05 140.97 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5664,7 +5679,7 @@
 		(uuid "17671e19-247c-4aee-959f-f9d276816253")
 	)
 	(label "F23"
-		(at 58.42 151.13 0)
+		(at 59.69 104.14 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5674,7 +5689,7 @@
 		(uuid "1774079a-5a26-40d2-8ac6-a0e26acdb473")
 	)
 	(label "SA1"
-		(at 20.32 120.65 180)
+		(at 19.05 86.36 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5694,7 +5709,7 @@
 		(uuid "1c88db7f-252f-4215-a500-423e74f06689")
 	)
 	(label "F45"
-		(at 69.85 165.1 180)
+		(at 19.05 152.4 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5704,7 +5719,7 @@
 		(uuid "1cb3f74f-517e-4eaf-afa0-498aae3a862e")
 	)
 	(label "F0123"
-		(at 85.09 151.13 0)
+		(at 34.29 138.43 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5724,7 +5739,7 @@
 		(uuid "1df15e56-0669-430a-ba8b-11fc39a5595d")
 	)
 	(label "F3"
-		(at 43.18 153.67 180)
+		(at 44.45 106.68 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5754,7 +5769,7 @@
 		(uuid "21d6552c-48ff-4e29-b753-3c13e1658f5a")
 	)
 	(label "F4567"
-		(at 85.09 167.64 0)
+		(at 34.29 154.94 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5804,7 +5819,7 @@
 		(uuid "26200144-616a-431c-94e7-328e33766e00")
 	)
 	(label "F7"
-		(at 43.18 170.18 180)
+		(at 44.45 123.19 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5894,7 +5909,7 @@
 		(uuid "386a28ad-786b-4980-bc43-98f99e935b9b")
 	)
 	(label "F01"
-		(at 34.29 151.13 0)
+		(at 34.29 105.41 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5994,7 +6009,7 @@
 		(uuid "4bfd596b-62b8-4709-a5c6-dccde2ac3635")
 	)
 	(label "SA2"
-		(at 38.1 41.91 0)
+		(at 35.56 26.67 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6054,7 +6069,7 @@
 		(uuid "5a4ebd8d-a9dd-4475-8a52-f946d3ac1ee3")
 	)
 	(label "SA0"
-		(at 20.32 125.73 180)
+		(at 19.05 91.44 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6074,7 +6089,7 @@
 		(uuid "5d07b26e-1fc6-4ba4-8ba9-d2e8cb428b19")
 	)
 	(label "F0123"
-		(at 100.33 156.21 180)
+		(at 46.99 143.51 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6084,7 +6099,7 @@
 		(uuid "5d2fb498-49b5-4173-9f15-42824e9c6db7")
 	)
 	(label "F4"
-		(at 19.05 165.1 180)
+		(at 19.05 119.38 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6214,7 +6229,7 @@
 		(uuid "6dc240ad-dee3-4f98-b449-67f02a573be5")
 	)
 	(label "~{REG_B_LOAD}"
-		(at 26.67 86.36 180)
+		(at 27.94 68.58 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6244,7 +6259,7 @@
 		(uuid "6f98c5f6-472c-4eba-8aca-63eec5f600a9")
 	)
 	(label "LE_TMP_B"
-		(at 41.91 88.9 0)
+		(at 43.18 71.12 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6274,7 +6289,7 @@
 		(uuid "795a4257-914a-4eca-92f1-46b43913be1a")
 	)
 	(label "LE_TMP_A"
-		(at 41.91 69.85 0)
+		(at 41.91 53.34 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6324,7 +6339,7 @@
 		(uuid "814ed4d6-652c-4e0d-b1bf-5ead4b6ff9ff")
 	)
 	(label "~{REG_A_LOAD}"
-		(at 26.67 67.31 180)
+		(at 26.67 50.8 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6394,7 +6409,7 @@
 		(uuid "9bfb2f43-474e-4277-a5b8-07f430b31f72")
 	)
 	(label "SA[0..2]"
-		(at 31.75 38.1 0)
+		(at 29.21 22.86 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6424,7 +6439,7 @@
 		(uuid "a15f5d3f-237b-4392-adb6-4978d0e5606d")
 	)
 	(label "Z"
-		(at 115.57 158.75 0)
+		(at 62.23 146.05 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6504,7 +6519,7 @@
 		(uuid "b8685ed9-3f48-41eb-94da-106009c5c01a")
 	)
 	(label "F5"
-		(at 19.05 170.18 180)
+		(at 19.05 124.46 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6524,7 +6539,7 @@
 		(uuid "ba4a8bac-f291-4a39-9cdd-fb66d2142086")
 	)
 	(label "SA0"
-		(at 38.1 49.53 0)
+		(at 35.56 34.29 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6534,7 +6549,7 @@
 		(uuid "bb91b85d-3f3f-406e-a4b7-24a6f03fafd1")
 	)
 	(label "F67"
-		(at 69.85 170.18 180)
+		(at 19.05 157.48 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6574,7 +6589,7 @@
 		(uuid "cc46c51a-56cb-46fc-a503-cfebf8fc7c0c")
 	)
 	(label "F1"
-		(at 19.05 153.67 180)
+		(at 19.05 107.95 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6614,7 +6629,7 @@
 		(uuid "d06028fb-e0b7-4674-92bf-e39ab17f440c")
 	)
 	(label "SA1"
-		(at 38.1 45.72 0)
+		(at 35.56 30.48 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6624,7 +6639,7 @@
 		(uuid "d110a2a3-8cdd-4e5f-9326-fb87fcf2f47a")
 	)
 	(label "F6"
-		(at 43.18 165.1 180)
+		(at 44.45 118.11 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6684,7 +6699,7 @@
 		(uuid "da0ac957-f6f5-4d54-b567-86a962d1b61a")
 	)
 	(label "F0"
-		(at 19.05 148.59 180)
+		(at 19.05 102.87 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6714,7 +6729,7 @@
 		(uuid "e2797c6f-53a2-4bb3-a436-42cd023842e2")
 	)
 	(label "ALU_CIN"
-		(at 55.88 123.19 0)
+		(at 54.61 88.9 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6784,7 +6799,7 @@
 		(uuid "ecb91c4b-0718-4821-989c-db8ba41208df")
 	)
 	(label "F67"
-		(at 58.42 167.64 0)
+		(at 59.69 120.65 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6804,7 +6819,7 @@
 		(uuid "efb24122-9354-481f-a50c-afe272995bb2")
 	)
 	(label "F45"
-		(at 34.29 167.64 0)
+		(at 34.29 121.92 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6814,7 +6829,7 @@
 		(uuid "f28bea23-1a09-4aa9-8a9b-f442913805ec")
 	)
 	(label "F4567"
-		(at 100.33 161.29 180)
+		(at 46.99 148.59 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6824,7 +6839,7 @@
 		(uuid "f2bc984e-eef1-4c08-9586-e58d784d9580")
 	)
 	(label "F2"
-		(at 43.18 148.59 180)
+		(at 44.45 101.6 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6834,7 +6849,7 @@
 		(uuid "f2ed3b7b-4a4f-4fd2-b81b-1825a93b468f")
 	)
 	(label "CLK"
-		(at 26.67 72.39 180)
+		(at 26.67 55.88 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6865,7 +6880,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 26.67 151.13 0)
+		(at 26.67 105.41 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6876,7 +6891,7 @@
 		(fields_autoplaced yes)
 		(uuid "07b31800-2bce-4be1-b60f-3aa18d2ccc13")
 		(property "Reference" "U52"
-			(at 26.67 142.24 0)
+			(at 26.67 96.52 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6886,7 +6901,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 26.67 144.78 0)
+			(at 26.67 99.06 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6896,7 +6911,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 26.67 151.13 0)
+			(at 26.67 105.41 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6907,7 +6922,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 26.67 151.13 0)
+			(at 26.67 105.41 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6918,7 +6933,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 26.67 151.13 0)
+			(at 26.67 105.41 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7450,7 +7465,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 194.31 149.86 0)
+		(at 123.19 153.67 0)
 		(unit 5)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -7461,7 +7476,7 @@
 		(fields_autoplaced yes)
 		(uuid "1d3eaf20-b4df-4d1c-825a-9b4d92bf3e57")
 		(property "Reference" "U52"
-			(at 200.66 148.5899 0)
+			(at 129.54 152.3999 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7472,7 +7487,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 200.66 151.1299 0)
+			(at 129.54 154.9399 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7483,7 +7498,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 194.31 149.86 0)
+			(at 123.19 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7494,7 +7509,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 194.31 149.86 0)
+			(at 123.19 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7505,7 +7520,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 194.31 149.86 0)
+			(at 123.19 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7725,7 +7740,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS08")
-		(at 175.26 149.86 0)
+		(at 104.14 153.67 0)
 		(unit 5)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -7736,7 +7751,7 @@
 		(fields_autoplaced yes)
 		(uuid "287fccd9-bb25-4738-99c0-f72133ed4774")
 		(property "Reference" "U53"
-			(at 181.61 148.5899 0)
+			(at 110.49 152.3999 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7747,7 +7762,7 @@
 			)
 		)
 		(property "Value" "74LS08"
-			(at 181.61 151.1299 0)
+			(at 110.49 154.9399 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7758,7 +7773,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 175.26 149.86 0)
+			(at 104.14 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7769,7 +7784,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS08"
-			(at 175.26 149.86 0)
+			(at 104.14 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7780,7 +7795,7 @@
 			)
 		)
 		(property "Description" "Quad And2"
-			(at 175.26 149.86 0)
+			(at 104.14 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7843,7 +7858,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 154.94 149.86 0)
+		(at 83.82 153.67 0)
 		(unit 5)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -7854,7 +7869,7 @@
 		(fields_autoplaced yes)
 		(uuid "30301809-1554-42ea-a1fa-c5d13f55f5a3")
 		(property "Reference" "U50"
-			(at 161.29 148.5899 0)
+			(at 90.17 152.3999 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7865,7 +7880,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 161.29 151.1299 0)
+			(at 90.17 154.9399 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7876,7 +7891,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 154.94 149.86 0)
+			(at 83.82 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7887,7 +7902,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 154.94 149.86 0)
+			(at 83.82 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7898,7 +7913,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 154.94 149.86 0)
+			(at 83.82 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8272,7 +8287,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS08")
-		(at 77.47 151.13 0)
+		(at 26.67 138.43 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8283,7 +8298,7 @@
 		(fields_autoplaced yes)
 		(uuid "43712742-bb09-4b49-be45-734426cc48fa")
 		(property "Reference" "U53"
-			(at 77.4617 142.24 0)
+			(at 26.6617 129.54 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8293,7 +8308,7 @@
 			)
 		)
 		(property "Value" "74LS08"
-			(at 77.4617 144.78 0)
+			(at 26.6617 132.08 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8303,7 +8318,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 77.47 151.13 0)
+			(at 26.67 138.43 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8314,7 +8329,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS08"
-			(at 77.47 151.13 0)
+			(at 26.67 138.43 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8325,7 +8340,7 @@
 			)
 		)
 		(property "Description" "Quad And2"
-			(at 77.47 151.13 0)
+			(at 26.67 138.43 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9208,7 +9223,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 50.8 167.64 0)
+		(at 52.07 120.65 0)
 		(unit 4)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -9219,7 +9234,7 @@
 		(fields_autoplaced yes)
 		(uuid "73ae8617-772f-4c6d-bb08-171f2370dc7f")
 		(property "Reference" "U52"
-			(at 50.8 158.75 0)
+			(at 52.07 111.76 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9229,7 +9244,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 50.8 161.29 0)
+			(at 52.07 114.3 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9239,7 +9254,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 50.8 167.64 0)
+			(at 52.07 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9250,7 +9265,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 50.8 167.64 0)
+			(at 52.07 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9261,7 +9276,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 50.8 167.64 0)
+			(at 52.07 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10132,7 +10147,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 175.26 135.89 0)
+		(at 104.14 139.7 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10143,7 +10158,7 @@
 		(fields_autoplaced yes)
 		(uuid "8f3943aa-0339-476b-a3c6-566f43a17e96")
 		(property "Reference" "#PWR069"
-			(at 175.26 139.7 0)
+			(at 104.14 143.51 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10154,7 +10169,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 175.26 130.81 0)
+			(at 104.14 134.62 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10164,7 +10179,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 175.26 135.89 0)
+			(at 104.14 139.7 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10175,7 +10190,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 175.26 135.89 0)
+			(at 104.14 139.7 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10186,7 +10201,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 175.26 135.89 0)
+			(at 104.14 139.7 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10561,7 +10576,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 34.29 88.9 0)
+		(at 35.56 71.12 0)
 		(unit 2)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10572,7 +10587,7 @@
 		(fields_autoplaced yes)
 		(uuid "9972d27c-c529-43dc-8d06-5699e3ab092f")
 		(property "Reference" "U50"
-			(at 34.29 80.01 0)
+			(at 35.56 62.23 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10582,7 +10597,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 34.29 82.55 0)
+			(at 35.56 64.77 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10592,7 +10607,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 34.29 88.9 0)
+			(at 35.56 71.12 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10603,7 +10618,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 34.29 88.9 0)
+			(at 35.56 71.12 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10614,7 +10629,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 34.29 88.9 0)
+			(at 35.56 71.12 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11147,7 +11162,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS08")
-		(at 107.95 158.75 0)
+		(at 54.61 146.05 0)
 		(unit 3)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -11158,7 +11173,7 @@
 		(fields_autoplaced yes)
 		(uuid "b2151ca1-8f46-4afd-a8f1-5e788f610545")
 		(property "Reference" "U53"
-			(at 107.9417 149.86 0)
+			(at 54.6017 137.16 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11168,7 +11183,7 @@
 			)
 		)
 		(property "Value" "74LS08"
-			(at 107.9417 152.4 0)
+			(at 54.6017 139.7 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11178,7 +11193,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 107.95 158.75 0)
+			(at 54.61 146.05 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11189,7 +11204,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS08"
-			(at 107.95 158.75 0)
+			(at 54.61 146.05 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11200,7 +11215,7 @@
 			)
 		)
 		(property "Description" "Quad And2"
-			(at 107.95 158.75 0)
+			(at 54.61 146.05 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11263,7 +11278,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 50.8 151.13 0)
+		(at 52.07 104.14 0)
 		(unit 2)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -11274,7 +11289,7 @@
 		(fields_autoplaced yes)
 		(uuid "b28084fd-b838-4f88-b45e-9e5b7ea29cc1")
 		(property "Reference" "U52"
-			(at 50.8 142.24 0)
+			(at 52.07 95.25 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11284,7 +11299,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 50.8 144.78 0)
+			(at 52.07 97.79 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11294,7 +11309,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 50.8 151.13 0)
+			(at 52.07 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11305,7 +11320,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 50.8 151.13 0)
+			(at 52.07 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11316,7 +11331,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 50.8 151.13 0)
+			(at 52.07 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11535,7 +11550,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 175.26 165.1 0)
+		(at 104.14 168.91 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -11546,7 +11561,7 @@
 		(fields_autoplaced yes)
 		(uuid "c63b3fd4-8488-4e68-87d7-6f05321d22c6")
 		(property "Reference" "#PWR061"
-			(at 175.26 171.45 0)
+			(at 104.14 175.26 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11557,7 +11572,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 175.26 170.18 0)
+			(at 104.14 173.99 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11567,7 +11582,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 175.26 165.1 0)
+			(at 104.14 168.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11578,7 +11593,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 175.26 165.1 0)
+			(at 104.14 168.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11589,7 +11604,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 175.26 165.1 0)
+			(at 104.14 168.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12176,7 +12191,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS08")
-		(at 77.47 167.64 0)
+		(at 26.67 154.94 0)
 		(unit 2)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12187,7 +12202,7 @@
 		(fields_autoplaced yes)
 		(uuid "da1dbc4e-c6e4-42ea-90c8-0899015a5b3a")
 		(property "Reference" "U53"
-			(at 77.4617 158.75 0)
+			(at 26.6617 146.05 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12197,7 +12212,7 @@
 			)
 		)
 		(property "Value" "74LS08"
-			(at 77.4617 161.29 0)
+			(at 26.6617 148.59 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12207,7 +12222,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 77.47 167.64 0)
+			(at 26.67 154.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12218,7 +12233,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS08"
-			(at 77.47 167.64 0)
+			(at 26.67 154.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12229,7 +12244,7 @@
 			)
 		)
 		(property "Description" "Quad And2"
-			(at 77.47 167.64 0)
+			(at 26.67 154.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12526,7 +12541,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS08")
-		(at 27.94 123.19 0)
+		(at 26.67 88.9 0)
 		(unit 4)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12536,7 +12551,7 @@
 		(dnp no)
 		(uuid "e323df71-2971-4a8b-b5f7-93a2d1dd23b6")
 		(property "Reference" "U53"
-			(at 27.9317 114.3 0)
+			(at 26.6617 80.01 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12546,7 +12561,7 @@
 			)
 		)
 		(property "Value" "74LS08"
-			(at 27.9317 116.84 0)
+			(at 26.6617 82.55 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12556,7 +12571,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 27.94 123.19 0)
+			(at 26.67 88.9 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12567,7 +12582,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS08"
-			(at 27.94 123.19 0)
+			(at 26.67 88.9 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12578,7 +12593,7 @@
 			)
 		)
 		(property "Description" "Quad And2"
-			(at 27.94 123.19 0)
+			(at 26.67 88.9 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12641,7 +12656,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 48.26 123.19 0)
+		(at 46.99 88.9 0)
 		(unit 4)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12652,7 +12667,7 @@
 		(fields_autoplaced yes)
 		(uuid "e66e7640-30e5-4d83-a345-bc6c1acd5729")
 		(property "Reference" "U50"
-			(at 48.26 114.3 0)
+			(at 46.99 80.01 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12662,7 +12677,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 48.26 116.84 0)
+			(at 46.99 82.55 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12672,7 +12687,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 48.26 123.19 0)
+			(at 46.99 88.9 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12683,7 +12698,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 48.26 123.19 0)
+			(at 46.99 88.9 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12694,7 +12709,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 48.26 123.19 0)
+			(at 46.99 88.9 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12914,7 +12929,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 34.29 69.85 0)
+		(at 34.29 53.34 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12925,7 +12940,7 @@
 		(fields_autoplaced yes)
 		(uuid "f50a497b-9e90-4d0e-99db-a8667f3d277d")
 		(property "Reference" "U50"
-			(at 34.29 60.96 0)
+			(at 34.29 44.45 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12935,7 +12950,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 34.29 63.5 0)
+			(at 34.29 46.99 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12945,7 +12960,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 34.29 69.85 0)
+			(at 34.29 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12956,7 +12971,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 34.29 69.85 0)
+			(at 34.29 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12967,7 +12982,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 34.29 69.85 0)
+			(at 34.29 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13186,7 +13201,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 26.67 167.64 0)
+		(at 26.67 121.92 0)
 		(unit 3)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -13197,7 +13212,7 @@
 		(fields_autoplaced yes)
 		(uuid "fd0e1fa0-7c93-42c9-ae9c-c2b0d368a7db")
 		(property "Reference" "U52"
-			(at 26.67 158.75 0)
+			(at 26.67 113.03 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13207,7 +13222,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 26.67 161.29 0)
+			(at 26.67 115.57 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -13217,7 +13232,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 26.67 167.64 0)
+			(at 26.67 121.92 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13228,7 +13243,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls02"
-			(at 26.67 167.64 0)
+			(at 26.67 121.92 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13239,7 +13254,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 26.67 167.64 0)
+			(at 26.67 121.92 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13299,16 +13314,5 @@
 				)
 			)
 		)
-	)
-	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{ALU_OUT}, ~{REG_A_LOAD}, ~{REG_B_LOAD} <- Control Word Module\nIN: CW10=SA1, CW11=SA0, CW9=SA2 <- Microcode_Decoder\nIN: CLK, ~{CLK}, ~{RESET} <- root\nOUT: FLAG_Z -> Control Word Module\nBIDIR: W0-7 <-> Memory Address Regiser, Memory Data Register, Output"
-		(exclude_from_sim no)
-		(at 15.24 213.2 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "045634f3-dbf4-59a7-b6da-226c9ae72cc7")
 	)
 )

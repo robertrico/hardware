@@ -3363,6 +3363,17 @@
 		)
 		(uuid "39a205c8-abd6-4ffc-b2b6-f128b773a800")
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{REG_A_LOAD}, ~{REG_A_OUT}, ~{REG_B_LOAD}, ~{REG_B_OUT}, ~{REG_C_LOAD}, ~{REG_C_OUT}, ~{REG_OUT_LOAD} <- Control Word Module\nIN: CLK <- root\nOUT: MDR0-7 -> Memory, Memory Data Register\nOUT: OB0-7 -> Output"
+		(exclude_from_sim no)
+		(at 146.558 169.926 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6928a323-79ad-511d-8c67-268869999552")
+	)
 	(text "D_OUT\n"
 		(exclude_from_sim no)
 		(at 212.598 100.838 0)
@@ -9436,7 +9447,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 52.07 154.94 0)
+		(at 104.14 193.04 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -9444,10 +9455,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "01871eeb-3333-4277-8784-e3ac23c8f96c")
 		(property "Reference" "#PWR0129"
-			(at 52.07 146.05 0)
+			(at 104.14 184.15 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9458,7 +9468,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 52.07 148.59 0)
+			(at 104.14 196.85 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9468,7 +9478,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 52.07 154.94 0)
+			(at 104.14 193.04 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9479,7 +9489,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 52.07 154.94 0)
+			(at 104.14 193.04 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9490,7 +9500,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 52.07 154.94 0)
+			(at 104.14 193.04 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10041,7 +10051,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 41.91 165.1 0)
+		(at 52.07 167.64 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10049,10 +10059,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "24f7087f-214c-4c3e-a498-0e20fb0ddb1c")
 		(property "Reference" "#PWR0127"
-			(at 41.91 156.21 0)
+			(at 52.07 158.75 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10063,7 +10072,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 41.91 158.75 0)
+			(at 52.07 171.958 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10073,7 +10082,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 41.91 165.1 0)
+			(at 52.07 167.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10084,7 +10093,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 41.91 165.1 0)
+			(at 52.07 167.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10095,7 +10104,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 41.91 165.1 0)
+			(at 52.07 167.64 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10953,7 +10962,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 52.07 152.4 0)
+		(at 104.14 190.5 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -10961,10 +10970,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "5b54ff30-dcdc-4ba3-a365-b605caade25a")
 		(property "Reference" "C64"
-			(at 52.07 143.51 0)
+			(at 108.966 191.516 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10974,7 +10982,7 @@
 			)
 		)
 		(property "Value" "0.1µF"
-			(at 52.07 146.05 0)
+			(at 109.22 189.23 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -10984,7 +10992,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 52.07 152.4 0)
+			(at 104.14 190.5 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10995,7 +11003,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 52.07 152.4 0)
+			(at 104.14 190.5 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11006,7 +11014,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 52.07 152.4 0)
+			(at 104.14 190.5 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11324,7 +11332,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS02")
-		(at 41.91 152.4 0)
+		(at 52.07 154.94 0)
 		(unit 5)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -11332,10 +11340,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "64b67bea-1a7d-45fb-81b3-ca5fc48c86c4")
 		(property "Reference" "U66"
-			(at 41.91 143.51 0)
+			(at 43.18 148.082 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11345,7 +11352,7 @@
 			)
 		)
 		(property "Value" "74LS02"
-			(at 41.91 146.05 0)
+			(at 42.164 150.368 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11355,7 +11362,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 41.91 152.4 0)
+			(at 52.07 154.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11366,7 +11373,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 41.91 152.4 0)
+			(at 52.07 154.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11377,7 +11384,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NOR gate"
-			(at 41.91 152.4 0)
+			(at 52.07 154.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11790,7 +11797,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 52.07 149.86 0)
+		(at 104.14 187.96 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -11798,10 +11805,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "8248d60b-c754-4b87-b3d6-1b03cb1605bf")
 		(property "Reference" "#PWR0128"
-			(at 52.07 140.97 0)
+			(at 104.14 179.07 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11812,7 +11818,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 52.07 143.51 0)
+			(at 104.14 183.896 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11822,7 +11828,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 52.07 149.86 0)
+			(at 104.14 187.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11833,7 +11839,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 52.07 149.86 0)
+			(at 104.14 187.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11844,7 +11850,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 52.07 149.86 0)
+			(at 104.14 187.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12217,7 +12223,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 41.91 139.7 0)
+		(at 52.07 142.24 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -12225,10 +12231,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "a82f5ab4-f99c-4676-a10f-cd31f728fe17")
 		(property "Reference" "#PWR0126"
-			(at 41.91 130.81 0)
+			(at 52.07 133.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12239,7 +12244,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 41.91 133.35 0)
+			(at 52.07 137.922 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12249,7 +12254,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 41.91 139.7 0)
+			(at 52.07 142.24 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12260,7 +12265,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 41.91 139.7 0)
+			(at 52.07 142.24 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12271,7 +12276,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 41.91 139.7 0)
+			(at 52.07 142.24 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14766,16 +14771,5 @@
 				)
 			)
 		)
-	)
-	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{REG_A_LOAD}, ~{REG_A_OUT}, ~{REG_B_LOAD}, ~{REG_B_OUT}, ~{REG_C_LOAD}, ~{REG_C_OUT}, ~{REG_OUT_LOAD} <- Control Word Module\nIN: CLK <- root\nOUT: MDR0-7 -> Memory, Memory Data Register\nOUT: OB0-7 -> Output"
-		(exclude_from_sim no)
-		(at 15.24 210.66 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "6928a323-79ad-511d-8c67-268869999552")
 	)
 )

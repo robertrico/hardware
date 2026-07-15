@@ -2221,6 +2221,17 @@
 		)
 		(uuid "c6a9a2f2-dc21-4ec5-944a-0f8b3e1acb58")
 	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: FLAG_Z <- ALU Module\nIN: CW0-8 <- Microcode_Decoder\nOUT: ~{ALU_OUT} -> ALU Module\nOUT: ~{REG_A_LOAD}, ~{REG_B_LOAD} -> ALU Module, Register Modules\nOUT: ~{MAR_HI_LOAD}, ~{MAR_LO_LOAD} -> Memory Address Regiser\nOUT: ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD} -> Memory Data Register\nOUT: ~{RAM_OUT}, ~{ROM_OUT} -> Memory, Memory Data Register\nOUT: ~{SW_OUT} -> Output\nOUT: ~{PC_CLEAR}, ~{PC_LOAD} -> Program Counter\nOUT: ~{REG_A_OUT}, ~{REG_B_OUT}, ~{REG_C_LOAD}, ~{REG_C_OUT}, ~{REG_OUT_LOAD} -> Register Modules"
+		(exclude_from_sim no)
+		(at 159.766 170.434 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "cc15ea87-85f1-5fff-9f9b-9c8cff1f995e")
+	)
 	(text "[11:9] ALU Bus\n"
 		(exclude_from_sim no)
 		(at 122.428 40.894 0)
@@ -5951,16 +5962,5 @@
 				)
 			)
 		)
-	)
-	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: FLAG_Z <- ALU Module\nIN: CW0-8 <- Microcode_Decoder\nOUT: ~{ALU_OUT} -> ALU Module\nOUT: ~{REG_A_LOAD}, ~{REG_B_LOAD} -> ALU Module, Register Modules\nOUT: ~{MAR_HI_LOAD}, ~{MAR_LO_LOAD} -> Memory Address Regiser\nOUT: ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD} -> Memory Data Register\nOUT: ~{RAM_OUT}, ~{ROM_OUT} -> Memory, Memory Data Register\nOUT: ~{SW_OUT} -> Output\nOUT: ~{PC_CLEAR}, ~{PC_LOAD} -> Program Counter\nOUT: ~{REG_A_OUT}, ~{REG_B_OUT}, ~{REG_C_LOAD}, ~{REG_C_OUT}, ~{REG_OUT_LOAD} -> Register Modules"
-		(exclude_from_sim no)
-		(at 15.24 210.91 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "cc15ea87-85f1-5fff-9f9b-9c8cff1f995e")
 	)
 )
