@@ -11,7 +11,15 @@ typedef struct { const char *module; const char *name; testfn_t fn; } testcase_t
     X(root, tstates) \
     X(root, reset) \
     X(root, halt) \
-    X(root, end)
+    X(root, end) \
+    X(pc, presence) \
+    X(pc, count) \
+    X(pc, carry) \
+    X(pc, load) \
+    X(pc, clear) \
+    X(pc, mux) \
+    X(pc, phase) \
+    X(pc, precedence)
 
 #define X_DECL(mod, name) void t_##mod##_##name(void);
 TEST_TABLE(X_DECL)

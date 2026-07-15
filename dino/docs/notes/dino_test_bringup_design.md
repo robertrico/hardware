@@ -265,21 +265,27 @@ Rig drives: W0-7, /REG_A_LOAD, /REG_B_LOAD, /ALU_OUT, SA0-2, CLK, ~CLK,
    (transparent) must NOT ripple to W mid-phase — output latch holds the
    pre-edge F. Single-step observable.
 
-### pc (4x '193 + load/count gating)
-Rig drives: /PC_LOAD, PC_UP, PC_CLEAR, RESET, CLK, ~CLK, M-bus (16, via
-PCD path '245s), ~PC_MAR_MUX. Samples: M0-15 (PC drives when enabled).
-1. `count`: PC_UP=1, N steps -> PC advances N; PC_UP=0 -> holds. Carry
-   chain: force 0x00FF -> 0x0100, 0x0FFF, 0x7FFF -> 0x8000, 0xFFFF -> 0.
-2. `load`: drive M=vector with /PC_LOAD protocol -> PC = vector (JMP path).
-3. `clear.merge` (review-corrected polarity + gating): the module input is
-   ~PC_CLEAR (active LOW), and U10 gates it with CLK: PC_CLEAR =
-   NOR(~PC_CLEAR, CLK) — decoder-driven clear is effective ONLY while CLK
-   is low. Three rows: (~PC_CLEAR low, CLK low) -> PC=0;
-   (~PC_CLEAR low, CLK high) -> PC unchanged (gating verified);
-   (RESET high, either CLK phase) -> PC=0 (the RESET leg of the
-   OR-from-NOR merge is NOT CLK-gated).
-4. `mux.gate`: ~PC_MAR_MUX low -> PC drives M (read it); high -> M floats.
-5. `up.stable`: count pulses gated by ~CLK (U36) — no count on wrong phase.
+### pc (4x '193 + load/count gating) — IMPLEMENTED (mod_pc.c), netlist-checked
+Rig drives: ~PC_LOAD, PC_UP, ~PC_CLEAR, RESET, CLK, ~CLK, M-bus (16, via
+U11/U12 '245 PCD path), ~PC_MAR_MUX. Samples: M0-15 (PC drives when
+~PC_MAR_MUX low via U13/U14).
+Netlist corrections (2026-07-15) folded into the vectors:
+- LOAD IS CLK-GATED: U36 makes ~PC_LOAD_STABLE = NAND(PC_LOAD, ~CLK) —
+  the '193 load strobe only asserts while CLK is LOW. Load protocol:
+  mux high, drive M, CLK low, strobe ~PC_LOAD, restore. A gating row
+  (strobe with CLK high -> no load) proves U36 gate 3.
+- PC_UP protocol: UP pin = NAND(PC_UP, ~CLK); deasserting PC_UP during
+  CLK-low fires a spurious count. Rig (like the real CW timing) changes
+  PC_UP only while CLK is high.
+- Rig never drives M while ~PC_MAR_MUX is low (U13/U14 would fight it).
+Tests: `presence` (reset->0, step->1); `count` (16-step printed walk +
+hold with PC_UP low); `carry` (00FF/0FFF/7FFF/FFFF boundaries, ROM_EN=M15
+flips at 0x8000); `load` (patterns + walking 1s/0s + CLK-high gating row);
+`clear` (merge rows: blocked at CLK high, lands at CLK low, RESET un-gated
+both phases); `mux` (high -> 16x floats(), low -> drives); `phase`
+(UP-toggle at CLK high no count, falling edge no count, rising edge +1);
+`precedence` (CLR dominates ~LOAD, load lands after clear release, RESET
+beats count, count continues from loaded value).
 
 ### mar
 Rig drives: W0-7, /MAR_LO_LOAD, /MAR_HI_LOAD, CLK, PC_MAR_MUX. Samples:

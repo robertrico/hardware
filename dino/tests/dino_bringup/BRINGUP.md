@@ -77,18 +77,24 @@ PC<->PL bytewise (D30->D42 ... D37->D49), plus 11 pool pairs it prints.
 
 ## Stage 2 — root boards (clock divider + T-state + reset + END/HALT gates)
 
+PASSED ON BENCH 2026-07-15 (5/5). This stage runs LIVE — the exception to
+the rig-is-the-clock rule.
+
 Physical prep on the DUT side:
-- Y1 OUT of its socket.
+- Y1 IN its socket — the DUT free-runs at 4.096MHz/4 = ~1.024MHz CLK.
 - Reset board + T-phase board powered per ground rules above.
 - Nothing else attached downstream (PC/ALU/etc. boards disconnected).
+- You operate the physical reset button when a test prints `ARM ...`
+  (10s window). RESET stays asserted for the RC stretch after release
+  (0.25-2.2s measured, bench-dependent); tests wait on the line.
 
 Wiring (GND first; `O` = rig drives, series R required; `I` = rig samples,
-direct). `pins root` prints the live version of this table.
+direct). `pins root` prints the live version of this table — 10 contract
+jumpers + GND, nothing else (no CLKIN injection, no RC force wire).
 
     Mega pin   dir  DINO net      where on the boards
     GND        —    GND rail      first wire, always
-    D45        O    END           the END tap net (control-word tap; for
-                                  stage 2 it's the wire that feeds U61 pin 3)
+    D45        O    END           the END tap net (feeds U61 pin 3)
     D42        O    HALT          the HALT tap net (feeds U61 pins 5/6)
     D38        I    CLK           U27A output side (CLK distribution net)
     D39        I    RESET         U27B pin 9 net
@@ -98,46 +104,86 @@ direct). `pins root` prints the live version of this table.
     D51        I    T3            U6 Q3 net
     D52        I    ~{CLK}        U27A ~Q side
     D53        I    ~{RESET}      U27B pin 8 net
-    D18        O    CLKIN         Y1 socket pin 8 position / U20 clock input
-    D19        O    RST_FORCE     the RC node (rig pulls low = button press;
-                                  releases = RC recharges ~100ms, real button
-                                  still works in parallel)
 
-Run: `run root`. Expect 6 PASS. Takes a few seconds — reset tests include
-deliberate 150ms RC-recharge waits.
+Run: `run root`. Expect 5 PASS. Two tests are armed — press the reset
+button when told.
 
 What each test proves / what its FAIL means:
 
-    root.divider       64 CLKIN pulses -> exactly 16 CLK rising edges, and
-                       CLK/~CLK complementary. FAIL count wrong: divider
-                       chain (U20 tap or U27A toggle). FAIL complement:
-                       ~CLK wiring.
-    root.tstate_walk   after reset, T counts 0..15 and wraps, one step per
-                       CLK cycle. FAIL early values: U6 wiring/MR held.
-                       FAIL at wrap: Q3/carry.
-    root.reset_sync    async assert (RESET high while RST_FORCE held low),
-                       complements agree, then the strong check: 150ms of
-                       RC recharge with ZERO clock edges — RESET must still
-                       hold — then one edge releases it. FAIL
-                       held_before_edge: release isn't synchronous (check
-                       U27B D=GND path). FAIL released_after_edge: front
-                       end or D again.
-    root.reset_tclear  reset mid-count clears T to 0.
-    root.end_clear     END high across one rising edge clears T (U61 gate 1
-                       + '163 sync MR); counting resumes next edge.
-    root.halt_freeze   HALT freezes T with CLK still running; resumes on
-                       release; reset overrides the freeze (sync-MR beats
-                       CET). FAIL T_frozen: CET path/U61 gate 2. FAIL
-                       reset_beats_halt: MR wiring.
+    root.clock    hardware edge count (Timer0 on D38): CLK = 1024kHz +/-2%,
+                  ~CLK toggling. FAIL kHz: Y1/divider chain (U20/U27A).
+                  FAIL CLKN: ~CLK wiring.
+    root.tstates  burst capture (2+ samples per T state), then every state
+                  change must be +1 mod 16 with rollover — prints the
+                  sequence. FAIL steps: T not advancing (U6 clock/MR).
+                  FAIL violations: counting order (Q wiring, bit swap).
+    root.reset    armed. Hold: RESET/~RESET complementary, T frozen at 0.
+                  Release: complements flip after the RC stretch, T counts.
+    root.halt     HALT freezes T (any value); resumes on release; then
+                  reset-while-halted clears to 0 (sync-MR beats CET).
+                  FAIL T_frozen: CET path/U61 gate 2. FAIL reset_beats_halt:
+                  MR wiring.
+    root.end      END high pins T at 0 (U61 gate 1 + '163 sync MR, cleared
+                  every edge); counting resumes when released.
 
 Approve the stage: check the box in README.md, move on.
 
 ---
 
-## Stages 3-13 — control word, microcode, registers, ALU, PC, MAR, memory,
+## Stage 7 — program counter (4x '193 + load/count gating + '245 mux)
+
+Rig is the clock again (Y1 rule back in force): PC board standalone, all
+inputs rig-driven, fully deterministic. `selftest pc` first, then wire per
+`pins pc` — 23 contract jumpers + GND (M bus is 16 of them: PORTC = M0-7,
+PORTL = M8-15).
+
+Netlist facts the tests lean on (program_counter.kicad_sch, verified):
+
+    U10 '02   CLR = OR(NOR(~PC_CLEAR, CLK), RESET) — decoder clear lands
+              only while CLK is LOW; the RESET leg is NOT gated.
+    U36 '00   UP pin = NAND(PC_UP, ~CLK) — counts on CLK rising.
+              ~PC_LOAD_STABLE = NAND(PC_LOAD, ~CLK) — load lands only
+              while CLK is LOW (NOT async, despite the '193 pin name).
+    U11/U12   '245 A->B: M -> PCD (load path), enabled by ~PC_LOAD.
+    U13/U14   '245 B->A: PC -> M, enabled by ~PC_MAR_MUX.
+
+Protocol rules the firmware obeys (mirror them when hand-probing):
+- PC_UP changes only while CLK is HIGH — deasserting during CLK-low fires
+  a spurious count through U36.
+- Never drive M with ~PC_MAR_MUX low — U13/U14 fight you through the
+  series resistors.
+
+Run: `run pc`. Expect 8 PASS, no button work.
+
+    pc.presence    reset -> 0, one step -> 1. Wired at all?
+    pc.count       prints the 16-step walk; then 8 clocks with PC_UP low —
+                   no creep. FAIL walk: U36 gate 1 / '193 chain. FAIL hold:
+                   PC_UP net stuck.
+    pc.carry       00FF->0100, 0FFF->1000, 7FFF->8000, FFFF->0000; ROM_EN
+                   (M15) flips exactly at 0x8000. FAIL: ~CO cascade between
+                   the '193s.
+    pc.load        patterns + walking 1s/0s through the M->PCD path; plus
+                   ~PC_LOAD strobed with CLK HIGH must NOT land (U36 gate 3).
+    pc.clear       ~PC_CLEAR blocked at CLK high, lands at CLK low (U10
+                   NOR); RESET clears at either phase (un-gated leg).
+    pc.mux         ~PC_MAR_MUX high -> all 16 M lines float (checked
+                   individually); low -> PC drives again.
+    pc.phase       PC_UP toggled during CLK-high -> no count; falling edge
+                   -> no count; rising edge -> exactly +1.
+    pc.precedence  clear beats load ('193 CLR dominance); load lands after
+                   clear releases; RESET beats a count in flight; counting
+                   continues from a loaded value (JMP-then-fetch seam).
+
+Approve the stage: check the box in README.md, move on.
+
+---
+
+## Stages 3-13 — control word, microcode, registers, ALU, MAR, memory,
 MDR, I/O, integrations, free-run
 
-Module tests land with plan 2 (docs/notes/plans/, forthcoming). The
+Module tests land with plan 2 (docs/notes/plans/, forthcoming) — PC (stage
+7, above) landed early out of build-order because its board was next on
+the bench. The
 workflow will be identical for every module:
 
     1. build the board, hand-check what you believe works

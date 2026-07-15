@@ -48,7 +48,8 @@ serial, `pins <module>`.
 ## Build-program progress (update as stages pass)
 - [ ] 1 rig self-test — implemented in firmware (mod_selftest.c), BENCH PENDING (not yet run on hardware)
 - [x] 2 root — PASSING on bench 2026-07-15 (live-clock guided workflow, 5/5)
-- [ ] 3-13: see spec (modules land in plan 2)
+- [ ] 7 pc — implemented in firmware (mod_pc.c, netlist-verified gating), BENCH PENDING
+- [ ] 3-13 remainder: see spec (modules land in plan 2)
 
 ## Regenerating
     python3 ../../docs/notes/kicad_contracts.py --pinmap   # after any schematic change
