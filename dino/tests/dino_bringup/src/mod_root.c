@@ -6,6 +6,7 @@
    (sig_lookup walks pinmap_gen.h), so hookup can never drift from
    `pins root`. Only the two rig-side extras are fixed. */
 static hwpin_t P_CLKIN, P_END, P_HALT, P_RSTF, P_CLK, P_CLKN, P_RESET;
+static hwpin_t P_RESETN;
 static hwpin_t P_T[4];
 static bool s_bound;
 
@@ -23,7 +24,8 @@ static bool bind(void) {
     ok &= bind1("HALT",   &P_HALT);    /* HALT       (rig drives)  */
     ok &= bind1("CLK",    &P_CLK);     /* CLK        (rig samples) */
     ok &= bind1("~{CLK}", &P_CLKN);    /* ~{CLK}     (rig samples) */
-    ok &= bind1("RESET",  &P_RESET);   /* RESET      (rig samples), a.k.a ~{RESET} at ALU */
+    ok &= bind1("RESET",  &P_RESET);   /* RESET      (rig samples) */
+    ok &= bind1("~{RESET}", &P_RESETN); /* ~{RESET}  (rig samples) */
     ok &= bind1("T0", &P_T[0]);        /* T0         (rig samples) */
     ok &= bind1("T1", &P_T[1]);        /* T1 */
     ok &= bind1("T2", &P_T[2]);        /* T2 */
@@ -95,11 +97,13 @@ void t_root_reset_sync(void) {
     drv(&P_RSTF, false); settle();
     sysclk_step();
     test_check_bool(smp(&P_RESET), true, "RESET_asserted");
+    test_check_bool(smp(&P_RESETN), false, "RESETN_complement_asserted");
     rel(&P_RSTF); settle();
     /* release is synchronous: still high before an edge... */
     test_check_bool(smp(&P_RESET), true, "RESET_held_before_edge");
     sysclk_step(); sysclk_step();
     test_check_bool(smp(&P_RESET), false, "RESET_released_after_edge");
+    test_check_bool(smp(&P_RESETN), true, "RESETN_complement_released");
     test_end();
 }
 
