@@ -25,17 +25,23 @@ static void run_filtered(const char *module, const char *test) {
 }
 
 static void print_pins(const char *module) {
+    /* MODMAPS/sigpin tables live in flash — copy entries out with memcpy_P;
+       the copied pointers are themselves flash addresses (uart_puts_p). */
     for (uint8_t m = 0; m < MODMAP_COUNT; m++) {
-        if (strcmp(MODMAPS[m].module, module) != 0) continue;
+        modmap_t mm;
+        memcpy_P(&mm, &MODMAPS[m], sizeof mm);
+        if (strcmp_P(module, mm.module) != 0) continue;
         uart_puts("hookup for "); uart_puts(module);
         uart_puts(" (GND first, always):\r\n  GND -> module GND rail\r\n");
-        for (uint8_t i = 0; i < MODMAPS[m].n; i++) {
+        for (uint8_t i = 0; i < mm.n; i++) {
+            sigpin_t sp;
+            memcpy_P(&sp, &mm.sig[i], sizeof sp);
             uart_puts("  ");
-            uart_puts(MODMAPS[m].sig[i].megapin);
+            uart_puts_p(sp.megapin);
             uart_puts(" -> ");
-            uart_puts(MODMAPS[m].sig[i].signal);
-            uart_puts(MODMAPS[m].sig[i].dir == 'O' ? "  (rig drives)"
-                      : MODMAPS[m].sig[i].dir == 'I' ? "  (rig samples)"
+            uart_puts_p(sp.signal);
+            uart_puts(sp.dir == 'O' ? "  (rig drives)"
+                      : sp.dir == 'I' ? "  (rig samples)"
                       : "  (bidir)");
             uart_puts("\r\n");
         }

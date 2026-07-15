@@ -5,6 +5,8 @@
 void uart_init(void);
 void uart_putc(char c);
 void uart_puts(const char *s);
+/* Print a NUL-terminated string stored in flash (PROGMEM address). */
+void uart_puts_p(const char *s);
 void uart_puthex8(uint8_t v);
 void uart_puthex16(uint16_t v);
 void uart_putdec(uint16_t v);

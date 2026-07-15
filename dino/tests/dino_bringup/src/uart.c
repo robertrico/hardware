@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include "uart.h"
 
 void uart_init(void) {
@@ -17,6 +18,11 @@ void uart_putc(char c) {
 
 void uart_puts(const char *s) {
     while (*s) uart_putc(*s++);
+}
+
+void uart_puts_p(const char *s) {
+    char c;
+    while ((c = (char)pgm_read_byte(s++)) != '\0') uart_putc(c);
 }
 
 static char hexdigit(uint8_t n) { return n < 10 ? '0' + n : 'A' + n - 10; }
