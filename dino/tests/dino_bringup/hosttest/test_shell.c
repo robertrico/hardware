@@ -25,6 +25,16 @@ int main(void) {
     c = shell_parse("run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     assert(c.kind == CMD_RUN_MODULE);
     assert(strlen(c.module) < 24);
+    /* trailing whitespace must be ignored */
+    c = shell_parse("run all ");        assert(c.kind == CMD_RUN_ALL);
+    c = shell_parse("list ");           assert(c.kind == CMD_LIST);
+    c = shell_parse("run mar.tristate ");
+    assert(c.kind == CMD_RUN_ONE);
+    assert(strcmp(c.module, "mar") == 0);
+    assert(strcmp(c.test, "tristate") == 0);
+    /* malformed dotted forms stay rejected */
+    c = shell_parse("run mar.");        assert(c.kind == CMD_BAD);
+    c = shell_parse("pins mar.foo");    assert(c.kind == CMD_BAD);
     printf("shell parser: OK\n");
     return 0;
 }
