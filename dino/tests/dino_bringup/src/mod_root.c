@@ -1,3 +1,4 @@
+#include <util/delay.h>
 #include "registry.h"
 #include "harness.h"
 #include "uart.h"
@@ -56,7 +57,10 @@ static void sysclk_step(void) { pulse_clkin(4); }
 static void do_reset(void) {
     drv(&P_RSTF, false); settle();
     sysclk_step();                       /* let synchronizer assert */
-    rel(&P_RSTF); settle();
+    rel(&P_RSTF);
+    _delay_ms(150);                      /* RC node recharge: 10k*10uF needs
+                                            ~100ms to cross the '14 VT+ —
+                                            bench-learned 2026-07-15 */
     sysclk_step(); sysclk_step();        /* sync release */
 }
 
@@ -98,8 +102,10 @@ void t_root_reset_sync(void) {
     sysclk_step();
     test_check_bool(smp(&P_RESET), true, "RESET_asserted");
     test_check_bool(smp(&P_RESETN), false, "RESETN_complement_asserted");
-    rel(&P_RSTF); settle();
-    /* release is synchronous: still high before an edge... */
+    rel(&P_RSTF);
+    _delay_ms(150);   /* RC recharges past the '14 VT+ (~100ms), preset
+                         releases — but the rig has issued NO clock edge,
+                         so a truly synchronous release must still hold: */
     test_check_bool(smp(&P_RESET), true, "RESET_held_before_edge");
     sysclk_step(); sysclk_step();
     test_check_bool(smp(&P_RESET), false, "RESET_released_after_edge");
