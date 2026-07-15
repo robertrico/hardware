@@ -67,9 +67,14 @@ void shell_execute(const cmd_t *c) {
     case CMD_RUN_MODULE: run_filtered(c->module, 0); break;
     case CMD_RUN_ONE:    run_filtered(c->module, c->test); break;
     case CMD_PINS:       print_pins(c->module); break;
+    case CMD_SELFTEST_MOD:
+        g_pass = 0; g_fail = 0;
+        selftest_module(c->module);
+        print_summary();
+        break;
     case CMD_HELP:
     case CMD_BAD:
-        uart_puts("commands: list | run all | run <mod> | run <mod>.<test> | pins <mod>\r\n");
+        uart_puts("commands: list | run all | run <mod> | run <mod>.<test> | pins <mod> | selftest <mod>\r\n");
         break;
     }
 }

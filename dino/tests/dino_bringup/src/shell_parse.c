@@ -24,6 +24,16 @@ cmd_t shell_parse(const char *line) {
     if (tok_eq(line, len, "list")) { c.kind = CMD_LIST; return c; }
     if (tok_eq(line, len, "help")) { c.kind = CMD_HELP; return c; }
 
+    if (len > 9 && memcmp(line, "selftest ", 9) == 0) {
+        const char *arg = line + 9;
+        const char *end = line + len;
+        while (arg < end && *arg == ' ') arg++;
+        if (arg == end || memchr(arg, '.', (size_t)(end - arg))) return c;
+        copy_tok(c.module, arg, sizeof c.module, (unsigned)(end - arg));
+        c.kind = CMD_SELFTEST_MOD;
+        return c;
+    }
+
     if ((len > 4 && memcmp(line, "run ", 4) == 0) ||
         (len > 5 && memcmp(line, "pins ", 5) == 0)) {
         int is_run = (line[0] == 'r');

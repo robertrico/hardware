@@ -17,6 +17,15 @@ serial, `pins <module>`.
     run root               # one module
     run root.divider       # one test
     pins root              # jumper hookup table (GND first, always)
+    selftest root          # rig-only loopback for ONE module's pins —
+                           # prints its own pair list (root = 6 jumpers).
+                           # `run selftest` = full 27-jumper all-pin check.
+
+## Per-module workflow
+    1. build the module board, hand-check it
+    2. `selftest <mod>` — jumper the printed pairs, rig-only, expect PASS
+    3. pull the jumpers, wire the DUT per `pins <mod>`
+    4. `run <mod>` — fix / approve
 
 ## Bench rules (from the spec — non-negotiable)
 - Bench 5V powers the DUT boards; Mega on USB; grounds commoned once.

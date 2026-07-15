@@ -7,6 +7,10 @@ typedef struct { volatile uint8_t *port, *ddr, *pinr; uint8_t bit; } hwpin_t;
 
 bool pin_lookup(const char *megapin, hwpin_t *out);
 bool sig_lookup(const char *module, const char *signal, hwpin_t *out);
+/* Iterate a module's generated pin bundle. Returns false when idx is past
+   the end (or module unknown). sig/megapin buffers: >=48 and >=16 bytes. */
+bool modmap_entry(const char *module, uint8_t idx,
+                  char *sig, char *megapin, char *dir);
 void drv(const hwpin_t *p, bool level);
 void rel(const hwpin_t *p);
 bool smp(const hwpin_t *p);

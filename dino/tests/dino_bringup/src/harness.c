@@ -34,6 +34,23 @@ bool pin_lookup(const char *megapin, hwpin_t *out) {
 /* Resolve a contract signal through the generated pinmap so module test
    files never hardcode pool-pin strings. Entries may be alias joins
    ("M15=ROM_EN"); a match is the whole string or any '='-separated part. */
+bool modmap_entry(const char *module, uint8_t idx,
+                  char *sig, char *megapin, char *dir) {
+    for (uint8_t m = 0; m < MODMAP_COUNT; m++) {
+        modmap_t mm;
+        memcpy_P(&mm, &MODMAPS[m], sizeof mm);
+        if (strcmp_P(module, mm.module) != 0) continue;
+        if (idx >= mm.n) return false;
+        sigpin_t sp;
+        memcpy_P(&sp, &mm.sig[idx], sizeof sp);
+        strcpy_P(sig, sp.signal);
+        strcpy_P(megapin, sp.megapin);
+        *dir = sp.dir;
+        return true;
+    }
+    return false;
+}
+
 bool sig_lookup(const char *module, const char *signal, hwpin_t *out) {
     for (uint8_t m = 0; m < MODMAP_COUNT; m++) {
         modmap_t mm;

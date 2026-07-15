@@ -21,6 +21,13 @@ int main(void) {
     c = shell_parse("bogus nonsense");  assert(c.kind == CMD_BAD);
     c = shell_parse("run");             assert(c.kind == CMD_BAD);
     c = shell_parse("help");            assert(c.kind == CMD_HELP);
+    c = shell_parse("selftest root");   assert(c.kind == CMD_SELFTEST_MOD);
+    assert(strcmp(c.module, "root") == 0);
+    c = shell_parse("selftest root ");  assert(c.kind == CMD_SELFTEST_MOD);
+    assert(strcmp(c.module, "root") == 0);
+    c = shell_parse("selftest");        assert(c.kind == CMD_BAD);
+    c = shell_parse("selftest ");       assert(c.kind == CMD_BAD);
+    c = shell_parse("selftest a.b");    assert(c.kind == CMD_BAD);
     /* overlong names must truncate safely, not overflow */
     c = shell_parse("run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     assert(c.kind == CMD_RUN_MODULE);
