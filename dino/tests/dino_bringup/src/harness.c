@@ -1,6 +1,9 @@
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include <util/delay.h>
+#include <string.h>
 #include "harness.h"
+#include "pinmap_gen.h"
 #include "uart.h"
 
 /* ---- pin resolution: "PA0/D22" -> registers ---- */
@@ -24,6 +27,41 @@ bool pin_lookup(const char *megapin, hwpin_t *out) {
             out->bit = (uint8_t)(megapin[2] - '0');
             return out->bit <= 7;
         }
+    }
+    return false;
+}
+
+/* Resolve a contract signal through the generated pinmap so module test
+   files never hardcode pool-pin strings. Entries may be alias joins
+   ("M15=ROM_EN"); a match is the whole string or any '='-separated part. */
+bool sig_lookup(const char *module, const char *signal, hwpin_t *out) {
+    for (uint8_t m = 0; m < MODMAP_COUNT; m++) {
+        modmap_t mm;
+        memcpy_P(&mm, &MODMAPS[m], sizeof mm);
+        if (strcmp_P(module, mm.module) != 0) continue;
+        for (uint8_t i = 0; i < mm.n; i++) {
+            sigpin_t sp;
+            char buf[48];
+            memcpy_P(&sp, &mm.sig[i], sizeof sp);
+            strcpy_P(buf, sp.signal);
+            bool match = (strcmp(buf, signal) == 0);
+            if (!match) {
+                char *tok = buf;
+                for (char *p = buf; !match; p++) {
+                    if (*p != '=' && *p != '\0') continue;
+                    char c = *p;
+                    *p = '\0';
+                    match = (strcmp(tok, signal) == 0);
+                    if (c == '\0') break;
+                    tok = p + 1;
+                }
+            }
+            if (match) {
+                strcpy_P(buf, sp.megapin);
+                return pin_lookup(buf, out);
+            }
+        }
+        return false;   /* module found, signal absent */
     }
     return false;
 }

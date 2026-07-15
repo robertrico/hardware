@@ -2,28 +2,41 @@
 #include "harness.h"
 #include "uart.h"
 
-/* Pin bindings: resolved once. Generated bundle order comes from
-   `pins root`; the two rig-side extras are fixed. */
+/* Pin bindings: contract signals resolved through the generated pinmap
+   (sig_lookup walks pinmap_gen.h), so hookup can never drift from
+   `pins root`. Only the two rig-side extras are fixed. */
 static hwpin_t P_CLKIN, P_END, P_HALT, P_RSTF, P_CLK, P_CLKN, P_RESET;
 static hwpin_t P_T[4];
+static bool s_bound;
 
-static void bind(void) {
-    /* pool assignments printed by `pins root` — keep in sync by running
-       it after any contracts change; signals sorted per generator. */
-    pin_lookup("PD7/D38", &P_END);     /* END        (rig drives)  */
-    pin_lookup("PG2/D39", &P_HALT);    /* HALT       (rig drives)  */
-    pin_lookup("PG1/D40", &P_CLK);     /* CLK        (rig samples) */
-    pin_lookup("PG0/D41", &P_T[0]);    /* T0         (rig samples) */
-    pin_lookup("PB3/D50", &P_T[1]);    /* T1 */
-    pin_lookup("PB2/D51", &P_T[2]);    /* T2 */
-    pin_lookup("PB1/D52", &P_T[3]);    /* T3 */
-    pin_lookup("PB0/D53", &P_RESET);   /* RESET      (rig samples) */
-    pin_lookup("PE4/D2",  &P_CLKN);    /* ~{CLK}     (rig samples) */
+static bool bind1(const char *signal, hwpin_t *out) {
+    if (sig_lookup("root", signal, out)) return true;
+    uart_puts("BIND FAIL "); uart_puts(signal); uart_puts("\r\n");
+    test_check_bool(false, true, signal);
+    return false;
+}
+
+static bool bind(void) {
+    if (s_bound) return true;
+    bool ok = true;
+    ok &= bind1("END",    &P_END);     /* END        (rig drives)  */
+    ok &= bind1("HALT",   &P_HALT);    /* HALT       (rig drives)  */
+    ok &= bind1("CLK",    &P_CLK);     /* CLK        (rig samples) */
+    ok &= bind1("~{CLK}", &P_CLKN);    /* ~{CLK}     (rig samples) */
+    ok &= bind1("RESET",  &P_RESET);   /* RESET      (rig samples) */
+    ok &= bind1("T0", &P_T[0]);        /* T0         (rig samples) */
+    ok &= bind1("T1", &P_T[1]);        /* T1 */
+    ok &= bind1("T2", &P_T[2]);        /* T2 */
+    ok &= bind1("T3", &P_T[3]);        /* T3 */
+    /* rig-side extras — NOT contract signals; fixed free pool pins */
     pin_lookup("PD3/D18", &P_CLKIN);   /* rig-side: Y1-socket injection */
-    pin_lookup("PD2/D19", &P_RSTF);    /* rig-side: RC-node force-low */
+    pin_lookup("PD2/D19", &P_RSTF);    /* rig-side: RC-node force-low  */
+    if (!ok) return false;             /* never drive a garbage pin */
     drv(&P_END, false);
     drv(&P_HALT, false);
     rel(&P_RSTF);                      /* released = RC charges = no reset */
+    s_bound = true;
+    return true;
 }
 
 static void pulse_clkin(uint16_t n) {
@@ -47,7 +60,7 @@ static void do_reset(void) {
 
 void t_root_divider(void) {
     test_begin("root", "divider");
-    bind();
+    if (!bind()) { test_end(); return; }
     /* count CLK edges over 64 injected pulses: expect 16 full CLK cycles */
     uint8_t rises = 0;
     bool last = smp(&P_CLK);
@@ -65,7 +78,7 @@ void t_root_divider(void) {
 
 void t_root_tstate_walk(void) {
     test_begin("root", "tstate_walk");
-    bind();
+    if (!bind()) { test_end(); return; }
     do_reset();
     uint8_t t0 = t_now();
     test_check_u16(t0, 0, "T_after_reset");
@@ -78,7 +91,7 @@ void t_root_tstate_walk(void) {
 
 void t_root_reset_sync(void) {
     test_begin("root", "reset_sync");
-    bind();
+    if (!bind()) { test_end(); return; }
     drv(&P_RSTF, false); settle();
     sysclk_step();
     test_check_bool(smp(&P_RESET), true, "RESET_asserted");
@@ -92,7 +105,7 @@ void t_root_reset_sync(void) {
 
 void t_root_reset_tclear(void) {
     test_begin("root", "reset_tclear");
-    bind();
+    if (!bind()) { test_end(); return; }
     do_reset();
     sysclk_step(); sysclk_step(); sysclk_step();   /* T=3 */
     do_reset();
@@ -102,7 +115,7 @@ void t_root_reset_tclear(void) {
 
 void t_root_end_clear(void) {
     test_begin("root", "end_clear");
-    bind();
+    if (!bind()) { test_end(); return; }
     do_reset();
     sysclk_step(); sysclk_step();                  /* T=2 */
     drv(&P_END, true); settle();
@@ -116,7 +129,7 @@ void t_root_end_clear(void) {
 
 void t_root_halt_freeze(void) {
     test_begin("root", "halt_freeze");
-    bind();
+    if (!bind()) { test_end(); return; }
     do_reset();
     sysclk_step();                                 /* T=1 */
     drv(&P_HALT, true); settle();
