@@ -9,7 +9,7 @@ OBJ     = $(SRC:src/%.c=$(BUILD)/%.o)
 
 CC      = avr-gcc
 CFLAGS  = -mmcu=$(MCU) -DF_CPU=$(F_CPU) -Os -std=gnu99 -Wall -Wextra -Werror \
-          -ffunction-sections -fdata-sections
+          -ffunction-sections -fdata-sections -MMD -MP
 LDFLAGS = -mmcu=$(MCU) -Wl,--gc-sections
 
 all: $(BUILD)/$(TARGET).hex size
@@ -34,5 +34,8 @@ flash: $(BUILD)/$(TARGET).hex
 
 clean:
 	rm -rf $(BUILD)
+
+# header deps (pinmap_gen.h regeneration must rebuild dependents)
+-include $(OBJ:.o=.d)
 
 .PHONY: all size flash clean
