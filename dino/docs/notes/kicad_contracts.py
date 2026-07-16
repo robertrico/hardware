@@ -296,6 +296,13 @@ def emit_pinmap(contracts, out_path):
         for i, (signal, bp, d) in enumerate(cands):
             pin = bp[0] if bp and best[bp[0]] == i else pool.pop(0)
             rows.append((signal, pin, d))
+        # Wiring order: Mega header sweep — D53 down to D2, then A15 down
+        # to A0. `pins <mod>` prints in table order, so this IS the order
+        # you jumper in.
+        def wire_key(row):
+            pin = row[1].split("/")[1]
+            return (0 if pin[0] == "D" else 1, -int(pin[1:]))
+        rows.sort(key=wire_key)
         arr = ",\n    ".join(f"{{{sym(s)}, {sym(p)}, '{d}'}}" for s, p, d in rows)
         mod_blocks.append(f"static const sigpin_t sig_{tok}[] PROGMEM = {{\n    {arr}\n}};")
         mods.append((tok, len(rows)))
