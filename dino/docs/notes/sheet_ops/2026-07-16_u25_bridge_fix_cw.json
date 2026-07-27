@@ -1,0 +1,12 @@
+{
+ "_comment": "Bug 4 fix, control_word half: U28.15 (O0, the src-field NONE decode - LOW only when [5:3]=000) exported as SRC_ACTIVE to the MDR sheet's ~MDR_EN gate. MANUAL EDIT ALREADY APPLIED 2026-07-16: U28.15's no_connect removed. U28 is rot-180 so outputs face left. Companion: 2026-07-16_u25_bridge_fix.json.",
+ "sheet": "dino_v0_0_2/control_word.kicad_sch",
+ "applied_marker": "SRC_ACTIVE",
+ "connect": [
+  {
+   "pin": "U28/15",
+   "label": "SRC_ACTIVE",
+   "dir": "left"
+  }
+ ]
+}

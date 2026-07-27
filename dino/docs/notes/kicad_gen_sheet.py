@@ -49,6 +49,14 @@ STUB = 5.08
 DIRV = {"left": (-STUB, 0), "right": (STUB, 0), "up": (0, -STUB), "down": (0, STUB)}
 
 
+def power_value_dy(kind):
+    """Value-text offset from a power symbol's pin (sheet Y grows DOWN).
+    GND's body hangs below the pin, so its label goes below; every other
+    flavor points up, label above — same as KiCad's autoplace. Replaces
+    the fixed y-6.35 that stranded GND/+5V labels far from the node."""
+    return 3.81 if kind == "GND" else -3.81
+
+
 def esc(s):
     return s.replace('"', '\\"')
 
@@ -168,12 +176,13 @@ class Gen:
                 f'\t\t\t(show_name no)\n\t\t\t(do_not_autoplace no)\n'
                 f'\t\t\t(effects\n\t\t\t\t(font\n\t\t\t\t\t(size 1.27 1.27)\n\t\t\t\t)\n\t\t\t)\n\t\t)')
 
-    def symbol(self, lib, ref, value, desc, x, y, unit, pins, extra=()):
+    def symbol(self, lib, ref, value, desc, x, y, unit, pins, extra=(),
+               value_dy=-6.35):
         pb = "\n".join(
             f'\t\t(pin "{p}"\n\t\t\t(uuid "{self.uid("pin", ref, unit, p)}")\n\t\t)'
             for p in pins)
         props = [self._prop("Reference", ref, x, y - 8.89, hide=ref.startswith("#")),
-                 self._prop("Value", value, x, y - 6.35),
+                 self._prop("Value", value, x, y + value_dy),
                  self._prop("Footprint", "", x, y, hide=True),
                  self._prop("Datasheet", "", x, y, hide=True),
                  self._prop("Description", desc, x, y, hide=True)]
@@ -192,7 +201,8 @@ class Gen:
         self.pwr_n += 1
         desc = (f'Power symbol creates a global label with name "{kind}"'
                 + (" , ground" if kind == "GND" else ""))
-        self.symbol(f"power:{kind}", ref, kind, desc, pt[0], pt[1], 1, ["1"])
+        self.symbol(f"power:{kind}", ref, kind, desc, pt[0], pt[1], 1, ["1"],
+                    value_dy=power_value_dy(kind))
 
     # ---------- lib transplant ----------
     def ensure_lib(self, lib_id):

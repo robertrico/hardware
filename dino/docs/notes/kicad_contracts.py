@@ -195,16 +195,23 @@ def stamp(contracts, root_path):
         body = "\\n".join(r.replace('"', '\\"') for r in rows)
 
         t = open(sch_file).read()
+        # STICKY POSITION: if a previous stamp exists, keep its (at x y) —
+        # hand-moves in the editor survive every restamp. Heuristic
+        # placement (below content, left margin) only on first stamp.
+        prev = re.search(r'\(text "' + re.escape(MARK) +
+                         r'[\s\S]*?\(at ([\d.-]+) ([\d.-]+)', t)
         # remove any previous stamped block (idempotent regeneration)
         t = re.sub(r'\t\(text "' + re.escape(MARK) + r'[\s\S]*?\n\t\)\n', "", t)
-        # place below existing content, left margin
-        ys = [float(m.group(2)) for m in re.finditer(r"\(xy ([\d.]+) ([\d.]+)\)", t)]
-        ys += [float(m.group(2)) for m in re.finditer(r"\(at ([\d.]+) ([\d.]+)", t)]
-        y = min(round(max(ys) + 10, 2), 280.0)
+        if prev:
+            x, y = float(prev.group(1)), float(prev.group(2))
+        else:
+            ys = [float(m.group(2)) for m in re.finditer(r"\(xy ([\d.]+) ([\d.]+)\)", t)]
+            ys += [float(m.group(2)) for m in re.finditer(r"\(at ([\d.]+) ([\d.]+)", t)]
+            x, y = 15.24, min(round(max(ys) + 10, 2), 280.0)
         uid = uuid.uuid5(NS, sch_file)
         block = (f'\t(text "{body}"\n'
                  f'\t\t(exclude_from_sim no)\n'
-                 f'\t\t(at 15.24 {y:g} 0)\n'
+                 f'\t\t(at {x:g} {y:g} 0)\n'
                  f'\t\t(effects\n\t\t\t(font\n\t\t\t\t(size 1.27 1.27)\n\t\t\t)\n'
                  f'\t\t\t(justify left bottom)\n\t\t)\n'
                  f'\t\t(uuid "{uid}")\n\t)')
@@ -230,7 +237,211 @@ MEGA_PORT_BY_PREFIX = [   # (regex over signal name, port letter, bit = captured
 POOL = ["PD7/D38","PG2/D39","PG1/D40","PG0/D41","PB3/D50","PB2/D51","PB1/D52",
         "PB0/D53","PE4/D2","PE5/D3","PG5/D4","PE3/D5","PH3/D6","PH4/D7",
         "PH5/D8","PH6/D9","PJ1/D14","PJ0/D15","PH1/D16","PH0/D17",
-        "PD3/D18","PD2/D19"]
+        "PD3/D18","PD2/D19","PB4/D10","PB5/D11","PB6/D12"]
+
+# Hand-tuned per-module pin assignments: descending Mega pins land on
+# physically adjacent DUT points, one contiguous block per chip — grab a
+# chip, wire straight down the header. Overrides BOTH the pool and the
+# fixed bus rules for the named signals (per-module: other modules keep
+# the bus rules). A module MAY borrow fixed-port bus pins (PA/PL/...) it
+# doesn't use as a bus; the emitter rejects any within-module
+# double-assignment.
+PIN_ASSIGN = {
+    "control_word": {
+        # One UNBROKEN descent D53 -> D22, one block per chip, each
+        # block = the chip's driven address pins (1,2,3) then its
+        # sampled outputs descending. D21/D20 are banned (clone I2C
+        # pullups), so the 33rd wire spills to D19. CW0-8 leave PORTC
+        # here so each CW bit sits WITH its decoder; the rig drives
+        # them per-pin (settle() dwarfs the cost).
+        # D53-D46: U29
+        "CW6":              "PB0/D53",   # U29.1 (A0)
+        "CW7":              "PB1/D52",   # U29.2 (A1)
+        "CW8":              "PB2/D51",   # U29.3 (A2)
+        "~{PC_CLEAR}":      "PB3/D50",   # U29.14
+        "~{MDR_OUT}":       "PL2/D47",   # U29.11
+        "~{REG_OUT_LOAD}":  "PL3/D46",   # U29.9
+        # D45-D42: U62
+        "FLAG_Z":           "PL5/D44",   # U62.3 (gate 1 input, rig drives)
+        "~{PC_LOAD}":       "PL7/D42",   # U62.10
+        # D41-D31: U28
+        "CW3":              "PG0/D41",   # U28.1 (A0)
+        "CW4":              "PG1/D40",   # U28.2 (A1)
+        "CW5":              "PG2/D39",   # U28.3 (A2)
+        "SRC_ACTIVE":       "PD7/D38",   # U28.15
+        "~{ROM_OUT}":       "PC0/D37",   # U28.14
+        "~{RAM_OUT}":       "PC1/D36",   # U28.13
+        "~{REG_A_OUT}":     "PC2/D35",   # U28.12
+        "~{REG_B_OUT}":     "PC3/D34",   # U28.11
+        "~{REG_C_OUT}":     "PC4/D33",   # U28.10
+        "~{ALU_OUT}":       "PC5/D32",   # U28.9
+        "~{SW_OUT}":        "PC6/D31",   # U28.7
+        # D30-D22: U30
+        "CW0":              "PC7/D30",   # U30.1 (A0)
+        "CW1":              "PA7/D29",   # U30.2 (A1)
+        "CW2":              "PA6/D28",   # U30.3 (A2)
+        "~{REG_A_LOAD}":    "PA5/D27",   # U30.14
+        "~{REG_B_LOAD}":    "PA4/D26",   # U30.13
+        "~{REG_C_LOAD}":    "PA3/D25",   # U30.12
+        "~{MAR_LO_LOAD}":   "PA2/D24",   # U30.11
+        "~{MAR_HI_LOAD}":   "PA1/D23",   # U30.10
+        "~{IR_LOAD}":       "PA0/D22",   # U30.9
+        # D19: the spill
+        "~{RAM_LOAD}":      "PD2/D19",   # U30.7
+    },
+    "mdr": {
+        # Control run: ONE unbroken descent D53 -> D40, one contiguous
+        # block per gate chip, holes in each chip's own pin order. The
+        # three byte buses ride their fixed-port runs (each itself
+        # unbroken): W0-7 = PA = D22-D29, MDR0-7 = PF = A0-A7,
+        # IRB0-7 = PK = A8-A15.
+        # D53-D49: U22 '02, pins 1..5 (D53 = LE_IR probe U22.1,
+        # D50 = ~{MDR_EN} probe U22.4)
+        "CLK":              "PB1/D52",   # U22.2
+        "~{IR_LOAD}":       "PB2/D51",   # U22.3
+        "SRC_ACTIVE":       "PL0/D49",   # U22.5
+        # D48-D47: U37 '04
+        "WRITE_DIR":        "PL1/D48",   # U37.4 (contract OUT)
+        "~{MDR_OUT}":       "PL2/D47",   # U37.5
+        # D46-D40: U39 '00, pins 1,2,4,6,8,9,10 ascending
+        # (D43 = LE_MDR probe U39.6, D42 = BUS_DIR probe U39.8)
+        "~{ROM_OUT}":       "PL3/D46",   # U39.1
+        "~{RAM_OUT}":       "PL4/D45",   # U39.2
+        "~{RAM_LOAD}":      "PL5/D44",   # U39.4 (same net as U37.3)
+        "~{ALU_OUT}":       "PG0/D41",   # U39.9
+        "~{SW_OUT}":        "PG1/D40",   # U39.10
+    },
+    "alu": {
+        # DERIVED FROM THE BOARD (2026-07-26). Strip slots were read off
+        # the wired board; the Mega follows with pin = slot + 17, which
+        # keeps the existing ribbon (D53 -> slot 36 down to D26 -> slot 9).
+        "CW9=SA2"           : "PB0/D53",   # slot 36
+        "CW10=SA1"          : "PB1/D52",   # slot 35
+        "CW11=SA0"          : "PB2/D51",   # slot 34
+        "~{RESET}"          : "PL2/D47",   # slot 30
+        "~{CLK}"            : "PL3/D46",   # slot 29
+        "CLK"               : "PL4/D45",   # slot 28
+        "FLAG_Z"            : "PG0/D41",   # slot 24
+        "~{REG_B_LOAD}"     : "PC1/D36",   # slot 19
+        "~{REG_A_LOAD}"     : "PC2/D35",   # slot 18
+        "~{ALU_OUT}"        : "PC3/D34",   # slot 17
+        "W7"                : "PC4/D33",   # slot 16
+        "W6"                : "PC5/D32",   # slot 15
+        "W5"                : "PC6/D31",   # slot 14
+        "W4"                : "PC7/D30",   # slot 13
+        "W3"                : "PA7/D29",   # slot 12
+        "W2"                : "PA6/D28",   # slot 11
+        "W1"                : "PA5/D27",   # slot 10
+        "W0"                : "PA4/D26",   # slot 9
+    },
+    "memory": {
+        # BENCH-DRIVEN LAYOUT (Rico, 2026-07-23): both byte buses ride
+        # ONE unbroken 24-pin run, D53 -> D30, MDR first then M, each
+        # bus ascending — a ribbon per bus, no controls interleaved.
+        # Signals follow on D29 -> D22 (+ the D19 spill), U51 in chip
+        # pin order. NOTE this abandons the fixed-port bus rule for this
+        # module: neither bus is byte-aligned any more, so mod_memory.c
+        # drives/samples both PER PIN (address is static per access —
+        # settle() dominates, see the module header).
+        "MDR0": "PB0/D53", "MDR1": "PB1/D52",
+        "MDR2": "PB2/D51", "MDR3": "PB3/D50",
+        "MDR4": "PL0/D49", "MDR5": "PL1/D48",
+        "MDR6": "PL2/D47", "MDR7": "PL3/D46",
+        "M0":  "PL4/D45", "M1":  "PL5/D44", "M2":  "PL6/D43",
+        "M3":  "PL7/D42", "M4":  "PG0/D41", "M5":  "PG1/D40",
+        "M6":  "PG2/D39", "M7":  "PD7/D38", "M8":  "PC0/D37",
+        "M9":  "PC1/D36", "M10": "PC2/D35", "M11": "PC3/D34",
+        "M12": "PC4/D33", "M13": "PC5/D32", "M14": "PC6/D31",
+        "M15=ROM_EN": "PC7/D30",          # ROM ~CE rides M15
+        # D29-D22: U51 '00 in pin order, then the two chip selects
+        # (D28/D26/D25/D23 are the four probes — all U51 outputs)
+        "WRITE_DIR":  "PA7/D29",          # U51.1 (daisies to .2 and .5)
+        "~{CLK}":     "PA5/D27",          # U51.4
+        "~{RAM_OUT}": "PA2/D24",          # U51.9 (also U26.22)
+        "~{ROM_OUT}": "PA0/D22",          # U24.22 + U19.19
+        "~{RAM_EN}":  "PD2/D19",          # U26.20 (spill; D21/D20 banned)
+    },
+    "mar": {
+        # Controls: two short descents, every wire on U60 (the '02) —
+        # D53-D50 = U60 pins 1..4, D41-D38 = U60 pins 5,10,11,13.
+        # Buses ride fixed ports: W = PA = D22-D29, M0-7 = PC =
+        # D37-D30, M8-15 = PL = D49-D42 (CW14 loses PL6 to M14 by the
+        # emitter's bus-priority rule and is hand-placed here).
+        # (D53 = LE_MAR_LO probe U60.1, D50 = LE_MAR_HI probe U60.4)
+        "~{MAR_LO_LOAD}":     "PB1/D52",   # U60.2
+        "CLK":                "PB2/D51",   # U60.3
+        "~{MAR_HI_LOAD}":     "PG0/D41",   # U60.5
+        "~{RAM_EN}":          "PG1/D40",   # U60.10
+        "CW14=PC_MAR_MUX":    "PG2/D39",   # U60.11 (rig drives the tap)
+        "~{PC_MAR_MUX}":      "PD7/D38",   # U60.13
+    },
+    "registers": {
+        # One unbroken descent D53 -> D39, two chip blocks, holes in
+        # chip pin order. Buses ride their fixed ports (MDR = PF =
+        # A0-A7, OB = PK = A8-A15), each an unbroken run itself.
+        # D53-D45: U57 '02 (all four LE stamps), pins 1..13
+        # (D53/D50/D47/D45 = the LE probes, U57 pins 1/4/10/13)
+        "~{REG_A_LOAD}":    "PB1/D52",   # U57.2
+        "CLK":              "PB2/D51",   # U57.3 (any of the 4 CLK legs)
+        "~{REG_B_LOAD}":    "PL0/D49",   # U57.5
+        "~{REG_C_LOAD}":    "PL1/D48",   # U57.8
+        "~{REG_OUT_LOAD}":  "PL3/D46",   # U57.11
+        # D44-D39: U5 '08 (the '245 CE gates), pins 2,3,5,6,8,10
+        # (D43/D41/D40 = the EN probes, U5 pins 3/6/8)
+        "~{REG_A_OUT}":     "PL5/D44",   # U5.2
+        "~{REG_B_OUT}":     "PL7/D42",   # U5.5
+        "~{REG_C_OUT}":     "PG2/D39",   # U5.10
+    },
+}
+# Rig-internal probes: nets the rig samples for diagnosis that are NOT
+# sheet contracts (they never leave the DUT board). Emitted into the
+# module's bundle as ordinary sampled rows, so `pins <mod>` prints EVERY
+# wire of the hookup and mod_*.c binds them by name like anything else.
+PIN_PROBES = {
+    "control_word": [
+        ("~{PC_LOAD_JMP}", "PL0/D49"),   # U29.13 -> U62 gate 2 input
+        ("~{COND}",        "PL1/D48"),   # U29.12 -> U62 gate 1 input
+        ("COND_TAKEN",     "PL4/D45"),   # U62.1  (gate 1 output)
+        ("PC_LOAD_JMP",    "PL6/D43"),   # U62.4  (gate 2 output)
+    ],
+    "mdr": [
+        ("LE_IR",     "PB0/D53"),        # U22.1  -> U34.11 (IR latch LE)
+        ("~{MDR_EN}", "PB3/D50"),        # U22.4  -> U25.19 (bridge CE)
+        ("LE_MDR",    "PL6/D43"),        # U39.6  -> U18.11 (MDR latch LE)
+        ("BUS_DIR",   "PL7/D42"),        # U39.8  -> U25.1  (bridge DIR)
+    ],
+    "alu": [
+        ("ALU_CIN"     , "PB3/D50"),   # slot 33
+        ("LE_TMP_B"    , "PL0/D49"),   # slot 32
+        ("LE_TMP_A"    , "PL1/D48"),   # slot 31
+        ("ALU_V"       , "PL5/D44"),   # slot 27
+        ("ALU_C"       , "PL6/D43"),   # slot 26
+        ("CRY"         , "PL7/D42"),   # slot 25
+        ("FLAG_V"      , "PG1/D40"),   # slot 23
+        ("FLAG_N"      , "PG2/D39"),   # slot 22
+        ("FLAG_C"      , "PD7/D38"),   # slot 21
+        ("Z"           , "PC0/D37"),   # slot 20
+    ],
+    "memory": [
+        ("~{WRITE_DIR}",    "PA6/D28"),  # U51.3  -> U21.1  ('245 DIR)
+        ("~{RAM_WRITE_EN}", "PA4/D26"),  # U51.6  -> U26.27 (RAM ~WE)
+        ("RAM_MDR_DIS",     "PA3/D25"),  # U51.8  -> U51.12/13
+        ("~{RAM_MDR_EN}",   "PA1/D23"),  # U51.11 -> U21.19 ('245 CE)
+    ],
+    "mar": [
+        ("LE_MAR_LO", "PB0/D53"),        # U60.1 -> U55.11
+        ("LE_MAR_HI", "PB3/D50"),        # U60.4 -> U58.11
+    ],
+    "registers": [
+        ("~{REG_A_LE}",   "PB0/D53"),    # U57.1  -> U31.11 (active HIGH)
+        ("~{REG_B_LE}",   "PB3/D50"),    # U57.4  -> U32.11
+        ("~{REG_C_LE}",   "PL2/D47"),    # U57.10 -> U33.11
+        ("~{REG_OUT_LE}", "PL4/D45"),    # U57.13 -> U35.11
+        ("~{A_EN}",       "PL6/D43"),    # U5.3   -> U41.19 ('245 CE)
+        ("~{B_EN}",       "PG0/D41"),    # U5.6   -> U42.19
+        ("~{C_EN}",       "PG1/D40"),    # U5.8   -> U43.19
+    ],
+}
 
 
 def bus_pin(signal):
@@ -278,7 +489,18 @@ def emit_pinmap(contracts, out_path):
     mods, mod_blocks = [], []
     for sheet in sorted(contracts):
         tok = mod_token(sheet)
-        cands, pool = [], list(POOL)
+        assign = PIN_ASSIGN.get(tok, {})
+        probes = PIN_PROBES.get(tok, [])
+        held = set(assign.values()) | {p for _s, p in probes}
+        fixed_pins = {f"{port}{int(n) & 7}/{dpin}"
+                      for _rx, port, dmap in MEGA_PORT_BY_PREFIX
+                      for n, dpin in dmap.items()}
+        unknown = held - set(POOL) - fixed_pins
+        if unknown:
+            raise SystemExit(f"PIN_ASSIGN/PIN_PROBES for {tok}: unknown pin: {unknown}")
+        if len(held) < len(assign) + len(probes):
+            raise SystemExit(f"PIN_ASSIGN/PIN_PROBES for {tok}: duplicate pin")
+        cands, pool = [], [p for p in POOL if p not in held]
         for kind, d in (("IN", 'O'), ("OUT", 'I'), ("BIDIR", 'B')):
             # rig direction is the DUT's inverse: DUT IN => rig Output
             for label, _others in sorted(contracts[sheet][kind]):
@@ -293,9 +515,28 @@ def emit_pinmap(contracts, out_path):
             if bp and (bp[0] not in best or bp[1] < cands[best[bp[0]]][1][1]):
                 best[bp[0]] = i
         rows = []
+        assigned_seen = set()
         for i, (signal, bp, d) in enumerate(cands):
-            pin = bp[0] if bp and best[bp[0]] == i else pool.pop(0)
+            if signal in assign:            # hand-tune beats the bus rule
+                pin = assign[signal]
+                assigned_seen.add(signal)
+            elif bp and best[bp[0]] == i:
+                pin = bp[0]
+            else:
+                pin = pool.pop(0)
             rows.append((signal, pin, d))
+        leftover = set(assign) - assigned_seen
+        if leftover:
+            raise SystemExit(f"PIN_ASSIGN for {tok}: no such contract signal: {leftover}")
+        contract_names = {s for s, _p, _d in rows}
+        for pname, ppin in probes:
+            if pname in contract_names:
+                raise SystemExit(f"PIN_PROBES for {tok}: name collides with contract: {pname}")
+            rows.append((pname, ppin, 'I'))
+        pins_used = [p for _s, p, _d in rows]
+        dupes = {p for p in pins_used if pins_used.count(p) > 1}
+        if dupes:
+            raise SystemExit(f"pinmap for {tok}: pin used twice: {dupes}")
         # Wiring order: Mega header sweep — D53 down to D2, then A15 down
         # to A0. `pins <mod>` prints in table order, so this IS the order
         # you jumper in.

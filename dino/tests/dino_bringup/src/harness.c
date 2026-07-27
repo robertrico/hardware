@@ -4,6 +4,7 @@
 #include <string.h>
 #include "harness.h"
 #include "pinmap_gen.h"
+#include "slotmap_gen.h"
 #include "uart.h"
 
 /* ---- pin resolution: "PA0/D22" -> registers ---- */
@@ -51,6 +52,32 @@ bool modmap_entry(const char *module, uint8_t idx,
     return false;
 }
 
+uint8_t slot_of(const char *module, const char *signal) {
+    for (uint8_t m = 0; m < SLOTMAP_COUNT; m++) {
+        slotmap_t sm;
+        memcpy_P(&sm, &SLOTMAPS[m], sizeof sm);
+        if (strcmp_P(module, sm.module) != 0) continue;
+        for (uint8_t i = 0; i < sm.n; i++) {
+            slotsig_t ss;
+            char buf[48];
+            memcpy_P(&ss, &sm.sig[i], sizeof ss);
+            strcpy_P(buf, ss.signal);
+            if (strcmp(buf, signal) == 0) return ss.slot;
+        }
+        return 0;
+    }
+    return 0;
+}
+
+const char *modmap_name_P(const char *module) {
+    for (uint8_t m = 0; m < MODMAP_COUNT; m++) {
+        modmap_t mm;
+        memcpy_P(&mm, &MODMAPS[m], sizeof mm);
+        if (strcmp_P(module, mm.module) == 0) return mm.module;
+    }
+    return 0;
+}
+
 bool sig_lookup(const char *module, const char *signal, hwpin_t *out) {
     for (uint8_t m = 0; m < MODMAP_COUNT; m++) {
         modmap_t mm;
@@ -96,6 +123,28 @@ void rel(const hwpin_t *p) {
 bool smp(const hwpin_t *p) { return (*p->pinr & _BV(p->bit)) != 0; }
 
 void settle(void) { _delay_us(5); }
+
+uint8_t g_pin_gen;
+
+void pins_idle(void) {
+    for (uint8_t m = 0; m < MODMAP_COUNT; m++) {
+        modmap_t mm;
+        memcpy_P(&mm, &MODMAPS[m], sizeof mm);
+        for (uint8_t i = 0; i < mm.n; i++) {
+            sigpin_t sp;
+            char buf[16];
+            hwpin_t p;
+            memcpy_P(&sp, &mm.sig[i], sizeof sp);
+            strcpy_P(buf, sp.megapin);
+            if (pin_lookup(buf, &p)) rel(&p);
+        }
+    }
+    bus_w_release();
+    bus_mdr_release();
+    bus_m_release();
+    DDRK = 0; PORTK = 0;         /* IRB/IS/OB byte port */
+    g_pin_gen++;
+}
 
 bool await_level(const hwpin_t *p, bool level, uint16_t timeout_ms) {
     /* ~5 polls per ms — button/RC events are milliseconds wide */
@@ -182,50 +231,69 @@ void bus_m_drive(uint16_t v) {
 }
 void bus_m_release(void) { DDRC = 0; PORTC = 0; DDRL = 0; PORTL = 0; }
 
-/* ---- assert machinery ---- */
+/* ---- scratch arena (one user at a time — see harness.h) ---- */
+uint8_t g_arena[ARENA_SIZE];
+
+/* ---- assert machinery. module/name/label strings live in FLASH; the
+   _r variants take runtime RAM labels (selftest's pin names). ---- */
 uint16_t g_pass, g_fail;
-static const char *s_mod, *s_name;
+static const char *s_mod_P, *s_name_P;
 static bool s_ok;
 
-void test_begin(const char *module, const char *name) {
-    s_mod = module; s_name = name; s_ok = true;
+void test_begin(const char *module_P, const char *name_P) {
+    s_mod_P = module_P; s_name_P = name_P; s_ok = true;
 }
 
-static void fail_prefix(const char *label) {
-    uart_puts("FAIL ");
-    uart_puts(s_mod); uart_putc('.'); uart_puts(s_name);
-    uart_putc(' '); uart_puts(label);
+static void fail_prefix(const char *label, bool label_in_flash) {
+    uart_putsP("FAIL ");
+    uart_puts_p(s_mod_P); uart_putc('.'); uart_puts_p(s_name_P);
+    uart_putc(' ');
+    if (label_in_flash) uart_puts_p(label); else uart_puts(label);
 }
 
-void test_check_u16(uint16_t got, uint16_t want, const char *label) {
+static void check_u16(uint16_t got, uint16_t want, const char *label,
+                      bool label_in_flash) {
     if (got == want) return;
     s_ok = false;
-    fail_prefix(label);
-    uart_puts(" want=0x"); uart_puthex16(want);
-    uart_puts(" got=0x"); uart_puthex16(got);
-    uart_puts("\r\n");
+    fail_prefix(label, label_in_flash);
+    uart_putsP(" want=0x"); uart_puthex16(want);
+    uart_putsP(" got=0x"); uart_puthex16(got);
+    uart_putsP("\r\n");
 }
 
-void test_check_bool(bool got, bool want, const char *label) {
-    test_check_u16(got ? 1 : 0, want ? 1 : 0, label);
+void test_check_u16(uint16_t got, uint16_t want, const char *label_P) {
+    check_u16(got, want, label_P, true);
 }
 
-void test_check_range(uint16_t got, uint16_t lo, uint16_t hi, const char *label) {
+void test_check_bool(bool got, bool want, const char *label_P) {
+    check_u16(got ? 1 : 0, want ? 1 : 0, label_P, true);
+}
+
+void test_check_u16_r(uint16_t got, uint16_t want, const char *label) {
+    check_u16(got, want, label, false);
+}
+
+void test_check_bool_r(bool got, bool want, const char *label) {
+    check_u16(got ? 1 : 0, want ? 1 : 0, label, false);
+}
+
+void test_check_range(uint16_t got, uint16_t lo, uint16_t hi,
+                      const char *label_P) {
     if (got >= lo && got <= hi) return;
     s_ok = false;
-    fail_prefix(label);
-    uart_puts(" want="); uart_putdec(lo);
-    uart_puts(".."); uart_putdec(hi);
-    uart_puts(" got="); uart_putdec(got);
-    uart_puts("\r\n");
+    fail_prefix(label_P, true);
+    uart_putsP(" want="); uart_putdec(lo);
+    uart_putsP(".."); uart_putdec(hi);
+    uart_putsP(" got="); uart_putdec(got);
+    uart_putsP("\r\n");
 }
 
 bool test_end(void) {
     if (s_ok) {
         g_pass++;
-        uart_puts("PASS ");
-        uart_puts(s_mod); uart_putc('.'); uart_puts(s_name);
-        uart_puts("\r\n");
+        uart_putsP("PASS ");
+        uart_puts_p(s_mod_P); uart_putc('.'); uart_puts_p(s_name_P);
+        uart_putsP("\r\n");
     } else {
         g_fail++;
     }

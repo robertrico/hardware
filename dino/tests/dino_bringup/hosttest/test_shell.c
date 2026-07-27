@@ -21,6 +21,9 @@ int main(void) {
     c = shell_parse("bogus nonsense");  assert(c.kind == CMD_BAD);
     c = shell_parse("run");             assert(c.kind == CMD_BAD);
     c = shell_parse("help");            assert(c.kind == CMD_HELP);
+    c = shell_parse("idle");            assert(c.kind == CMD_IDLE);
+    c = shell_parse("idle ");           assert(c.kind == CMD_IDLE);
+    c = shell_parse("idle foo");        assert(c.kind == CMD_BAD);
     c = shell_parse("selftest root");   assert(c.kind == CMD_SELFTEST_MOD);
     assert(strcmp(c.module, "root") == 0);
     c = shell_parse("selftest root ");  assert(c.kind == CMD_SELFTEST_MOD);

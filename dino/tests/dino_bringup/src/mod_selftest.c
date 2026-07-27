@@ -4,14 +4,34 @@
 #include "harness.h"
 #include "uart.h"
 
-static const char *POOL_PAIRS[][2] = {
-    {"PD7/D38", "PG2/D39"}, {"PG1/D40", "PG0/D41"}, {"PB3/D50", "PB2/D51"},
-    {"PB1/D52", "PB0/D53"}, {"PE4/D2", "PE5/D3"},   {"PG5/D4", "PE3/D5"},
-    {"PH3/D6", "PH4/D7"},   {"PH5/D8", "PH6/D9"},   {"PJ1/D14", "PJ0/D15"},
-    {"PH1/D16", "PH0/D17"}, {"PD3/D18", "PD2/D19"},
+/* Pool-pair table lives in flash; copy a pin name into `buf` (>=16B)
+   before pin_lookup (which wants RAM). The flash pointers themselves
+   are valid test labels (labels are flash by convention). */
+static const char pp0a[] PROGMEM = "PD7/D38"; static const char pp0b[] PROGMEM = "PG2/D39";
+static const char pp1a[] PROGMEM = "PG1/D40"; static const char pp1b[] PROGMEM = "PG0/D41";
+static const char pp2a[] PROGMEM = "PB3/D50"; static const char pp2b[] PROGMEM = "PB2/D51";
+static const char pp3a[] PROGMEM = "PB1/D52"; static const char pp3b[] PROGMEM = "PB0/D53";
+static const char pp4a[] PROGMEM = "PE4/D2";  static const char pp4b[] PROGMEM = "PE5/D3";
+static const char pp5a[] PROGMEM = "PG5/D4";  static const char pp5b[] PROGMEM = "PE3/D5";
+static const char pp6a[] PROGMEM = "PH3/D6";  static const char pp6b[] PROGMEM = "PH4/D7";
+static const char pp7a[] PROGMEM = "PH5/D8";  static const char pp7b[] PROGMEM = "PH6/D9";
+static const char pp8a[] PROGMEM = "PJ1/D14"; static const char pp8b[] PROGMEM = "PJ0/D15";
+static const char pp9a[] PROGMEM = "PH1/D16"; static const char pp9b[] PROGMEM = "PH0/D17";
+static const char ppAa[] PROGMEM = "PD3/D18"; static const char ppAb[] PROGMEM = "PD2/D19";
+static const char * const POOL_PAIRS[][2] PROGMEM = {
+    {pp0a, pp0b}, {pp1a, pp1b}, {pp2a, pp2b}, {pp3a, pp3b}, {pp4a, pp4b},
+    {pp5a, pp5b}, {pp6a, pp6b}, {pp7a, pp7b}, {pp8a, pp8b}, {pp9a, pp9b},
+    {ppAa, ppAb},
 };
+#define POOL_PIN(i, side) ((const char *)pgm_read_word(&POOL_PAIRS[i][side]))
 
-static void byte_loop(const char *label,
+static bool pool_pin(uint8_t i, uint8_t side, hwpin_t *out) {
+    char buf[16];
+    strcpy_P(buf, POOL_PIN(i, side));
+    return pin_lookup(buf, out);
+}
+
+static void byte_loop(const char *label_P,
                       void (*wr)(uint8_t), uint8_t (*rd)(void),
                       void (*wrb)(uint8_t), uint8_t (*rdb)(void),
                       void (*rel_a)(void), void (*rel_b)(void)) {
@@ -19,10 +39,10 @@ static void byte_loop(const char *label,
     for (uint8_t i = 0; i < sizeof pat; i++) {
         rel_b();                 /* B side passive before A drives */
         wr(pat[i]); settle();
-        test_check_u16(rdb(), pat[i], label);   /* rdb releases B (no-op here) */
+        test_check_u16(rdb(), pat[i], label_P);   /* rdb releases B (no-op here) */
         rel_a();                 /* A side passive before B drives */
         wrb(pat[i] ^ 0xFF); settle();
-        test_check_u16(rd(), pat[i] ^ 0xFF, label);
+        test_check_u16(rd(), pat[i] ^ 0xFF, label_P);
         rel_b();
     }
     rel_a(); rel_b();
@@ -36,27 +56,27 @@ static uint8_t m_rd_hi(void)   { DDRL = 0; PORTL = 0; settle(); return PINL; }
 static void m_rel_hi(void)     { DDRL = 0; PORTL = 0; }
 
 void t_selftest_loopback(void) {
-    test_begin("selftest", "loopback");
-    uart_puts("jumpers: PA<->PF bytewise, PC<->PL bytewise, pool pairs:\r\n");
+    test_begin(PSTR("selftest"), PSTR("loopback"));
+    uart_putsP("jumpers: PA<->PF bytewise, PC<->PL bytewise, pool pairs:\r\n");
     for (uint8_t i = 0; i < 11; i++) {
-        uart_puts("  "); uart_puts(POOL_PAIRS[i][0]);
-        uart_puts(" <-> "); uart_puts(POOL_PAIRS[i][1]); uart_puts("\r\n");
+        uart_putsP("  "); uart_puts_p(POOL_PIN(i, 0));
+        uart_putsP(" <-> "); uart_puts_p(POOL_PIN(i, 1)); uart_putsP("\r\n");
     }
 
-    byte_loop("PA<->PF", bus_w_write, bus_w_read, bus_mdr_write, bus_mdr_read,
-              bus_w_release, bus_mdr_release);
-    byte_loop("PC<->PL", m_wr_lo, m_rd_lo, m_wr_hi, m_rd_hi,
+    byte_loop(PSTR("PA<->PF"), bus_w_write, bus_w_read, bus_mdr_write,
+              bus_mdr_read, bus_w_release, bus_mdr_release);
+    byte_loop(PSTR("PC<->PL"), m_wr_lo, m_rd_lo, m_wr_hi, m_rd_hi,
               m_rel_lo, m_rel_hi);
 
     for (uint8_t i = 0; i < 11; i++) {
         hwpin_t a, b;
-        pin_lookup(POOL_PAIRS[i][0], &a);
-        pin_lookup(POOL_PAIRS[i][1], &b);
+        pool_pin(i, 0, &a);
+        pool_pin(i, 1, &b);
         for (uint8_t lv = 0; lv < 2; lv++) {
             rel(&b); drv(&a, lv); settle();
-            test_check_bool(smp(&b), lv, POOL_PAIRS[i][1]);
+            test_check_bool(smp(&b), lv, POOL_PIN(i, 1));
             rel(&a); drv(&b, lv); settle();
-            test_check_bool(smp(&a), lv, POOL_PAIRS[i][0]);
+            test_check_bool(smp(&a), lv, POOL_PIN(i, 0));
         }
         rel(&a); rel(&b);
     }
@@ -68,19 +88,25 @@ void t_selftest_loopback(void) {
    any rig-side extras. Workflow: selftest <mod> with pair-jumpers ->
    remove jumpers -> wire the DUT per `pins <mod>` -> run <mod>. ---- */
 
-typedef struct { const char *module; const char *pin; const char *name; } extra_t;
-static const extra_t EXTRAS[] = {
-    {"root", "PD3/D18", "CLKIN"},
-    {"root", "PD2/D19", "RST_FORCE"},
+static const char ex_root[] PROGMEM = "root";
+static const char ex_p18[] PROGMEM = "PD3/D18";
+static const char ex_p19[] PROGMEM = "PD2/D19";
+typedef struct { const char *module; const char *pin; } extra_t;
+static const extra_t EXTRAS[] PROGMEM = {
+    {ex_root, ex_p18},   /* CLKIN */
+    {ex_root, ex_p19},   /* RST_FORCE */
+    /* control_word/mdr probes live in their generated bundles
+       (PIN_PROBES) — no extras needed */
 };
 #define N_EXTRAS (sizeof EXTRAS / sizeof EXTRAS[0])
 
+/* runtime RAM labels -> the _r check variants */
 static void pair_check(const hwpin_t *a, const hwpin_t *b, const char *label) {
     for (uint8_t lv = 0; lv < 2; lv++) {
         rel(b); drv(a, lv); settle();
-        test_check_bool(smp(b), lv, label);
+        test_check_bool_r(smp(b), lv, label);
         rel(a); drv(b, lv); settle();
-        test_check_bool(smp(a), lv, label);
+        test_check_bool_r(smp(a), lv, label);
     }
     rel(a); rel(b);
 }
@@ -99,32 +125,32 @@ void selftest_module(const char *module) {
         names[n][k] = '\0';
         n++;
     }
-    if (n == 0) { uart_puts("unknown module or empty bundle\r\n"); return; }
+    if (n == 0) { uart_putsP("unknown module or empty bundle\r\n"); return; }
     for (uint8_t e = 0; e < N_EXTRAS && n < 36; e++) {
-        if (strcmp(EXTRAS[e].module, module) != 0) continue;
-        if (!pin_lookup(EXTRAS[e].pin, &pins[n])) continue;
-        uint8_t k = 0;
-        while (EXTRAS[e].pin[k] && k < 15) { names[n][k] = EXTRAS[e].pin[k]; k++; }
-        names[n][k] = '\0';
+        extra_t ex;
+        memcpy_P(&ex, &EXTRAS[e], sizeof ex);
+        if (strcmp_P(module, ex.module) != 0) continue;
+        strcpy_P(names[n], ex.pin);
+        if (!pin_lookup(names[n], &pins[n])) continue;
         n++;
     }
 
-    uart_puts("jumper these pairs (rig-only, no DUT, plain wire):\r\n");
+    uart_putsP("jumper these pairs (rig-only, no DUT, plain wire):\r\n");
     for (uint8_t i = 0; i + 1 < n; i += 2) {
-        uart_puts("  "); uart_puts(names[i]);
-        uart_puts(" <-> "); uart_puts(names[i + 1]); uart_puts("\r\n");
+        uart_putsP("  "); uart_puts(names[i]);
+        uart_putsP(" <-> "); uart_puts(names[i + 1]); uart_putsP("\r\n");
     }
     if (n & 1) {
-        uart_puts("  ("); uart_puts(names[n - 1]);
-        uart_puts(" unpaired: odd bundle — verified only for stuck-driver, not continuity)\r\n");
+        uart_putsP("  ("); uart_puts(names[n - 1]);
+        uart_putsP(" unpaired: odd bundle — verified only for stuck-driver, not continuity)\r\n");
     }
 
-    test_begin("selftest", module);
+    test_begin(PSTR("selftest"), modmap_name_P(module));
     for (uint8_t i = 0; i + 1 < n; i += 2)
         pair_check(&pins[i], &pins[i + 1], names[i]);
     if (n & 1) {
         /* lone pin: at least prove nothing external drives it */
-        test_check_bool(floats(&pins[n - 1]), true, names[n - 1]);
+        test_check_bool_r(floats(&pins[n - 1]), true, names[n - 1]);
     }
     test_end();
 }

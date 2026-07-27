@@ -3807,7 +3807,7 @@
 		)
 		(uuid "7fea008e-b402-4c1c-97e5-6bb379343025")
 	)
-	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}, ~{RAM_OUT}, ~{ROM_OUT} <- Control Word Module\nIN: CLK <- root\nOUT: WRITE_DIR -> Memory\nOUT: IRB0-7 -> Microcode_Decoder\nBIDIR: W0-7 <-> ALU Module, Memory Address Regiser, Output\nBIDIR: MDR0-7 <-> Memory, Register Modules"
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: SRC_ACTIVE, ~{ALU_OUT}, ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}, ~{RAM_OUT}, ~{ROM_OUT}, ~{SW_OUT} <- Control Word Module\nIN: CLK <- root\nOUT: WRITE_DIR -> Memory\nOUT: IRB0-7 -> Microcode_Decoder\nBIDIR: W0-7 <-> ALU Module, Memory Address Regiser, Output\nBIDIR: MDR0-7 <-> Memory, Register Modules"
 		(exclude_from_sim no)
 		(at 159.258 171.196 0)
 		(effects
@@ -3816,7 +3816,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "fb4b02c2-8fca-5f0f-a8cb-20e61169c7bc")
+		(uuid "f1252760-d02d-5b83-bad7-07c095dfa326")
 	)
 	(junction
 		(at 143.51 144.78)
@@ -3931,10 +3931,6 @@
 		(uuid "19184b20-454b-4617-a31e-191a83c1f573")
 	)
 	(no_connect
-		(at 21.59 193.04)
-		(uuid "1c7bf515-4b56-4760-b754-ab970e638e53")
-	)
-	(no_connect
 		(at 78.74 198.12)
 		(uuid "38bc041e-b607-4033-a4ed-f8b24303b419")
 	)
@@ -3945,10 +3941,6 @@
 	(no_connect
 		(at 59.69 198.12)
 		(uuid "474fa43a-3e3c-4cbf-ab47-cc18b90a8d1d")
-	)
-	(no_connect
-		(at 21.59 198.12)
-		(uuid "4fae98f2-3900-4b23-8364-27cb3c6f6808")
 	)
 	(no_connect
 		(at 59.69 193.04)
@@ -3969,10 +3961,6 @@
 	(no_connect
 		(at 78.74 193.04)
 		(uuid "b66dcb22-6a1f-48a0-b471-a04cf45c62f0")
-	)
-	(no_connect
-		(at 36.83 195.58)
-		(uuid "b8e33a97-d60f-4383-a805-576f8125ec10")
 	)
 	(no_connect
 		(at 111.76 195.58)
@@ -4560,6 +4548,16 @@
 		)
 		(uuid "166139b0-a1a1-4ab6-9162-48c89925dab6")
 	)
+	(wire
+		(pts
+			(xy 38.1 153.67) (xy 33.02 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "17ee9ad6-6ef2-5bd9-b88b-cdbb0edab098")
+	)
 	(bus
 		(pts
 			(xy 179.07 114.3) (xy 179.07 116.84)
@@ -4922,6 +4920,16 @@
 	)
 	(wire
 		(pts
+			(xy 38.1 148.59) (xy 33.02 148.59)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5bfd08b4-281b-5b7d-92fe-9b0ede384346")
+	)
+	(wire
+		(pts
 			(xy 176.53 54.61) (xy 184.15 54.61)
 		)
 		(stroke
@@ -4949,6 +4957,16 @@
 			(type default)
 		)
 		(uuid "6183cc61-c109-4ce8-972b-af3f47bc826d")
+	)
+	(wire
+		(pts
+			(xy 53.34 151.13) (xy 58.42 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6198c2b2-9e05-5b9d-974a-5a23d170b469")
 	)
 	(wire
 		(pts
@@ -5840,6 +5858,16 @@
 		)
 		(uuid "0e94d005-9eff-4f68-86dd-3dda46d20e8f")
 	)
+	(label "~{SW_OUT}"
+		(at 33.02 153.67 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "227b47af-32a9-5002-a1af-60ecb9835d5b")
+	)
 	(label "MDR0"
 		(at 189.23 52.07 0)
 		(effects
@@ -5859,6 +5887,16 @@
 			(justify left bottom)
 		)
 		(uuid "237acf38-a9c8-441e-a517-a33ecf03f47e")
+	)
+	(label "~{ALU_OUT}"
+		(at 33.02 148.59 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "23f13bb7-faf2-5cfb-9655-23522a5176cc")
 	)
 	(label "MDR1"
 		(at 189.23 54.61 0)
@@ -5989,6 +6027,16 @@
 			(justify left bottom)
 		)
 		(uuid "51a4dd3e-f2c5-4171-b10c-ac42ba373d90")
+	)
+	(label "BUS_DIR"
+		(at 58.42 151.13 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "53866967-a1ae-5acc-b974-e5149ecc60ab")
 	)
 	(label "MDR2"
 		(at 228.6 57.15 180)
@@ -6210,7 +6258,7 @@
 		)
 		(uuid "9f6078e9-7804-48ca-837b-6c92767f07ee")
 	)
-	(label "LE_MDR"
+	(label "SRC_ACTIVE"
 		(at 38.1 114.3 180)
 		(effects
 			(font
@@ -6340,7 +6388,7 @@
 		)
 		(uuid "cde80494-a036-4dbb-b143-fa72f5a76bc6")
 	)
-	(label "WRITE_DIR"
+	(label "BUS_DIR"
 		(at 148.59 74.93 180)
 		(effects
 			(font
@@ -9595,7 +9643,7 @@
 	)
 	(symbol
 		(lib_id "74xx:74LS00")
-		(at 29.21 195.58 0)
+		(at 45.72 151.13 0)
 		(unit 3)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -9606,7 +9654,7 @@
 		(fields_autoplaced yes)
 		(uuid "f08a6961-0e62-4251-b8e5-550af3ce2c49")
 		(property "Reference" "U39"
-			(at 29.2017 186.69 0)
+			(at 45.7117 142.24 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9616,7 +9664,7 @@
 			)
 		)
 		(property "Value" "74LS00"
-			(at 29.2017 189.23 0)
+			(at 45.7117 144.78 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9626,7 +9674,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 29.21 195.58 0)
+			(at 45.72 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9637,7 +9685,7 @@
 			)
 		)
 		(property "Datasheet" "http://www.ti.com/lit/gpn/sn74ls00"
-			(at 29.21 195.58 0)
+			(at 45.72 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9648,7 +9696,7 @@
 			)
 		)
 		(property "Description" "quad 2-input NAND gate"
-			(at 29.21 195.58 0)
+			(at 45.72 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

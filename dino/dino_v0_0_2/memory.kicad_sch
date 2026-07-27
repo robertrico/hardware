@@ -3120,16 +3120,6 @@
 		)
 		(uuid "85049884-bbcc-4485-bd92-9adf3531a0e6")
 	)
-	(text "ROM"
-		(exclude_from_sim no)
-		(at 215.646 55.118 0)
-		(effects
-			(font
-				(size 1.524 1.524)
-			)
-		)
-		(uuid "e9ff9cbe-d7ef-40dc-909b-0fd7bf3b3d64")
-	)
 	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{RAM_OUT}, ~{ROM_OUT} <- Control Word Module\nIN: ~{RAM_EN} <- Memory Address Regiser\nIN: M0-14, M15=ROM_EN <- Memory Address Regiser, Program Counter\nIN: WRITE_DIR <- Memory Data Register\nIN: ~{CLK} <- root\nOUT: MDR0-7 -> Memory Data Register, Register Modules"
 		(exclude_from_sim no)
 		(at 160.02 165.1 0)
@@ -3139,7 +3129,17 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ebfb4f68-dcb6-5b4f-add8-8de1c89d675a")
+		(uuid "8528232c-bc5d-5504-bcf5-9734356e8219")
+	)
+	(text "ROM"
+		(exclude_from_sim no)
+		(at 215.646 55.118 0)
+		(effects
+			(font
+				(size 1.524 1.524)
+			)
+		)
+		(uuid "e9ff9cbe-d7ef-40dc-909b-0fd7bf3b3d64")
 	)
 	(junction
 		(at 121.92 40.64)

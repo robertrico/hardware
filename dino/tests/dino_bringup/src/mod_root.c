@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include <string.h>
 #include "registry.h"
 #include "harness.h"
 #include "uart.h"
@@ -28,37 +29,42 @@
 static hwpin_t P_END, P_HALT, P_CLK, P_CLKN, P_RESET, P_RESETN;
 static hwpin_t P_T[4];
 static bool s_bound;
+static uint8_t s_gen;                    /* re-drive after `idle` */
 
-static bool bind1(const char *signal, hwpin_t *out) {
-    if (sig_lookup("root", signal, out)) return true;
-    uart_puts("BIND FAIL "); uart_puts(signal); uart_puts("\r\n");
-    test_check_bool(false, true, signal);
+static bool bind1(const char *sig_P, hwpin_t *out) {
+    char sig[24];                       /* sig_lookup wants RAM */
+    strcpy_P(sig, sig_P);
+    if (sig_lookup("root", sig, out)) return true;
+    uart_putsP("BIND FAIL "); uart_puts(sig); uart_putsP("\r\n");
+    test_check_bool(false, true, sig_P);
     return false;
 }
 
 static bool bind(void) {
-    if (s_bound) return true;
+    if (s_bound && s_gen == g_pin_gen) return true;
+    s_bound = false;
     bool ok = true;
-    ok &= bind1("END",    &P_END);      /* END        (rig drives)  */
-    ok &= bind1("HALT",   &P_HALT);     /* HALT       (rig drives)  */
-    ok &= bind1("CLK",    &P_CLK);      /* CLK        (rig samples) */
-    ok &= bind1("~{CLK}", &P_CLKN);     /* ~{CLK}     (rig samples) */
-    ok &= bind1("RESET",  &P_RESET);    /* RESET      (rig samples) */
-    ok &= bind1("~{RESET}", &P_RESETN); /* ~{RESET}   (rig samples) */
-    ok &= bind1("T0", &P_T[0]);         /* T0         (rig samples) */
-    ok &= bind1("T1", &P_T[1]);         /* T1 */
-    ok &= bind1("T2", &P_T[2]);         /* T2 */
-    ok &= bind1("T3", &P_T[3]);         /* T3 */
+    ok &= bind1(PSTR("END"),    &P_END);      /* END        (rig drives)  */
+    ok &= bind1(PSTR("HALT"),   &P_HALT);     /* HALT       (rig drives)  */
+    ok &= bind1(PSTR("CLK"),    &P_CLK);      /* CLK        (rig samples) */
+    ok &= bind1(PSTR("~{CLK}"), &P_CLKN);     /* ~{CLK}     (rig samples) */
+    ok &= bind1(PSTR("RESET"),  &P_RESET);    /* RESET      (rig samples) */
+    ok &= bind1(PSTR("~{RESET}"), &P_RESETN); /* ~{RESET}   (rig samples) */
+    ok &= bind1(PSTR("T0"), &P_T[0]);         /* T0         (rig samples) */
+    ok &= bind1(PSTR("T1"), &P_T[1]);         /* T1 */
+    ok &= bind1(PSTR("T2"), &P_T[2]);         /* T2 */
+    ok &= bind1(PSTR("T3"), &P_T[3]);         /* T3 */
     if (!ok) return false;              /* never drive a garbage pin */
     /* atomic pair reads need T1:T0 and T3:T2 each on one port — guard
        against pinmap regeneration splitting them */
     if (P_T[0].pinr != P_T[1].pinr || P_T[2].pinr != P_T[3].pinr) {
-        test_check_bool(false, true, "T_pairs_share_ports");
+        test_check_bool(false, true, PSTR("T_pairs_share_ports"));
         return false;
     }
     drv(&P_END, false);
     drv(&P_HALT, false);
     s_bound = true;
+    s_gen = g_pin_gen;
     return true;
 }
 
@@ -114,23 +120,23 @@ static bool t_alive(void) {
    the button is released — wait on the line, duration varies. */
 static bool await_reset_release(void) {
     if (!smp(&P_RESET)) return true;
-    uart_puts("     RESET asserted — waiting out RC stretch...\r\n");
+    uart_putsP("     RESET asserted — waiting out RC stretch...\r\n");
     return await_level(&P_RESET, false, 10000);
 }
 
 void t_root_clock(void) {
-    test_begin("root", "clock");
+    test_begin(PSTR("root"), PSTR("clock"));
     if (!bind()) { test_end(); return; }
-    test_check_bool(await_reset_release(), true, "RESET_clear_before_gate");
+    test_check_bool(await_reset_release(), true, PSTR("RESET_clear_before_gate"));
     /* frequency: hardware edge count — needs CLK on PD7 (Timer0 T0 pin).
        Guard against pinmap regeneration moving it. */
     if (P_CLK.pinr != &PIND || P_CLK.bit != 7) {
-        test_check_bool(false, true, "CLK_on_PD7_T0_pin");
+        test_check_bool(false, true, PSTR("CLK_on_PD7_T0_pin"));
         test_end(); return;
     }
     uint32_t edges = freq_count_t0(100);            /* 100ms gate */
     uint16_t khz = (uint16_t)(edges / 100);         /* edges*10Hz -> kHz */
-    test_check_range(khz, 1003, 1044, "CLK_kHz");   /* 1024 +/-2% */
+    test_check_range(khz, 1003, 1044, PSTR("CLK_kHz"));   /* 1024 +/-2% */
     /* ~CLK alive: both levels seen (complementarity at 1MHz is async-skew
        territory — scope check, not rig check) */
     bool lo = false, hi = false;
@@ -138,7 +144,7 @@ void t_root_clock(void) {
         if (smp(&P_CLKN)) hi = true; else lo = true;
         dither();
     }
-    test_check_bool(lo && hi, true, "CLKN_toggles");
+    test_check_bool(lo && hi, true, PSTR("CLKN_toggles"));
     test_end();
 }
 
@@ -150,7 +156,10 @@ void t_root_clock(void) {
    sample (~16% of edges); the walk drops a single-sample break when the
    following sample resyncs to the expected count. */
 #define NCAP 1024
-static uint8_t s_capg[NCAP], s_capb[NCAP];
+/* burst buffers borrow the shared arena (harness.h) — root is its only
+   user while a root test runs; 2*NCAP == ARENA_SIZE exactly */
+#define s_capg (&g_arena[0])
+#define s_capb (&g_arena[NCAP])
 
 static void capture_burst(void) {
     /* asm keeps it at 7 cycles/sample (437ns — 2.2 samples per T state);
@@ -197,18 +206,18 @@ static void put_nib(uint8_t v) {
 }
 
 void t_root_tstates(void) {
-    test_begin("root", "tstates");
+    test_begin(PSTR("root"), PSTR("tstates"));
     if (!bind()) { test_end(); return; }
-    test_check_bool(await_reset_release(), true, "RESET_clear_before_sample");
+    test_check_bool(await_reset_release(), true, PSTR("RESET_clear_before_sample"));
     /* burst loop reads PING/PINB directly for speed — guard the pinmap */
     if (P_T[0].pinr != &PING || P_T[2].pinr != &PINB) {
-        test_check_bool(false, true, "T_on_PING_PINB");
+        test_check_bool(false, true, PSTR("T_on_PING_PINB"));
         test_end(); return;
     }
     capture_burst();
     uint16_t steps = 0, viol = 0;
     uint8_t cur = cap_dec(0), shown = 0;
-    uart_puts("     seq: "); put_nib(cur);
+    uart_putsP("     seq: "); put_nib(cur);
     for (uint16_t i = 1; i < NCAP; i++) {
         uint8_t v = cap_dec(i);
         if (v == cur) continue;
@@ -223,76 +232,76 @@ void t_root_tstates(void) {
         viol++;
         cur = v;                          /* resync and keep walking */
     }
-    uart_puts(" ...\r\n");
+    uart_putsP(" ...\r\n");
     /* 1024 samples ~ 447us ~ 458 T states: demand most of them, in order */
-    test_check_range(steps, 320, NCAP, "T_seq_steps");
-    test_check_u16(viol, 0, "T_seq_violations");
+    test_check_range(steps, 320, NCAP, PSTR("T_seq_steps"));
+    test_check_u16(viol, 0, PSTR("T_seq_violations"));
     test_end();
 }
 
 void t_root_reset(void) {
-    test_begin("root", "reset");
+    test_begin(PSTR("root"), PSTR("reset"));
     if (!bind()) { test_end(); return; }
     uint8_t v = 0xFF;
-    uart_puts("ARM  press+hold RESET button now (10s)...\r\n");
+    uart_putsP("ARM  press+hold RESET button now (10s)...\r\n");
     if (!await_level(&P_RESET, true, 10000)) {
-        test_check_bool(false, true, "RESET_seen");
+        test_check_bool(false, true, PSTR("RESET_seen"));
         test_end(); return;
     }
-    uart_puts("SEEN RESET asserted\r\n");
+    uart_putsP("SEEN RESET asserted\r\n");
     _delay_ms(50);                       /* ride out contact bounce */
-    test_check_bool(smp(&P_RESETN), false, "RESETN_complement_asserted");
-    test_check_bool(t_frozen(&v) && v == 0, true, "T_zero_during_hold");
-    uart_puts("     release RESET button...\r\n");
+    test_check_bool(smp(&P_RESETN), false, PSTR("RESETN_complement_asserted"));
+    test_check_bool(t_frozen(&v) && v == 0, true, PSTR("T_zero_during_hold"));
+    uart_putsP("     release RESET button...\r\n");
     if (!await_level(&P_RESET, false, 10000)) {
-        test_check_bool(false, true, "RESET_released");
+        test_check_bool(false, true, PSTR("RESET_released"));
         test_end(); return;
     }
-    uart_puts("SEEN RESET released (RC stretch done)\r\n");
+    uart_putsP("SEEN RESET released (RC stretch done)\r\n");
     _delay_ms(50);
-    test_check_bool(smp(&P_RESETN), true, "RESETN_complement_released");
-    test_check_bool(t_alive(), true, "T_counts_after_release");
+    test_check_bool(smp(&P_RESETN), true, PSTR("RESETN_complement_released"));
+    test_check_bool(t_alive(), true, PSTR("T_counts_after_release"));
     test_end();
 }
 
 void t_root_halt(void) {
-    test_begin("root", "halt");
+    test_begin(PSTR("root"), PSTR("halt"));
     if (!bind()) { test_end(); return; }
-    test_check_bool(await_reset_release(), true, "RESET_clear_at_start");
+    test_check_bool(await_reset_release(), true, PSTR("RESET_clear_at_start"));
     uint8_t v = 0xFF;
     drv(&P_HALT, true); _delay_ms(1);
-    test_check_bool(t_frozen(&v), true, "T_frozen_by_HALT");
+    test_check_bool(t_frozen(&v), true, PSTR("T_frozen_by_HALT"));
     drv(&P_HALT, false); _delay_ms(1);
-    test_check_bool(t_alive(), true, "T_resumes");
+    test_check_bool(t_alive(), true, PSTR("T_resumes"));
     /* reset overrides freeze ('163 sync MR beats CET) */
     drv(&P_HALT, true); _delay_ms(1);
-    uart_puts("ARM  press+release RESET button now (10s)...\r\n");
+    uart_putsP("ARM  press+release RESET button now (10s)...\r\n");
     if (!await_level(&P_RESET, true, 10000)) {
-        test_check_bool(false, true, "RESET_seen_during_halt");
+        test_check_bool(false, true, PSTR("RESET_seen_during_halt"));
         drv(&P_HALT, false);
         test_end(); return;
     }
-    uart_puts("SEEN RESET asserted\r\n");
+    uart_putsP("SEEN RESET asserted\r\n");
     if (!await_level(&P_RESET, false, 10000)) {
-        test_check_bool(false, true, "RESET_released_during_halt");
+        test_check_bool(false, true, PSTR("RESET_released_during_halt"));
         drv(&P_HALT, false);
         test_end(); return;
     }
-    uart_puts("SEEN RESET released (RC stretch done)\r\n");
+    uart_putsP("SEEN RESET released (RC stretch done)\r\n");
     _delay_ms(50);
-    test_check_bool(t_frozen(&v) && v == 0, true, "reset_beats_halt");
+    test_check_bool(t_frozen(&v) && v == 0, true, PSTR("reset_beats_halt"));
     drv(&P_HALT, false);
     test_end();
 }
 
 void t_root_end(void) {
-    test_begin("root", "end");
+    test_begin(PSTR("root"), PSTR("end"));
     if (!bind()) { test_end(); return; }
-    test_check_bool(await_reset_release(), true, "RESET_clear_at_start");
+    test_check_bool(await_reset_release(), true, PSTR("RESET_clear_at_start"));
     uint8_t v = 0xFF;
     drv(&P_END, true); _delay_ms(1);     /* END clears T at every edge */
-    test_check_bool(t_frozen(&v) && v == 0, true, "T_cleared_by_END");
+    test_check_bool(t_frozen(&v) && v == 0, true, PSTR("T_cleared_by_END"));
     drv(&P_END, false); _delay_ms(1);
-    test_check_bool(t_alive(), true, "counting_resumes");
+    test_check_bool(t_alive(), true, PSTR("counting_resumes"));
     test_end();
 }

@@ -22,12 +22,12 @@ types: OUT(tri) means drives-when-enabled (a tri-state bus driver).
 ## Control Word Module
 - IN    FLAG_Z  <- ALU Module
 - IN    CW0-8  <- Microcode_Decoder
-- OUT   ~{ALU_OUT}  -> ALU Module
+- OUT   ~{ALU_OUT}  -> ALU Module, Memory Data Register
 - OUT   ~{REG_A_LOAD}, ~{REG_B_LOAD}  -> ALU Module, Register Modules
 - OUT   ~{MAR_HI_LOAD}, ~{MAR_LO_LOAD}  -> Memory Address Regiser
-- OUT   ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}  -> Memory Data Register
+- OUT   SRC_ACTIVE, ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}  -> Memory Data Register
+- OUT   ~{SW_OUT}  -> Memory Data Register, Output
 - OUT   ~{RAM_OUT}, ~{ROM_OUT}  -> Memory, Memory Data Register
-- OUT   ~{SW_OUT}  -> Output
 - OUT   ~{PC_CLEAR}, ~{PC_LOAD}  -> Program Counter
 - OUT   ~{REG_A_OUT}, ~{REG_B_OUT}, ~{REG_C_LOAD}, ~{REG_C_OUT}, ~{REG_OUT_LOAD}  -> Register Modules
 
@@ -42,7 +42,7 @@ types: OUT(tri) means drives-when-enabled (a tri-state bus driver).
 - BIDIR M15=ROM_EN  <-> Memory, Program Counter
 
 ## Memory Data Register
-- IN    ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}, ~{RAM_OUT}, ~{ROM_OUT}  <- Control Word Module
+- IN    SRC_ACTIVE, ~{ALU_OUT}, ~{IR_LOAD}, ~{MDR_OUT}, ~{RAM_LOAD}, ~{RAM_OUT}, ~{ROM_OUT}, ~{SW_OUT}  <- Control Word Module
 - IN    CLK  <- root
 - OUT   WRITE_DIR  -> Memory
 - OUT   IRB0-7  -> Microcode_Decoder

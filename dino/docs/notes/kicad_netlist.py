@@ -241,11 +241,11 @@ def build_report(path):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print(__doc__)
-        sys.exit(1)
     args = [a for a in sys.argv[1:] if a != '--lint']
     do_lint = '--lint' in sys.argv
+    if not args:
+        print(__doc__)
+        sys.exit(1)
     report, lint = build_report(args[0])
     if do_lint:
         for l in lint:

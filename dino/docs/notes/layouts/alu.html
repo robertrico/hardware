@@ -1,0 +1,309 @@
+<title>DINO alu — breadboard placement</title>
+<style>
+:root{--paper:#F2EEE6;--ink:#15171C;--soft:#5A5E68;--board:#E2DCD1;
+--edge:#CFC7B8;--chip:#23252B;--chiptx:#E8E4DB;--copper:#A96D33;
+--hop:#2F7A72;--span:#BC5836;--rule:rgba(21,23,28,.14);--panel:#FBF9F5;
+--railp:#B5342A;--railn:#2A5490}
+@media (prefers-color-scheme:dark){:root{--paper:#14161A;--ink:#E9E6DF;
+--soft:#9AA0AC;--board:#262A31;--edge:#363C45;--chip:#0C0D10;
+--chiptx:#D8D4CB;--copper:#D2955A;--hop:#57B3A7;--span:#E0805E;
+--rule:rgba(233,230,223,.16);--panel:#1A1D22;--railp:#D9564A;--railn:#5B8AD0}}
+:root[data-theme=dark]{--paper:#14161A;--ink:#E9E6DF;--soft:#9AA0AC;
+--board:#262A31;--edge:#363C45;--chip:#0C0D10;--chiptx:#D8D4CB;
+--copper:#D2955A;--hop:#57B3A7;--span:#E0805E;--rule:rgba(233,230,223,.16);
+--panel:#1A1D22;--railp:#D9564A;--railn:#5B8AD0}
+:root[data-theme=light]{--paper:#F2EEE6;--ink:#15171C;--soft:#5A5E68;
+--board:#E2DCD1;--edge:#CFC7B8;--chip:#23252B;--chiptx:#E8E4DB;
+--copper:#A96D33;--hop:#2F7A72;--span:#BC5836;--rule:rgba(21,23,28,.14);
+--panel:#FBF9F5;--railp:#B5342A;--railn:#2A5490}
+body{background:var(--paper);color:var(--ink);margin:0;padding:60px 36px 120px;
+font:400 24px/1.6 ui-sans-serif,system-ui,"Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:1560px;margin:0 auto;display:flex;flex-direction:column;gap:57px}
+h1{font-size:45px;line-height:1.15;margin:0;letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:28.5px;margin:0 0 18px;letter-spacing:-.01em}
+p{margin:0;max-width:66ch}
+.lede{color:var(--soft);font-size:25.5px;margin-top:18px}
+.eyebrow{font:600 16.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;
+text-transform:uppercase;color:var(--copper);margin:0 0 15px}
+header{border-bottom:3px solid var(--ink);padding-bottom:30px}
+section{display:flex;flex-direction:column;gap:21px}
+.board{background:var(--board);border:1.5px solid var(--edge);border-radius:4.5px;
+padding:18px 21px 12px;overflow-x:auto}
+.inner{min-width:1140px}
+.rail{height:7.5px;border-radius:3px;opacity:.5}
+.rail.p{background:var(--railp);margin-bottom:13.5px}
+.rail.n{background:var(--railn);margin-top:13.5px}
+.grid{display:grid;gap:0;align-items:stretch}
+.chip{grid-row:1;min-height:78px;display:flex;flex-direction:column;justify-content:center;background:var(--chip);color:var(--chiptx);border-radius:3px;
+padding:13.5px 9px;text-align:center;min-width:0;
+font:600 18px/1.25 ui-monospace,Menlo,monospace}
+.chip .ref{display:block;font-size:19.5px;letter-spacing:.04em}
+.chip .role{display:block;font-weight:400;font-size:15px;color:var(--copper);margin-top:4.5px}
+.chip .cols{display:block;font-weight:400;font-size:15px;opacity:.6}
+.edge{grid-row:1;border:1.5px dashed var(--copper);border-radius:3px;
+padding:13.5px 6px;text-align:center;color:var(--copper);
+font:600 15px/1.2 ui-monospace,Menlo,monospace}
+.slots{display:flex;flex-wrap:wrap;gap:6px;padding:9px 0 0 27px}
+.slot{font:400 16.5px/1 ui-monospace,Menlo,monospace;background:var(--panel);
+border:1.5px solid var(--rule);border-radius:3px;padding:4.5px 9px;color:var(--soft)}
+.slot b{color:var(--copper);font-weight:600}
+.step{border-left:4.5px solid var(--rule);padding:0 0 0 27px;display:flex;
+flex-direction:column;gap:12px}
+.step h3{margin:0;font-size:25.5px;letter-spacing:-.01em}
+.wires{display:flex;flex-wrap:wrap;gap:7.5px}
+.wire{display:inline-flex;align-items:center;gap:9px;background:var(--panel);
+border:1.5px solid var(--rule);border-radius:4.5px;padding:4.5px 12px;
+font:400 18px/1.35 ui-monospace,Menlo,monospace}
+.dot{width:15px;height:15px;border-radius:50%;flex:none;
+border:1.5px solid rgba(128,128,128,.55)}
+.legend{display:flex;flex-wrap:wrap;gap:21px}
+.legend div{display:inline-flex;align-items:center;gap:10.5px;font-size:21px}
+.cnt{color:var(--soft);font-variant-numeric:tabular-nums}
+.ruler{display:grid;font:400 13.5px/1 ui-monospace,Menlo,monospace;
+color:var(--soft);margin-top:9px;font-variant-numeric:tabular-nums}
+.ruler span{text-align:center}
+.ruler span.t{border-top:1.5px solid var(--rule);padding-top:4.5px}
+.stage{display:flex;flex-direction:column;gap:12px}
+.sname{font:600 16.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;
+text-transform:uppercase}
+.note{color:var(--soft);font-size:20.25px}
+.bundles{display:flex;flex-direction:column;gap:9px;padding:6px 0 6px 27px}
+.b{display:flex;align-items:baseline;gap:15px;font:400 19.5px/1.45 ui-monospace,Menlo,monospace}
+.b .n{font-weight:600;min-width:87px;font-variant-numeric:tabular-nums}
+.b.hop{color:var(--hop)}.b.span{color:var(--span)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:900px;font-size:21px}
+th,td{text-align:left;padding:12px 18px 12px 0;border-bottom:1.5px solid var(--rule)}
+th{font:600 15.75px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;
+text-transform:uppercase;color:var(--soft)}
+td.m{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+td.r{font-weight:600;font-family:ui-monospace,Menlo,monospace}
+.callout{background:var(--panel);border-left:4.5px solid var(--copper);
+padding:21px 27px;border-radius:0 4.5px 4.5px 0}
+.callout p+p{margin-top:13.5px}
+.stat{display:flex;gap:42px;flex-wrap:wrap}
+.stat div{display:flex;flex-direction:column;gap:3px}
+.stat b{font:600 39px/1 ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.stat span{font:600 15.75px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;
+text-transform:uppercase;color:var(--soft)}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.9em;
+background:var(--panel);padding:1.5px 7.5px;border-radius:4.5px}
+</style>
+<div class="wrap">
+<header><p class="eyebrow">DINO v0.0.3 · generated by docs/notes/layout_gen.py</p>
+<h1>Breadboard placement — alu</h1>
+<p class="lede">Chip positions, and every net that has to leave its board, derived from the schematic netlist. Regenerate after any schematic change; never edit this page.</p>
+<p class="note" style="margin-top:.5em">Strips are mounted flipped: the silkscreen numbers count DOWN left to right, and these drawings match what you see. Column numbers below are always the printed ones.</p>
+<div class="stat" style="margin-top:1.1em">
+<div><b>10</b><span>chips</span></div>
+<div><b>2</b><span>boards</span></div>
+<div><b>46</b><span>nets stay home</span></div>
+<div><b>17</b><span>board hops</span></div>
+<div><b>0</b><span>spanning nets</span></div>
+</div></header>
+<section><h2>The stack, top to bottom</h2>
+<div class="stage"><div class="sname">board 1 — datapath — W, TA, TB and the ALU all stay here</div>
+<div class="board"><div class="inner"><div class="rail p"></div><div class="grid" style="grid-template-columns:repeat(63,1fr)">
+<div class="chip" style="grid-column:54 / span 10"><span class="ref">U47</span><span class="role">output latch</span><span class="cols">1–10</span></div>
+<div class="chip" style="grid-column:42 / span 10"><span class="ref">U45</span><span class="role">TMP_A shadow</span><span class="cols">13–22</span></div>
+<div class="chip" style="grid-column:30 / span 10"><span class="ref">U46</span><span class="role">TMP_B shadow</span><span class="cols">25–34</span></div>
+<div class="chip" style="grid-column:18 / span 10"><span class="ref">U38</span><span class="role">ALU low nibble</span><span class="cols">37–46</span></div>
+<div class="chip" style="grid-column:6 / span 10"><span class="ref">U40</span><span class="role">ALU high nibble</span><span class="cols">49–58</span></div>
+</div><div class="rail n"></div><div class="ruler" style="grid-template-columns:repeat(63,1fr)"><span></span><span></span><span></span><span class="t">60</span><span></span><span></span><span></span><span></span><span class="t">55</span><span></span><span></span><span></span><span></span><span class="t">50</span><span></span><span></span><span></span><span></span><span class="t">45</span><span></span><span></span><span></span><span></span><span class="t">40</span><span></span><span></span><span></span><span></span><span class="t">35</span><span></span><span></span><span></span><span></span><span class="t">30</span><span></span><span></span><span></span><span></span><span class="t">25</span><span></span><span></span><span></span><span></span><span class="t">20</span><span></span><span></span><span></span><span></span><span class="t">15</span><span></span><span></span><span></span><span></span><span class="t">10</span><span></span><span></span><span></span><span></span><span class="t">5</span><span></span><span></span><span></span><span class="t">1</span></div></div></div></div>
+<p class="note" style="padding-left:2px">Wire left to right: U40 · U38 · U46 · U45 · U47</p>
+<div class="bundles">
+<div class="b hop"><span class="n">17 nets</span><span>ALU_C, ALU_CIN, ALU_V, CLK, F0, F1, F2, F3, F4, F5, F6, F7, LE_TMP_A, LE_TMP_B, SA0, SA1, ~{ALU_OUT}</span></div>
+</div>
+<div class="stage"><div class="sname" style="color:var(--copper)">breakout strip — 36 slots, no chips</div><div class="board"><div class="inner"><div class="grid" style="grid-template-columns:repeat(36,1fr)"><div class="edge" style="grid-column:1">1</div><div class="edge" style="grid-column:2">2</div><div class="edge" style="grid-column:3">3</div><div class="edge" style="grid-column:4">4</div><div class="edge" style="grid-column:5">5</div><div class="edge" style="grid-column:6">6</div><div class="edge" style="grid-column:7">7</div><div class="edge" style="grid-column:8">8</div><div class="edge" style="grid-column:9">9</div><div class="edge" style="grid-column:10">10</div><div class="edge" style="grid-column:11">11</div><div class="edge" style="grid-column:12">12</div><div class="edge" style="grid-column:13">13</div><div class="edge" style="grid-column:14">14</div><div class="edge" style="grid-column:15">15</div><div class="edge" style="grid-column:16">16</div><div class="edge" style="grid-column:17">17</div><div class="edge" style="grid-column:18">18</div><div class="edge" style="grid-column:19">19</div><div class="edge" style="grid-column:20">20</div><div class="edge" style="grid-column:21">21</div><div class="edge" style="grid-column:22">22</div><div class="edge" style="grid-column:23">23</div><div class="edge" style="grid-column:24">24</div><div class="edge" style="grid-column:25">25</div><div class="edge" style="grid-column:26">26</div><div class="edge" style="grid-column:27">27</div><div class="edge" style="grid-column:28">28</div><div class="edge" style="grid-column:29">29</div><div class="edge" style="grid-column:30">30</div><div class="edge" style="grid-column:31">31</div><div class="edge" style="grid-column:32">32</div><div class="edge" style="grid-column:33">33</div><div class="edge" style="grid-column:34">34</div><div class="edge" style="grid-column:35">35</div><div class="edge" style="grid-column:36">36</div></div></div></div><p class="note" style="padding-left:2px">Sits between the boards it serves: every link relays here, so both ends are one hop away. Slot order runs left to right.</p></div>
+<div class="stage"><div class="sname">board 2 — flags &amp; control — zero tree, mux, register, stamps</div>
+<div class="board"><div class="inner"><div class="rail p"></div><div class="grid" style="grid-template-columns:repeat(63,1fr)">
+<div class="chip" style="grid-column:57 / span 7"><span class="ref">U52</span><span class="role">zero NORs</span><span class="cols">1–7</span></div>
+<div class="chip" style="grid-column:48 / span 7"><span class="ref">U53</span><span class="role">zero ANDs · SA1·SA0</span><span class="cols">10–16</span></div>
+<div class="chip" style="grid-column:38 / span 8"><span class="ref">U48</span><span class="role">flag mux</span><span class="cols">19–26</span></div>
+<div class="chip" style="grid-column:26 / span 10"><span class="ref">U49</span><span class="role">flag register</span><span class="cols">29–38</span></div>
+<div class="chip" style="grid-column:17 / span 7"><span class="ref">U50</span><span class="role">LE stamps · ALU_CIN</span><span class="cols">41–47</span></div>
+</div><div class="rail n"></div><div class="ruler" style="grid-template-columns:repeat(63,1fr)"><span></span><span></span><span></span><span class="t">60</span><span></span><span></span><span></span><span></span><span class="t">55</span><span></span><span></span><span></span><span></span><span class="t">50</span><span></span><span></span><span></span><span></span><span class="t">45</span><span></span><span></span><span></span><span></span><span class="t">40</span><span></span><span></span><span></span><span></span><span class="t">35</span><span></span><span></span><span></span><span></span><span class="t">30</span><span></span><span></span><span></span><span></span><span class="t">25</span><span></span><span></span><span></span><span></span><span class="t">20</span><span></span><span></span><span></span><span></span><span class="t">15</span><span></span><span></span><span></span><span></span><span class="t">10</span><span></span><span></span><span></span><span></span><span class="t">5</span><span></span><span></span><span></span><span class="t">1</span></div></div></div></div>
+<p class="note" style="padding-left:2px">Wire left to right: U50 · U49 · U48 · U53 · U52</p>
+</section>
+<section><h2>Signal routing — every wire that leaves a chip</h2><p class="note">One row per strip slot. Run the chip-side wires first, then plug the rig ribbon into the Mega column. <b>link</b> means the slot also joins the two boards, so it replaces a direct board-to-board jumper.</p><div class="tablewrap"><table><thead><tr><th>Slot</th><th>Signal</th><th>Board 1</th><th>Board 2</th><th>Mega</th><th>Kind</th></tr></thead><tbody>
+<tr><td class="m">1</td><td class="r">F0</td><td class="m">U38.8, U47.3</td><td class="m">U52.2</td><td class="m">—</td><td>link</td></tr>
+<tr><td class="m">2</td><td class="r">F1</td><td class="m">U38.9, U47.4</td><td class="m">U52.3</td><td class="m">—</td><td>link</td></tr>
+<tr><td class="m">3</td><td class="r">F2</td><td class="m">U38.11, U47.7</td><td class="m">U52.5</td><td class="m">—</td><td>link</td></tr>
+<tr><td class="m">4</td><td class="r">F3</td><td class="m">U38.12, U47.8</td><td class="m">U52.6</td><td class="m">—</td><td>link</td></tr>
+<tr><td class="m">5</td><td class="r">F4</td><td class="m">U40.8, U47.13</td><td class="m">U52.8</td><td class="m">—</td><td>link</td></tr>
+<tr><td class="m">6</td><td class="r">F5</td><td class="m">U40.9, U47.14</td><td class="m">U52.9</td><td class="m">—</td><td>link</td></tr>
+<tr><td class="m">7</td><td class="r">F6</td><td class="m">U40.11, U47.17</td><td class="m">U52.11</td><td class="m">—</td><td>link</td></tr>
+<tr><td class="m">8</td><td class="r">F7</td><td class="m">U40.12, U47.18</td><td class="m">U48.14, U52.12</td><td class="m">—</td><td>link</td></tr>
+<tr><td class="m">9</td><td class="r">W0</td><td class="m">U45.3, U46.3, U47.2</td><td class="m">—</td><td class="m">D26</td><td>rig</td></tr>
+<tr><td class="m">10</td><td class="r">W1</td><td class="m">U45.4, U46.4, U47.5</td><td class="m">—</td><td class="m">D27</td><td>rig</td></tr>
+<tr><td class="m">11</td><td class="r">W2</td><td class="m">U45.7, U46.7, U47.6</td><td class="m">—</td><td class="m">D28</td><td>rig</td></tr>
+<tr><td class="m">12</td><td class="r">W3</td><td class="m">U45.8, U46.8, U47.9</td><td class="m">—</td><td class="m">D29</td><td>rig</td></tr>
+<tr><td class="m">13</td><td class="r">W4</td><td class="m">U45.13, U46.13, U47.12</td><td class="m">—</td><td class="m">D30</td><td>rig</td></tr>
+<tr><td class="m">14</td><td class="r">W5</td><td class="m">U45.14, U46.14, U47.15</td><td class="m">—</td><td class="m">D31</td><td>rig</td></tr>
+<tr><td class="m">15</td><td class="r">W6</td><td class="m">U45.17, U46.17, U47.16</td><td class="m">—</td><td class="m">D32</td><td>rig</td></tr>
+<tr><td class="m">16</td><td class="r">W7</td><td class="m">U45.18, U46.18, U47.19</td><td class="m">—</td><td class="m">D33</td><td>rig</td></tr>
+<tr><td class="m">17</td><td class="r">~{ALU_OUT}</td><td class="m">U47.1</td><td class="m">U48.1</td><td class="m">D34</td><td>rig+link</td></tr>
+<tr><td class="m">18</td><td class="r">~{REG_A_LOAD}</td><td class="m">—</td><td class="m">U50.2</td><td class="m">D35</td><td>rig</td></tr>
+<tr><td class="m">19</td><td class="r">~{REG_B_LOAD}</td><td class="m">—</td><td class="m">U50.5</td><td class="m">D36</td><td>rig</td></tr>
+<tr><td class="m">20</td><td class="r">Z</td><td class="m">—</td><td class="m">U48.5, U53.8</td><td class="m">D37</td><td>rig</td></tr>
+<tr><td class="m">21</td><td class="r">FLAG_C</td><td class="m">—</td><td class="m">U48.3, U49.2</td><td class="m">D38</td><td>rig</td></tr>
+<tr><td class="m">22</td><td class="r">FLAG_N</td><td class="m">—</td><td class="m">U48.13, U49.9</td><td class="m">D39</td><td>rig</td></tr>
+<tr><td class="m">23</td><td class="r">FLAG_V</td><td class="m">—</td><td class="m">U48.10, U49.6</td><td class="m">D40</td><td>rig</td></tr>
+<tr><td class="m">24</td><td class="r">FLAG_Z</td><td class="m">—</td><td class="m">U48.6, U49.5</td><td class="m">D41</td><td>rig</td></tr>
+<tr><td class="m">25</td><td class="r">CRY</td><td class="m">U38.14, U40.15</td><td class="m">—</td><td class="m">D42</td><td>rig</td></tr>
+<tr><td class="m">26</td><td class="r">ALU_C</td><td class="m">U40.14</td><td class="m">U48.2</td><td class="m">D43</td><td>rig+link</td></tr>
+<tr><td class="m">27</td><td class="r">ALU_V</td><td class="m">U40.13</td><td class="m">U48.11</td><td class="m">D44</td><td>rig+link</td></tr>
+<tr><td class="m">28</td><td class="r">CLK</td><td class="m">U47.11</td><td class="m">U50.3, U50.6</td><td class="m">D45</td><td>rig+link</td></tr>
+<tr><td class="m">29</td><td class="r">~{CLK}</td><td class="m">—</td><td class="m">U49.11</td><td class="m">D46</td><td>rig</td></tr>
+<tr><td class="m">30</td><td class="r">~{RESET}</td><td class="m">—</td><td class="m">U49.1</td><td class="m">D47</td><td>rig</td></tr>
+<tr><td class="m">31</td><td class="r">LE_TMP_A</td><td class="m">U45.11</td><td class="m">U50.1</td><td class="m">D48</td><td>rig+link</td></tr>
+<tr><td class="m">32</td><td class="r">LE_TMP_B</td><td class="m">U46.11</td><td class="m">U50.4</td><td class="m">D49</td><td>rig+link</td></tr>
+<tr><td class="m">33</td><td class="r">ALU_CIN</td><td class="m">U38.15</td><td class="m">U50.13</td><td class="m">D50</td><td>rig+link</td></tr>
+<tr><td class="m">34</td><td class="r">SA0</td><td class="m">U38.5, U40.5</td><td class="m">U53.13</td><td class="m">D51</td><td>rig+link</td></tr>
+<tr><td class="m">35</td><td class="r">SA1</td><td class="m">U38.6, U40.6</td><td class="m">U53.12</td><td class="m">D52</td><td>rig+link</td></tr>
+<tr><td class="m">36</td><td class="r">SA2</td><td class="m">U38.7, U40.7</td><td class="m">—</td><td class="m">D53</td><td>rig</td></tr>
+</tbody></table></div></section>
+<section><h2>Wire colours</h2><div class="legend">
+<div><span class="dot" style="background:red"></span>red — supply <span class="cnt">(1)</span></div>
+<div><span class="dot" style="background:black"></span>black — ground <span class="cnt">(1)</span></div>
+<div><span class="dot" style="background:green"></span>green — status / result <span class="cnt">(46)</span></div>
+<div><span class="dot" style="background:white"></span>white — control: LE, loads, enables, selects <span class="cnt">(20)</span></div>
+<div><span class="dot" style="background:yellow"></span>yellow — clock &amp; reset <span class="cnt">(3)</span></div>
+</div></section>
+<section><h2>Build by function — 116 wires</h2><p class="note">One family at a time: run it, meter it, move on. Rails go in first and the rig ribbon last; everything between is grouped by what the signals DO, because that is the unit you can reason about.</p><div class="step"><h3>0. Rails <span class="cnt">· red +5V, black GND, every chip</span></h3><p class="note">Meter every VCC leg before a single signal goes in.</p></div>
+<div class="step"><h3><span class="dot" style="background:yellow"></span> 1. Clock &amp; reset <span class="cnt">· 3 nets, 5 wires · strip slots 28–30</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:yellow"></span><b>CLK</b> U47.11 → slot 28 → U50.3 → U50.6 <span class="cnt">[D45]</span></span>
+<span class="wire"><span class="dot" style="background:yellow"></span><b>~{CLK}</b> U49.11 → slot 29 <span class="cnt">[D46]</span></span>
+<span class="wire"><span class="dot" style="background:yellow"></span><b>~{RESET}</b> U49.1 → slot 30 <span class="cnt">[D47]</span></span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:white"></span> 2. ALU select + carry-in <span class="cnt">· 4 nets, 10 wires · strip slots 33–36</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:white"></span><b>ALU_CIN</b> U38.15 → slot 33 → U50.13 <span class="cnt">[D50]</span></span>
+<span class="wire"><span class="dot" style="background:white"></span><b>SA0</b> U40.5 → U38.5 → slot 34 → U53.13 <span class="cnt">[D51]</span></span>
+<span class="wire"><span class="dot" style="background:white"></span><b>SA1</b> U40.6 → U38.6 → slot 35 → U53.12 <span class="cnt">[D52]</span></span>
+<span class="wire"><span class="dot" style="background:white"></span><b>SA2</b> U40.7 → U38.7 → slot 36 <span class="cnt">[D53]</span></span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:green"></span> 3. Flags &amp; status <span class="cnt">· 8 nets, 16 wires · strip slots 20–27</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:green"></span><b>ALU_C</b> U40.14 → slot 26 → U48.2 <span class="cnt">[D43]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>ALU_V</b> U40.13 → slot 27 → U48.11 <span class="cnt">[D44]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>CRY</b> U40.15 → U38.14 → slot 25 <span class="cnt">[D42]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>FLAG_C</b> U49.2 → U48.3 → slot 21 <span class="cnt">[D38]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>FLAG_N</b> U49.9 → U48.13 → slot 22 <span class="cnt">[D39]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>FLAG_V</b> U49.6 → U48.10 → slot 23 <span class="cnt">[D40]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>FLAG_Z</b> U49.5 → U48.6 → slot 24 <span class="cnt">[D41]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>Z</b> U48.5 → U53.8 → slot 20 <span class="cnt">[D37]</span></span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:white"></span> 4. Latch enables <span class="cnt">· 2 nets, 4 wires · strip slots 31–32</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:white"></span><b>LE_TMP_A</b> U45.11 → slot 31 → U50.1 <span class="cnt">[D48]</span></span>
+<span class="wire"><span class="dot" style="background:white"></span><b>LE_TMP_B</b> U46.11 → slot 32 → U50.4 <span class="cnt">[D49]</span></span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:white"></span> 5. Strobes: loads &amp; output enables <span class="cnt">· 3 nets, 4 wires · strip slots 17–19</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:white"></span><b>~{ALU_OUT}</b> U47.1 → slot 17 → U48.1 <span class="cnt">[D34]</span></span>
+<span class="wire"><span class="dot" style="background:white"></span><b>~{REG_A_LOAD}</b> U50.2 → slot 18 <span class="cnt">[D35]</span></span>
+<span class="wire"><span class="dot" style="background:white"></span><b>~{REG_B_LOAD}</b> U50.5 → slot 19 <span class="cnt">[D36]</span></span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:green"></span> 6. TMP_A operand bus <span class="cnt">· 8 nets, 8 wires</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:green"></span><b>TA0</b> U38.3 → U45.2</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TA1</b> U38.1 → U45.5</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TA2</b> U38.19 → U45.6</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TA3</b> U38.17 → U45.9</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TA4</b> U40.3 → U45.12</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TA5</b> U40.1 → U45.15</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TA6</b> U40.19 → U45.16</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TA7</b> U40.17 → U45.19</span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:green"></span> 7. TMP_B operand bus <span class="cnt">· 8 nets, 8 wires</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:green"></span><b>TB0</b> U38.4 → U46.2</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TB1</b> U38.2 → U46.5</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TB2</b> U38.18 → U46.6</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TB3</b> U38.16 → U46.9</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TB4</b> U40.4 → U46.12</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TB5</b> U40.2 → U46.15</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TB6</b> U40.18 → U46.16</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>TB7</b> U40.16 → U46.19</span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:green"></span> 8. W bus <span class="cnt">· 8 nets, 24 wires · strip slots 9–16</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:green"></span><b>W0</b> U46.3 → U45.3 → U47.2 → slot 9 <span class="cnt">[D26]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>W1</b> U46.4 → U45.4 → U47.5 → slot 10 <span class="cnt">[D27]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>W2</b> U46.7 → U45.7 → U47.6 → slot 11 <span class="cnt">[D28]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>W3</b> U46.8 → U45.8 → U47.9 → slot 12 <span class="cnt">[D29]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>W4</b> U46.13 → U45.13 → U47.12 → slot 13 <span class="cnt">[D30]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>W5</b> U46.14 → U45.14 → U47.15 → slot 14 <span class="cnt">[D31]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>W6</b> U46.17 → U45.17 → U47.16 → slot 15 <span class="cnt">[D32]</span></span>
+<span class="wire"><span class="dot" style="background:green"></span><b>W7</b> U46.18 → U45.18 → U47.19 → slot 16 <span class="cnt">[D33]</span></span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:green"></span> 9. F result bus <span class="cnt">· 14 nets, 31 wires · strip slots 1–8</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:green"></span><b>F0</b> U38.8 → U47.3 → slot 1 → U52.2</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F01</b> U53.1 → U52.1</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F0123</b> U53.3 → U53.9</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F1</b> U38.9 → U47.4 → slot 2 → U52.3</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F2</b> U38.11 → U47.7 → slot 3 → U52.5</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F23</b> U53.2 → U52.4</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F3</b> U38.12 → U47.8 → slot 4 → U52.6</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F4</b> U40.8 → U47.13 → slot 5 → U52.8</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F45</b> U53.4 → U52.10</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F4567</b> U53.6 → U53.10</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F5</b> U40.9 → U47.14 → slot 6 → U52.9</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F6</b> U40.11 → U47.17 → slot 7 → U52.11</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F67</b> U53.5 → U52.13</span>
+<span class="wire"><span class="dot" style="background:green"></span><b>F7</b> U40.12 → U47.18 → slot 8 → U48.14 → U52.12</span>
+</div></div>
+<div class="step"><h3><span class="dot" style="background:white"></span> 10. Other nets <span class="cnt">· 5 nets, 6 wires</span></h3><div class="wires">
+<span class="wire"><span class="dot" style="background:white"></span><b>Net-(U48-Za)</b> U49.3 → U48.4</span>
+<span class="wire"><span class="dot" style="background:white"></span><b>Net-(U48-Zb)</b> U49.4 → U48.7</span>
+<span class="wire"><span class="dot" style="background:white"></span><b>Net-(U48-Zc)</b> U49.7 → U48.9</span>
+<span class="wire"><span class="dot" style="background:white"></span><b>Net-(U48-Zd)</b> U49.8 → U48.12</span>
+<span class="wire"><span class="dot" style="background:white"></span><b>Net-(U50-Pad11)</b> U50.11 → U50.12 → U53.11</span>
+</div></div>
+<div class="step"><h3>Last. Rig ribbon → strip</h3><p class="note">Goes on top so it lifts off without disturbing the module. Series resistor in every rig-driven line; Mega pin shown in brackets above.</p></div></section>
+<section><h2>Breakout strip — the pseudo card edge</h2><div class="callout"><p>A strip of its own, not columns stolen from the logic boards. Every signal that has to leave a board runs once from its chip to a numbered slot; the rig ribbon then plugs into the strip in one straight row and nothing reaches in among the chips. 17 of the 36 slots also relay a cross-board net, so the strip doubles as the backplane.</p></div><div class="slots">
+<span class="slot"><b>1</b> F0 · link · U38,U47,U52</span>
+<span class="slot"><b>2</b> F1 · link · U38,U47,U52</span>
+<span class="slot"><b>3</b> F2 · link · U38,U47,U52</span>
+<span class="slot"><b>4</b> F3 · link · U38,U47,U52</span>
+<span class="slot"><b>5</b> F4 · link · U40,U47,U52</span>
+<span class="slot"><b>6</b> F5 · link · U40,U47,U52</span>
+<span class="slot"><b>7</b> F6 · link · U40,U47,U52</span>
+<span class="slot"><b>8</b> F7 · link · U40,U47,U48,U52</span>
+<span class="slot"><b>9</b> W0 · rig · U45,U46,U47</span>
+<span class="slot"><b>10</b> W1 · rig · U45,U46,U47</span>
+<span class="slot"><b>11</b> W2 · rig · U45,U46,U47</span>
+<span class="slot"><b>12</b> W3 · rig · U45,U46,U47</span>
+<span class="slot"><b>13</b> W4 · rig · U45,U46,U47</span>
+<span class="slot"><b>14</b> W5 · rig · U45,U46,U47</span>
+<span class="slot"><b>15</b> W6 · rig · U45,U46,U47</span>
+<span class="slot"><b>16</b> W7 · rig · U45,U46,U47</span>
+<span class="slot"><b>17</b> ~{ALU_OUT} · rig+link · U47,U48</span>
+<span class="slot"><b>18</b> ~{REG_A_LOAD} · rig · U50</span>
+<span class="slot"><b>19</b> ~{REG_B_LOAD} · rig · U50</span>
+<span class="slot"><b>20</b> Z · rig · U48,U53</span>
+<span class="slot"><b>21</b> FLAG_C · rig · U48,U49</span>
+<span class="slot"><b>22</b> FLAG_N · rig · U48,U49</span>
+<span class="slot"><b>23</b> FLAG_V · rig · U48,U49</span>
+<span class="slot"><b>24</b> FLAG_Z · rig · U48,U49</span>
+<span class="slot"><b>25</b> CRY · rig · U38,U40</span>
+<span class="slot"><b>26</b> ALU_C · rig+link · U40,U48</span>
+<span class="slot"><b>27</b> ALU_V · rig+link · U40,U48</span>
+<span class="slot"><b>28</b> CLK · rig+link · U47,U50</span>
+<span class="slot"><b>29</b> ~{CLK} · rig · U49</span>
+<span class="slot"><b>30</b> ~{RESET} · rig · U49</span>
+<span class="slot"><b>31</b> LE_TMP_A · rig+link · U45,U50</span>
+<span class="slot"><b>32</b> LE_TMP_B · rig+link · U46,U50</span>
+<span class="slot"><b>33</b> ALU_CIN · rig+link · U38,U50</span>
+<span class="slot"><b>34</b> SA0 · rig+link · U38,U40,U53</span>
+<span class="slot"><b>35</b> SA1 · rig+link · U38,U40,U53</span>
+<span class="slot"><b>36</b> SA2 · rig · U38,U40</span>
+</div></section>
+<section><h2>Chips</h2><div class="tablewrap"><table><thead><tr><th>Ref</th><th>Role</th><th>Board</th><th>Cols</th><th>Pins</th></tr></thead><tbody>
+<tr><td class="r">U47</td><td>output latch</td><td class="m">1</td><td class="m">1–10</td><td class="m">20</td></tr>
+<tr><td class="r">U45</td><td>TMP_A shadow</td><td class="m">1</td><td class="m">13–22</td><td class="m">20</td></tr>
+<tr><td class="r">U46</td><td>TMP_B shadow</td><td class="m">1</td><td class="m">25–34</td><td class="m">20</td></tr>
+<tr><td class="r">U38</td><td>ALU low nibble</td><td class="m">1</td><td class="m">37–46</td><td class="m">20</td></tr>
+<tr><td class="r">U40</td><td>ALU high nibble</td><td class="m">1</td><td class="m">49–58</td><td class="m">20</td></tr>
+<tr><td class="r">U52</td><td>zero NORs</td><td class="m">2</td><td class="m">1–7</td><td class="m">14</td></tr>
+<tr><td class="r">U53</td><td>zero ANDs · SA1·SA0</td><td class="m">2</td><td class="m">10–16</td><td class="m">14</td></tr>
+<tr><td class="r">U48</td><td>flag mux</td><td class="m">2</td><td class="m">19–26</td><td class="m">16</td></tr>
+<tr><td class="r">U49</td><td>flag register</td><td class="m">2</td><td class="m">29–38</td><td class="m">20</td></tr>
+<tr><td class="r">U50</td><td>LE stamps · ALU_CIN</td><td class="m">2</td><td class="m">41–47</td><td class="m">14</td></tr>
+</tbody></table></div></section>
+<section><h2>Board order</h2><div class="callout"><p>This board order is already the cheapest of the 2 possible orders.</p><p>Cost counts one hop per net per board boundary it crosses, so a net living on one board is free and a net spanning two boards costs two.</p></div></section>
+</div>

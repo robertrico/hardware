@@ -14,6 +14,12 @@ staged as sheet_ops and tracked in dino_session_state.md:
       floating RAM DQ onto MDR whenever MAR parks on a RAM address with no
       RAM op in flight; fix = U51 spare gates, CE = AND(~RAM_OUT,
       ~WRITE_DIR). Retired forever by memory.idle.release below.
+  (4) FOUND 2026-07-16 (bridge audit, dino_basic_isa_audit.md): U25
+      W<->MDR bridge DIR/EN keyed on destination, not source — ALU/SW
+      writeback dead (ADD cannot commit), STA T3 bus fight, reg->MAR
+      blocked. Fix staged (2026-07-16_u25_bridge_fix.json): BUS_DIR from
+      src decode, ~MDR_EN from U28.O0 SRC_ACTIVE. Retired by
+      mdr.bridge.route below + INT-B2.
 
 ## Goal
 
@@ -157,6 +163,16 @@ activity) and an unwired header cannot (all-floating detection). Keeps
 Convention: every test drives only the module's IN list, samples only its
 OUT/BIDIR list (from dino_sheet_contracts.md). "Walk" = walking-1s and
 walking-0s. All patterns also include 0x00, 0xFF, 0xAA, 0x55.
+
+MIRROR-WITNESS RULE (added 2026-07-21, registers bring-up lesson): a
+write-then-read test through the SAME bus bank is permutation-blind — a
+uniformly reversed jumper bank cancels itself and every walk passes.
+Each module's suite MUST contain at least one symmetry-breaking path per
+bus bank: an asymmetric arithmetic (pc.carry), a cross-bank route
+(mdr.bridge, registers.outreg), content-addressed data
+(microcode.addr.order), or a decoder truth (control_word). Audited: all
+current+planned modules have one. Non-palindromic test bytes only in
+readiness vectors (0x5A is bit-reverse-invariant — burned once).
 
 ### root (clock + T-state + reset + END/HALT gates) — LIVE, guided
 Revised (2026-07-15): hybrid workflow. Y1 SEATED, DUT free-runs; no CLKIN
@@ -319,12 +335,26 @@ WRITE_DIR, ~CLK, MDR0-7. Samples: MDR0-7.
 
 ### mdr (MDR + IR + buffers)
 Rig drives: W, MDR0-7, /MDR_OUT, /IR_LOAD, /RAM_LOAD, /ROM_OUT, /RAM_OUT,
-CLK. Samples: W, IRB0-7, MDR0-7, WRITE_DIR.
+~{ALU_OUT}, ~{SW_OUT}, SRC_ACTIVE, CLK. Samples: W, IRB0-7, MDR0-7,
+WRITE_DIR. (Driven list grew 2026-07-16 with the bug-4 fix: the sheet
+consumes ~ALU_OUT/~SW_OUT/SRC_ACTIVE for bridge steering. BUS_DIR is
+sheet-INTERNAL — U39.8 -> U25.1 — verify it via bridge.route behavior,
+or scope-probe the net directly; it is not a contract line.)
 1. `capture`: MDR load protocol from either side per the sheet's steering;
    readback onto W via /MDR_OUT.
 2. `ir.snoop`: /IR_LOAD protocol -> IRB0-7 = W byte, holds after W changes.
-3. `dir.logic`: WRITE_DIR truth vs /RAM_LOAD//RAM_OUT states.
-4. `tristate`: nothing enabled -> W floats.
+3. `dir.logic`: WRITE_DIR truth vs /RAM_LOAD//RAM_OUT states; BUS_DIR
+   truth vs ~ALU_OUT/~SW_OUT (high iff either W-side source active).
+4. `tristate`: nothing enabled, SRC_ACTIVE low -> W floats AND MDR floats
+   (bridge fully idle).
+5. `bridge.route` (added 2026-07-16, retires schematic bug 4): one row
+   per source class — (a) SRC_ACTIVE high, W-side src (~ALU_OUT low):
+   rig drives W, byte appears on MDR; (b) SRC_ACTIVE high, MDR-side src
+   (both W-side strobes idle): rig drives MDR, byte appears on W;
+   (c) /MDR_OUT replay with SRC_ACTIVE low: MDR crosses to W;
+   (d) SRC_ACTIVE low, no replay: rig drives MDR, W stays floating
+   (bridge off). Walking-1 per row so a single stuck '245 bit names
+   itself.
 
 ### input_output
 Rig drives: /SW_OUT, OB0-7 (as the OUT register substitute). Samples: W0-7.

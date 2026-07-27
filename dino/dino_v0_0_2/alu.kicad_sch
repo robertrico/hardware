@@ -4662,17 +4662,6 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{ALU_OUT}, ~{REG_A_LOAD}, ~{REG_B_LOAD} <- Control Word Module\nIN: CW10=SA1, CW11=SA0, CW9=SA2 <- Microcode_Decoder\nIN: CLK, ~{CLK}, ~{RESET} <- root\nOUT: FLAG_Z -> Control Word Module\nBIDIR: W0-7 <-> Memory Address Regiser, Memory Data Register, Output"
-		(exclude_from_sim no)
-		(at 159.258 169.926 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "045634f3-dbf4-59a7-b6da-226c9ae72cc7")
-	)
 	(text "CLR"
 		(exclude_from_sim no)
 		(at 18.034 19.558 0)
@@ -4802,6 +4791,17 @@
 			)
 		)
 		(uuid "acf454ce-c0a6-4b36-b0f9-2c18f6d71659")
+	)
+	(text "MODULE CONTRACT — generated, do not hand-edit (kicad_contracts.py --stamp)\nIN: ~{ALU_OUT}, ~{REG_A_LOAD}, ~{REG_B_LOAD} <- Control Word Module\nIN: CW10=SA1, CW11=SA0, CW9=SA2 <- Microcode_Decoder\nIN: CLK, ~{CLK}, ~{RESET} <- root\nOUT: FLAG_Z -> Control Word Module\nBIDIR: W0-7 <-> Memory Address Regiser, Memory Data Register, Output"
+		(exclude_from_sim no)
+		(at 159.258 169.926 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "aed641b3-a45c-586d-bcce-122220a2c7eb")
 	)
 	(text "TMP_A"
 		(exclude_from_sim no)

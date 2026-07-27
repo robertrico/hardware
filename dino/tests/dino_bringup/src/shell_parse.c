@@ -23,6 +23,7 @@ cmd_t shell_parse(const char *line) {
 
     if (tok_eq(line, len, "list")) { c.kind = CMD_LIST; return c; }
     if (tok_eq(line, len, "help")) { c.kind = CMD_HELP; return c; }
+    if (tok_eq(line, len, "idle")) { c.kind = CMD_IDLE; return c; }
 
     if (len > 9 && memcmp(line, "selftest ", 9) == 0) {
         const char *arg = line + 9;

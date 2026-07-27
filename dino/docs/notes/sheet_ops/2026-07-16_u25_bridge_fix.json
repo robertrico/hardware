@@ -1,0 +1,22 @@
+{
+ "_comment": "Bug 4 fix, MDR sheet half (see dino_basic_isa_audit.md 2-3, session-state bug 4). U39 gate3 (spare row, pins 9/10->8) becomes BUS_DIR = NAND(~ALU_OUT, ~SW_OUT) -> U25.1: bridge drives W->MDR exactly when a W-side source is active. MANUAL EDITS ALREADY APPLIED 2026-07-16 before these ops: U25.1's label renamed WRITE_DIR->BUS_DIR (at 148.59,74.93); U22.5's label renamed LE_MDR->SRC_ACTIVE (at 38.1,114.3) making ~MDR_EN = NOR(SRC_ACTIVE, MDR_OUT); no_connects removed from U39 pins 8/9/10. Companion: 2026-07-16_u25_bridge_fix_cw.json (control_word half). WRITE_DIR net itself untouched - Memory-sheet U51 steering keeps it.",
+ "sheet": "dino_v0_0_2/mdr.kicad_sch",
+ "applied_marker": "~{ALU_OUT}",
+ "connect": [
+  {
+   "pin": "U39/9",
+   "label": "~{ALU_OUT}",
+   "dir": "left"
+  },
+  {
+   "pin": "U39/10",
+   "label": "~{SW_OUT}",
+   "dir": "left"
+  },
+  {
+   "pin": "U39/8",
+   "label": "BUS_DIR",
+   "dir": "right"
+  }
+ ]
+}

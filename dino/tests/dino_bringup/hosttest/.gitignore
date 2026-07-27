@@ -1,1 +1,4 @@
-test_shell
+# Compiled host-test binaries. Sources are tracked; `make` rebuilds.
+# Glob rather than a list so a new test_*.c can't slip its binary in.
+test_*
+!test_*.c

@@ -430,6 +430,35 @@ are untouched historical record and still accurate for what they cover.
        (2026-07-14_u21_gating.json + manual U21.19 relabel + NC removal
        on U51.8-13.) Test memory.idle.release retires the class.
 
+    SCHEMATIC BUG 4 — found 2026-07-16 (netlist bridge audit for the
+    BASIC/ISA roadmap, see dino_basic_isa_audit.md). STATUS: FIXED AND
+    VERIFIED 2026-07-16 (2026-07-16_u25_bridge_fix.json + _cw.json +
+    manual label renames; netlist confirms U25.1=BUS_DIR<->U39.8,
+    U22.5=SRC_ACTIVE<->U28.15; lint 0 findings; contracts restamped —
+    MDR gained IN SRC_ACTIVE/~ALU_OUT/~SW_OUT; pinmap regenerated, rig
+    rebuilt clean. MDR board not yet built, so zero physical rework.)
+       U25 (the one W<->MDR '245 bridge, MDR sheet) has DIR/EN derived
+       from the DESTINATION side: WRITE_DIR = NOT(~RAM_LOAD) drives DIR,
+       and ~MDR_EN = NOR(LE_MDR, MDR_OUT) enables only during memory
+       reads / RAM writes / replay. Consequences, all wire-verified:
+       (a) src=ALU dst=REG_x DEAD — ALU result strands on W, registers
+           load from MDR, bridge off. The ADD family (0x1631) cannot
+           commit. Same kills INA (switch '244 is W-side).
+       (b) STA T3 (src=REG_A dst=RAM, 0x101F) BUS FIGHT — RAM_LOAD flips
+           U25 to W->MDR while W floats; U25 drives garbage into U41.
+       (c) src=REG_x dst=MAR_LO/HI dead (MAR latches are W-side) — blocks
+           register-indirect addressing; MOV-to-A/B would poison the
+           TMP shadows (they latch from W).
+       Root cause: bus direction is a property of the SOURCE. Fix: new
+       BUS_DIR = NAND(~ALU_OUT, ~SW_OUT) [U39 gate3] -> U25.1;
+       ~MDR_EN = NOR(SRC_ACTIVE, MDR_OUT) [U22 gate2 rewired], where
+       SRC_ACTIVE = U28.O0 (pin 15, the NONE decode — currently NC).
+       WRITE_DIR keeps its name and its Memory-sheet consumers (U51
+       steering) unchanged; only U25.1 repoints. Spare gates only, no
+       new chips. Proving tests: mdr.bridge.route (spec) + INT-B2.
+       Why the 2026-07-14 review missed it: INT-B deliberately EMULATED
+       the bridge; the real-U25 pass (INT-B2) was deferred to stage 10.
+
     Tooling from the review: kicad_netlist.py --lint (flags anonymous
     multi-pin nets with no driving pin, passives exempt) — catches bug 2
     mechanically; validated: exactly 1 finding project-wide, the real bug.
@@ -696,3 +725,407 @@ are untouched historical record and still accurate for what they cover.
        decorative M15 labels on the memory sheet; IS0-7 "undriven"
        (pull-up + switch + buffer-input nets are all-passive-or-input —
        no active driver exists by design).
+
+## 2026-07-16 session ledger (microcode bench PASSED + BASIC roadmap)
+
+    BENCH: microcode module (stage 4) PASSING — DIAG burn 7/7, then REAL
+    burn 7/7. CRCs exact: DIAG U9=0x0F69/U15=0xF1B9, REAL U9=0xAD70/
+    U15=0x58D7. REAL pair stays seated. pc also recorded PASSING
+    (baseline 9/9 earlier + blind fault-injection runs correctly
+    fingerprinted). Bench-proven so far: root, pc, microcode.
+
+    Wiring faults caught by microcode.addr_order's self-naming walk
+    (diag word = decoded row): (1) A8-A11 run rotation at the
+    U16->EEPROM row; (2) A10/A11 swap — DIP pins 21/23 with ~OE=22
+    BETWEEN them; (3) rig-side IRB5/7 jumper cross (selftest microcode
+    first would have caught that one before DUT wiring — do the
+    selftest step next module). LESSON: the AT28C64B high-address
+    corner (A8=25, A9=24, A10=21, A11=23, non-monotonic, zigzags
+    around ~OE) is a wiring minefield; U16 output pins DESCEND
+    (9/7/5/3) as the address CLIMBS. Diag-image low byte only encodes
+    a[7:0] — U9-local A8-A11 faults are invisible on the DIAG burn and
+    proven by the REAL burn's crc instead (why both burns get the
+    suite).
+
+    NEW TOOLING (all host-tested, TDD): docs/notes/microcode_gen.py
+    (symbolic table -> roms/U9.bin+U15.bin+diag pair, per-chip CRC16,
+    builder asserts, emits src/microcode_expect.h so rig and ROM can't
+    disagree); src/crc16.c shared CRC-16/CCITT-FALSE; mod_microcode.c
+    (warmup/presence/order/split/crc/taps/stability, auto-detects burn
+    from row 0, order self-diagnoses address faults on diag-like
+    content); Makefile minipro targets burn-*/read-rom/id-rom/verify-*
+    (ROM_CHIP=AT28C64B — the B entry carries the SDP unlock; plain
+    AT28C64 write-fails). Contract stamps are now POSITION-STICKY
+    across restamps; generated power-symbol Value labels sit next to
+    the node (GND below, +5V above).
+
+    OPCODE TABLE: PROPOSED 2026-07-16 (only LDAI=0x11 was documented).
+    High nibble = family; HALT=0xFF so an erased program ROM halts.
+    Single editable block in microcode_gen.py OPCODES.
+
+    ROADMAP: docs/notes/dino_basic_isa_audit.md — SCELBI-class BASIC
+    target. Bridge fix (bug 4, above) APPLIED. Post-milestone ISA
+    wishlist audited per-instruction (MOV/LDAX/STAX/JMPX/CMP/CPI/ADDI/
+    SUBI/INA/LDR + JC/JNC/JZ). Decisions: 16K/16K ROM/card split
+    (0x4000-0x7FFF = ~M15&M14, 8 slots x 2KB, option-ROM style, cards
+    answer RAM strobes for registers + ROM strobe for firmware);
+    MC6850 ACIA = first card (part on hand); third parallel AT28C64B
+    committed (part on hand); LDR closes the discovered gap that the
+    ISA cannot data-read the ROM half (LDA is src=RAM). HARD GATE
+    (Rico): no ISA/hardware extensions until the whole machine adds
+    two numbers; bug fixes exempt.
+
+    NEXT: mod_control_word.c (stage 3 — dec.walk / dec.none /
+    cond.truth per spec; rig drives CW0-8 + FLAG_Z, samples decoder
+    outputs + COND_TAKEN/PC_LOAD_JMP/~{PC_LOAD}; note SRC_ACTIVE is a
+    new contract OUT since the bug-4 fix) + BRINGUP.md stage 3
+    section. Then INT-A (control_word + microcode, the highest-risk
+    seam). Pinmap bundle for control_word already generated.
+
+## 2026-07-17 session ledger (control_word bench PASSED)
+
+    BENCH: control_word (stage 3) PASSING 7/7 (warmup/presence/walk/
+    none/truth/sweep/stability). Bench-proven so far: root, pc,
+    microcode, control_word. INT-A (control_word + microcode, the
+    highest-risk seam) now unblocked.
+
+    NEW TOOLING: cw_expect.h expected-output model (host-tested TDD,
+    hosttest/test_cw_expect.c — 512x2 exhaustive invariants + U62 gate
+    consistency); every bench check compares all 23 sampled signals at
+    once. kicad_contracts.py gained PIN_ASSIGN (per-module hand-tuned
+    pin layout, overrides pool AND fixed bus rules) + PIN_PROBES
+    (rig-internal probe nets emitted into the bundle so `pins <mod>`
+    prints EVERY wire) + emitter validation (unknown pin, duplicate
+    pin, probe-name collision). control_word layout: one unbroken
+    D53->D22 descent + D19 spill, ONE CONTIGUOUS BLOCK PER CHIP, each
+    block = driven address pins (1,2,3) then outputs descending —
+    Rico's rule: grab a chip, count down, no skipped header pins
+    (D21/D20/D13 stay banned). CW0-8 left the PORTC byte for this
+    module (per-pin drive; settle() dwarfs the cost). Probes: U29.13/
+    U29.12 (U62's inputs) + U62.1/U62.4 (its outputs) — full gate
+    observability.
+
+    WIRING FAULTS CAUGHT (5 runs to green, all rig-side, all
+    self-fingerprinted by FAIL pattern): (1) D19 spill wire absent
+    (floats + stale-charge reads); (2) U62.1->U62.8 jumper's pin-1 end
+    two holes low in the pin-3 row — ~PC_LOAD went NOR(FLAG_Z,
+    PC_LOAD_JMP) and pin 1 floated, ONE wire end, BOTH symptoms;
+    (3+4+5) ~COND leg one-hole slips: probe D48 reading FLAG_Z
+    verbatim (probe=Z signature), U62 pin 2 floating high (COND_TAKEN
+    stuck 0 -> JNZ never loads). LESSON: one-hole slips around a
+    NOR's in/in/out pin triple are THE failure mode of this board
+    (4 of 5 faults); '02 outputs come FIRST (1/4/10/13) unlike '00.
+    The U62 input+output probes paid for themselves — every fault was
+    localized from the serial log alone, no scope, no board pull.
+
+    NEXT: INT-A (control_word + microcode: rig drives IRB+T only,
+    samples decoder outputs at the far ends — proves the CW0-8 board-
+    to-board run + both modules' truth end to end). Rico flags
+    integration as the beast; INT-A wiring reuses the microcode stage
+    hookup + this stage's sampled side.
+
+## 2026-07-26 session ledger (alu bring-up — slot-map fiasco + lessons)
+
+    ALU bring-up. Board wiring was sound; nearly all the pain was
+    process. Recording it because the lessons are durable.
+
+    THE FIASCO (mine): the breakout strip's slot numbers were optimised
+    and RENUMBERED four times WHILE Rico was wiring to them — function
+    order, then position-ordered blocks, then brute-forced blocks, then
+    ribbon-aligned. 18 of 36 slots moved in the last change alone. Then,
+    asked which scheme was on the board, I reconstructed all 35 other
+    assignments from ONE remembered data point ("SA0 was on 33") by
+    picking a plausible tie-break — and got it wrong twice, sending him
+    to the meter after wires that were already correct. Compounded by
+    claiming "your 4 readings pinned 30 slots" when the real basis was
+    "two of my own guesses agreed with each other", which is not
+    evidence about anything.
+    RULES NOW IN FORCE:
+      * ONCE A STRIP IS POPULATED, ITS SLOT MAP FREEZES. PLACEMENTS
+        carries an explicit "slots" dict; breakout_plan() returns it
+        verbatim and no ordering code runs. New nets get slots ABOVE the
+        highest frozen one.
+      * The MEGA BENDS TO THE DUT, never the reverse. Rig pin numbers
+        are arbitrary; board wiring is hours of work. PIN_ASSIGN for alu
+        is now derived from the strip (pin = slot + 17), which cost W0-7
+        its byte alignment — mod_alu.c drives W per pin, and that is the
+        correct trade.
+      * NEVER reconstruct a physical map from inference. Read it off the
+        board and fit the code to the readings. Rico ultimately beeped
+        all 28 slots; that list is the map, written verbatim.
+      * Generated artefacts that describe PHYSICAL state must be
+        committed. The whole mess was possible because the slot map
+        lived only in a regenerating file with no history, so "what did
+        it say when I wired?" was unanswerable.
+
+    NEW FAULT CLASS — SWAPPED RIG WIRES. Two signals reading as each
+    other's values has three candidate locations: board wires, strip
+    slots, rig ribbon. CHECK THE RIBBON FIRST (one accessible end,
+    nothing glued, both ends look right at a glance). On the ALU the
+    signature was FLAG_Z and FLAG_V each carrying the other's value
+    while FLAG_C and FLAG_N were correct — U49's middle two channels. I
+    chased U48's outputs, then U48's inputs; it was the ribbon.
+
+    TEST BUG FOUND (mine): alu.shadow's "held" assertions called
+    compute(), which RELOADS both operands — so the test destroyed the
+    values it was checking were held. Added read_result(), which sets
+    the op and reads without touching the shadows.
+
+    ALSO: alu.power's headline was a false positive — it said
+    "UNPOWERED" when 3 of 4 checks failed on a verified-good supply
+    (two were correct readings of real wiring faults). Now only a TOTAL
+    collapse claims no supply; a subset prints "PARTIAL collapse — the
+    chips are powered, this is WIRING".
+
+    TOOLING: docs/notes/layout_gen.py (41 host tests) — placement
+    scoring, board-order brute force, auto-placement, the breakout-strip
+    plan, colour-coded build guide grouped by signal family, and
+    slotmap_gen.h so `pins <mod>` prints the strip slot beside each Mega
+    pin. Wire colours (Rico's six): red +5V, black GND, yellow clock &
+    reset, blue address, green data + status/results, white everything
+    that gates.
+
+## 2026-07-23 session ledger (memory DIAG burn PASSED — eight modules)
+
+    BENCH: memory (stage 9) DIAG burn PASSING 10/10, ROM crc 0xDFE7
+    exact. REAL burn pending (two-burn protocol, same as microcode).
+    Bench-proven: root, pc, microcode, control_word, mdr, registers,
+    mar, memory. Remaining: alu (Rico: penultimate), io (LEDs + DIP,
+    trivial build but the first board needing passives).
+
+    THE '121 IS GONE. v0.0.2's RAM write one-shot is replaced by
+    ~{RAM_WRITE_EN} = NAND(WRITE_DIR, ~{CLK}) — a gate off the clock
+    phase, nothing to tune. memory.window is its proof (no write with
+    ~CLK low, none without WRITE_DIR, lands only with both). This is
+    the fault that killed v0.0.2 at the registers, retired in copper.
+    memory.idle likewise retires SCHEMATIC BUG 2: U21 CE = AND(
+    ~{RAM_OUT}, ~{WRITE_DIR}), so MAR parked on a RAM address with no
+    RAM op leaves MDR floating on all 8 bits.
+
+    NEW TOOLING: docs/notes/progrom_gen.py (host-tested, 16 tests) —
+    emits roms/PROG_diag.bin + roms/PROG.bin + CRCs + the rig's
+    src/progrom_expect.h. OPCODES and instruction LENGTHS are IMPORTED
+    from microcode_gen (single source of truth): the assembler
+    validates every operand count against the microcode table, so a
+    program cannot encode something the microcode cannot execute.
+    DIAG image is content-addressed and SELF-NAMING (addr 0 -> 0xA5,
+    addr 2^k -> 0x40|k) across all 15 address lines. REAL image IS THE
+    MILESTONE: LDAI 5; LDBI 3; ADD; OUT; HALT, safe-filled with HALT.
+    Makefile: burn-prog-diag / burn-prog / verify-prog[-diag]
+    (PROG_CHIP=AT28C256). mem_expect.h holds the U51 model
+    (host-tested, 64-state exhaustive + fight/driver predicates).
+
+    PIN LAYOUT, BENCH-DRIVEN (Rico built a real bus on the board, so
+    the split-bank scheme fought it): both byte buses now ride ONE
+    unbroken 24-pin run D53 -> D30 — MDR0-7 on D53-D46, M0-M15 on
+    D45-D30, one ribbon each, no controls interleaved. Signals follow
+    D29 -> D22 in U51 pin order + the D19 spill. CONSEQUENCE: neither
+    bus is byte-aligned on an AVR port, so mod_memory.c drives and
+    samples both PER PIN (local m_drive/mdr_read/mdr_write) instead of
+    the fixed-port helpers; ~10us per access, romcrc's 32768 reads
+    still well under a second. PRECEDENT: bench ergonomics outrank the
+    fixed-port bus rule — the rule exists to make hookups mechanical,
+    and a module whose board has a real bus wants the ribbon.
+
+    BRING-UP: one fault, one run to green — MDR5<->MDR6 crossed
+    (D48/D47). Decoded from byte 0 alone: expected 0xA5, read 0xC5,
+    which differ by EXACTLY a bit-5/bit-6 exchange. ramrw, window and
+    idle all PASSED through the swap (they round-trip the rig's own
+    bytes, so a crossed pair cancels) — only the asymmetric ROM path,
+    where the data originates on the DUT, could see it. Second
+    consecutive module where the mirror-witness rule was the thing
+    that caught the fault; also confirms swap-vs-stuck discrimination
+    (a stuck line cannot pass a round trip, a swap always does).
+
+    FINAL: 11/11 with memory.power added. Both burns exact (DIAG crc
+    0xDFE7, REAL crc 0xF501). Memory is DONE; the REAL image is the
+    milestone program, already seated for free-run.
+
+    PHANTOM POWER (Rico's deliberate power-off run, the best test of
+    the tests yet): an UNPOWERED memory board scored 7 of 10. The rig
+    drives 33 lines at 5V; each high line pushes current through that
+    pin's input clamp diode into the DUT's VCC rail, and the board
+    half-runs on stolen current. What survived says exactly who steals
+    well: CMOS (AT28C256, MCM60256AP) read microamps, so warmup,
+    romorder and byte-0 detect all PASSED; the bipolar 7400 (U51) needs
+    milliamps, so logic failed 41 states with the registers-board
+    fingerprint (gates fold as MORE inputs go low = fewer current
+    sources); RAM writes are the most power-hungry cycle on the board,
+    so ramrw died; romcrc caught it over 32768 varied address patterns
+    (0xC9AE vs 0xF501). stability passing while ramrw failed is not a
+    contradiction — phantom supply tracks the DATA PATTERN (address
+    0x0000 sources nothing, 0x7FFF sources fifteen lines).
+    FIX SHIPPED: memory.power, first test in the module. It holds every
+    rig output low except ~{ROM_OUT} (kept high only so U19 and U21
+    cannot both drive MDR — one current source, the board's minimum),
+    then asserts the three '00 outputs that must be HIGH. With nothing
+    to steal an unpowered gate cannot hold them; a powered one does.
+    Prints "DUT looks UNPOWERED" plus which signals collapsed.
+    EVERY REMAINING MODULE GETS ONE (alu, io) and the pattern is: hold
+    the rig's outputs at the level that sources no current, then check
+    a DUT output that must be pulled the other way.
+    ALSO A REAL HAZARD, now a bench rule: sustained clamp-diode current
+    can exceed the per-pin rating — the series-R rule is what saved the
+    board through this experiment.
+
+    HARDENING NOTE (deferred, costs a re-burn): DIAG_ZERO = 0xA5 is
+    bit-reverse-INVARIANT, so a full ribbon reversal would slip past
+    the byte-0 signature check (romorder still catches it as "data
+    fault, not address" — nothing escapes the suite, only the
+    auto-detect line is fooled). Change to a non-palindrome the next
+    time the DIAG image is re-burned.
+
+## 2026-07-22 session ledger (mar bench PASSED — seven modules green)
+
+    BENCH: mar (stage 8) PASSING 7/7. Bench-proven: root, pc,
+    microcode, control_word, mdr, registers, mar. Remaining modules:
+    memory ('121-ectomy on the old v0.0.2 board — schematic already
+    clean, zero 74121s), alu (penultimate per Rico), io. INT-A/INT-C
+    both unblocked; INT-B after alu.
+
+    Rico redrew mar for copper-alignment pre-build; assessment found
+    zero contract drift, lint 0, and the house patterns applied on
+    first draw (U60 quad '02 fully used, LE stamps, ~RAM_EN decodes
+    the BUS not the latch — correct under either mux source).
+
+    BRING-UP (5 runs): missing common ground (the all-float scan —
+    a scan with NOTHING responding carries zero per-wire info, check
+    power/ground before beeping anything); stale-layout rewire (board
+    was pre-wired to the pre-PIN_ASSIGN pool layout — NEW PROCESS
+    RULE: any PIN_ASSIGN change to an unpassed module gets an explicit
+    rewire alert, and pre-wiring ahead of the landed test is a trap);
+    '245 CEs fed from U60.13 (gate OUTPUT) instead of the .11 net —
+    mux sense inverted, diagnosed by the PC-side decode rows passing
+    while MAR-side died; U60 right-column scramble after the fix
+    (rework flexes neighbors); M9<->M10 swap (walk arithmetic decoded
+    it exactly).
+
+    TEST BUG (mine, found because Rico kept pushing on "is the code
+    right?"): mar.logic pass A released W, but sweep states with
+    ~MAR_HI_LOAD+CLK low re-open the HI latch — it recaptures floating
+    -W charge and the test kept comparing RAM_EN against the
+    pre-latched M15. Board-dependent false failures (exactly 8 here).
+    Fixed by holding W at the latched byte through the pass. Two
+    lessons codified: (1) a sweep must never let the DUT's state
+    diverge from the expectation it computes — hold every input the
+    expectation depends on; (2) NO BLIND COUNTERS: every sweep prints
+    state+signal detail on mismatch (mar.logic lacked it and cost
+    three rounds of wrong bench theories — swapped probes, stuck
+    probes, crossed colors — before the code was properly suspected).
+    Rigor audit on the fix: no comparison deleted, no mask added;
+    RAM_EN now checked in MORE valid states; latch-reopen path still
+    covered by mar.hold's 20+ value-changing loads.
+
+## 2026-07-21 session ledger (registers bench PASSED — mirror lesson)
+
+    BENCH: registers (stage 5) PASSING 9/9. Bench-proven: root, pc,
+    microcode, control_word, mdr, registers — six modules. INT-B
+    unblocks after alu; INT-B2 ready behind it (mdr already proven).
+
+    Longest bring-up yet (~8 runs). Fault classes, in order caught:
+    CLK<->~REG_C_LOAD swapped at U57's legs (LE gates computed
+    NOR(load, C_LOAD) — located because states 0x30-0x33 passed while
+    0x34-0x37 failed); /OUT distribution shifted one register (read-A
+    returned B's byte — isolation named it); gate-INPUT-vs-OUTPUT taps
+    (C_LE run on U57.8 not .10 — C then passed COUNTERFEIT via the
+    floating-LE bus-hold latch, only the probe saw it; OUT_LE run on
+    U57.14 = VCC, one hole from .13 — the "beeps to every chip" rail
+    fingerprint); rework collateral: dead 5V rail segment + lost U44
+    DIR strap (parasitic-power signature: unpowered TTL runs off
+    driven-high inputs, gates fold as MORE strobes assert — OB
+    floating was the giveaway); OUT harness bit-mirror + D4/D5 bridge
+    + dangling wire (walking-1 decoded the exact permutation table);
+    FINALE: PORTF->MDR jumper bank flipped end-for-end.
+
+    THE MIRROR LESSON (Rico's concern, valid): every A/B/C test
+    writes AND reads through the same 8 wires — a uniformly reversed
+    bank cancels itself; walks prove wires, NOT labels. Only the
+    asymmetric outreg path (in via MDR, out via OB) could see it.
+    Audit: every module has >=1 symmetry-breaking witness (pc.carry
+    arithmetic, microcode content-addressed diag, control_word
+    decoders, mdr bridge cross-bank, registers outreg; alu's adder
+    self-catches, mar/memory cross banks). Codified as the
+    MIRROR-WITNESS RULE in dino_test_bringup_design.md. Firmware
+    hardened: registers warmup OUT byte 0x5A -> 0xC5 (0x5A is
+    bit-reverse-invariant — a palindrome let a mirrored harness
+    through warmup).
+
+    METER RULES earned: (1) never continuity-beep a live board — rig
+    drives pins; `idle` first or power everything down; (2) in-circuit
+    leg-to-leg beeps go through the die's clamp diodes to the rails —
+    beep mode lies; measure OHMS (<2R = copper) or pull the chip;
+    (3) a pin that beeps to EVERY chip is on a power rail; (4) beep
+    for IDENTITY (named leg to named leg), not existence — a run that
+    lands one register over still beeps; (5) same-pin-number
+    "straight across" wiring between a '245 (B descends) and a '373
+    (D ascends, zigzag) is a bit mirror — the correct harness crosses.
+
+## 2026-07-20 session ledger (mdr bench PASSED + RAM overhaul)
+
+    BENCH: mdr (stage 10, early out of build-order) PASSING 8/8 —
+    warmup/presence/logic/capture/ir/tristate/bridge/stability.
+    bridge.route retired SCHEMATIC BUG 4 ON REAL COPPER (all four
+    source-class rows, walking-1). Bench-proven: root, pc, microcode,
+    control_word, mdr. INT-A and (post registers+alu) INT-B2 unblocked.
+
+    NEW TOOLING: mdr_expect.h host-tested gate model (512-state
+    exhaustive + U62-style gate consistency; mdr_fight() encodes the
+    rogue U25-vs-U18 state real microcode never emits — mdr.logic
+    skips+counts 192 of them). PIN_PROBES gained mdr entries (LE_IR
+    U22.1, ~MDR_EN U22.4, LE_MDR U39.6, BUS_DIR U39.8). Pinmap: mdr =
+    three unbroken runs (controls D53-D40 chip-blocked U22/U37/U39,
+    W native D22-D29, MDR+IRB native A0-A15).
+
+    RAM OVERHAUL (mdr module briefly hit 97.6% of the 8KB — ~200B
+    stack left): everything the rig only PRINTS now lives in flash.
+    uart_putsP() literal printer; test labels PSTR; name tables =
+    PROGMEM flash-pointer arrays via PN(); TESTS registry PROGMEM
+    (shell memcpy_P + strcmp_P); test_check_*_r variants for the one
+    runtime-RAM-label case (selftest pin names); root's 2KB burst
+    buffers -> shared g_arena. Result: 39.8% RAM, ~350B/module
+    projected — all remaining stages fit the monolith (Rico's
+    per-module-firmware idea shelved, noted in conversation). One
+    refactor casualty found ON THE BENCH and fixed: uart_puts on a
+    flash pointer in the logic/sweep detail printers (names vanished
+    from FAIL detail lines) — uart_puts_p. Rico's point stood: a pc
+    re-run would NOT have caught anything the mdr workflow itself
+    didn't (verdicts are pin-compares; strings only print; binds fail
+    loud). list + pins <mod> + selftest <mod> = the free firmware
+    smoke, no rewiring.
+
+    WIRING FAULTS (3 runs to green, serial-log-diagnosed, no scope):
+    run 1: IRB bank dead (U34 side/A8-15), WRITE_DIR wire off D48,
+    BUS_DIR run to U25.1 open (bridge locked W->MDR: row (a) passed,
+    (b)/(c) read stale charge — float signature got=0xA5 = previous
+    test's value), ~IR_LOAD leg. run 2: value-dependent multi-bit
+    collapse with per-bit walks passing — NOT the supply fingerprint
+    this time (power verified); fight analysis: only U18 can pin MDR
+    at idle since ~MDR_EN=1 is probe-proven, capture ratcheting
+    toward 0 = rig writing against a driving bus-hold latch. run 3
+    root cause: U18.1 (OE) wired to MDR_OUT (U37 pin 6) instead of
+    ~{MDR_OUT} (U37 pin 5) — enable polarity INVERTED: drove at idle,
+    released during replay. LESSON (third strike of the class): the
+    one-hole slip on adjacent gate pins is THIS build's dominant
+    failure mode — U62 out/in/in triples (control_word, 4 of 5
+    faults), now '04 in/out neighbors. Bench habit: every wire
+    landing on a gate chip, beep against BOTH adjacent pins before
+    power-on. Also: probes at the GATE end prove the gate, not the
+    RUN — BUS_DIR's broken U39.8->U25.1 run hid behind a passing
+    probe and was caught by behavior (strike-7 far-end rule applies
+    to steering runs too; INT tests cover the rest).
+
+    SCHEMATIC CLEANUP (registers_a_b, 2026-07-20, Rico in KiCad,
+    netlist-verified): the four LE stamp gates (LE_x = NOR(~REG_x_LOAD,
+    CLK), '373 latch-enable per register) were split 2+2 across TWO
+    quad '02s (U57 gates 1-2, U66 gates 3-4) with the other four units
+    unplaced/floating. Consolidated onto U57 (all 4 gates, zero
+    spares); U66 deleted. Net names unchanged -> zero contract/pinmap
+    drift (verified: registers bundle 24 rows identical, bench-proven
+    bundles byte-identical, lint 0). One fewer chip on the unbuilt
+    registers board. NOTE deliberately left: ~{REG_x_LE} names carry a
+    bar on an ACTIVE-HIGH signal (mdr spells the same gates LE_MDR
+    plain) — rename offer open, touches only future probe labels.
+
+    NEXT: registers/alu/mar/memory/io modules (plan 2 order), INT-A
+    when Rico calls it. Milestone gate unchanged: nothing new until
+    the machine adds two numbers.

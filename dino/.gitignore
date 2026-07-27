@@ -1,0 +1,11 @@
+# Python bytecode from the docs/notes generators
+__pycache__/
+*.pyc
+
+# KiCad editor lock files
+*.lck
+
+# (compiled host-test binaries: see tests/dino_bringup/hosttest/.gitignore)
+
+# Obsidian per-machine editor state
+docs/notes/.obsidian/workspace.json
