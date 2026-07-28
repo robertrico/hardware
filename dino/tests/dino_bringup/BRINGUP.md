@@ -5,6 +5,13 @@ what to wire, where, what to type, what you should see, and what a failure
 means. Deeper rationale lives in `../../docs/notes/dino_test_bringup_design.md`
 (the spec); this document is the bench procedure.
 
+STATUS 2026-07-28: all ten module stages are DONE (bench-proven by
+2026-07-26); stage 1 is closed as a diagnostic, not a gate. Live work is
+the integration BLOCK model at the end of this file. The per-stage
+"Approve the stage" footers below still name the retired INT-A..INT-E
+ladder — those stages are complete, the footers are history, and the
+name mapping to blocks is in the integration section.
+
 HOOKUP TABLES ARE SNAPSHOTS of the generated pinmap (2026-07-15). After ANY
 schematic change: regenerate (`python3 ../../docs/notes/kicad_contracts.py
 --pinmap`), rebuild/reflash, and trust the rig's own `pins <mod>` /
@@ -27,6 +34,66 @@ runtime from the same tables, so IT can't drift — paper can.
 7. Before calling a signal stuck, say out loud what it should REST at.
    (RESET rests LOW. Ask me how we know.)
 
+## Machine invariant: EVERYTHING COMMITS ON CLK LOW
+
+Written out in English so nobody re-derives it. Netlist-verified
+2026-07-28; to re-check, do not reason about it — run the tool:
+
+    python3 -c "import sys;sys.path.insert(0,'docs/notes');\
+    from kicad_netlist import build_report;\
+    print(*build_report('dino_v0_0_2/program_counter.kicad_sch')[0],sep='\n')"
+
+### The fact
+
+The T-state counter (U6 '163) is clocked by CLK, so T changes on the CLK
+RISING edge. The microcode ROM address changes with it, and for one ROM
+access time the ROM outputs are GARBAGE — which the three control_word
+'138s (U28/U29/U30) will happily decode into transient enable pulses.
+
+That garbage cannot hurt anything, because EVERY PATH THAT CHANGES STATE
+IS QUALIFIED BY THE CLOCK, and all of them commit while CLK is LOW —
+which is the phase AFTER the ROM has settled.
+
+    WHAT CHANGES STATE          HOW IT IS QUALIFIED           WHERE
+    -------------------------   ---------------------------   ------------
+    register / IR / MAR / ALU   LE = NOR(~{LOAD}, CLK)        U57, U22, U50
+      shadow loads
+    RAM write pulse             NAND(WRITE_DIR, ~{CLK})       memory
+                                (this replaced the '121)
+    PC load                     NAND(PC_LOAD, ~{CLK})         U36 gate3
+                                = ~{PC_LOAD_STABLE}
+    PC clear                    NOR(~{PC_CLEAR}, CLK)         U10 gate1
+    PC count                    NAND(PC_UP, ~{CLK})           U36 gate1
+                                = PC_UP_STABLE
+    T-state clear / hold        '163 SYNCHRONOUS clear+CET    U6
+                                (~{MR} = NOR(RESET, END),
+                                 CET = ~{HALT}, both U61)
+
+    NOT gated, and correctly so:
+      RESET -> '193 CLR      reset must be immediate and asynchronous
+      bus output enables     U28's ~{ROM_OUT} / ~{RAM_OUT} / ~{REG_x_OUT} /
+                             ~{ALU_OUT} / ~{SW_OUT}, and ~{MDR_OUT}
+
+### Why the ungated ones do not matter
+
+An output enable does not change state — it puts data on a bus. During
+CLK high no latch is open, no counter input can be reached, and no RAM
+write can fire. A transient double-enable is two drivers briefly fighting:
+a CURRENT SPIKE AND SUPPLY NOISE, never wrong data.
+
+CONSEQUENCE, and this is the part worth remembering: a decode glitch on
+this machine is a SUPPLY question, not a CORRECTNESS question. When the
+integration blocks put the LA on two source enables, you are measuring for
+noise, not for corruption. Do not "fix" it by gating the '138s unless the
+supply actually misbehaves — the machine's designer already solved this in
+five places, and the sixth is a place where the consequence does not land.
+
+### Corollary for reading failures
+
+If a value is wrong, the cause is NOT a decode glitch. Look at the CLK-low
+window instead: was the data valid before the latch closed, was the enable
+asserted at all, is the stamp gate wired to the right leg.
+
 ## The flash/monitor cycle
 
     cd dino/tests/dino_bringup
@@ -46,7 +113,28 @@ one wiring fault often explains a whole block of them.
 
 ---
 
-## Stage 1a — rig self-test, per-module flavor (use this one)
+## Stage 1 — rig self-test — NOT A GATE. Diagnostic only.
+
+CLOSED 2026-07-28. This was never run on the bench and it isn't owed.
+The module tests validate the rig more completely than a loopback jumper
+does: selftest proves pin->jumper->pin, while a module test proves
+pin->ribbon->strip->chip and back. All ten modules green already means
+every pin in those bundles drives, reads, and maps to the net the pinmap
+claims — a dead pin or a wrong pinmap entry cannot survive a module going
+green.
+
+"What tests the tester" terminates at independent agreement, not at
+self-inspection: host-tested expect models (no AVR, no rig), assertions
+derived from the netlist, a generated pinmap, and ten modules agreeing
+with all three after first going RED on real faults.
+
+WHEN TO ACTUALLY RUN IT: a freshly wired board comes up all-red and you
+want to rule out the rig side before beeping chips. One command, ~6
+jumpers, answers "rig or DUT". That is its whole job. Note you have been
+resolving that question with probes and FAIL-pattern fingerprinting
+instead, which also works — this is the fallback, not the routine.
+
+## Stage 1a — per-module flavor (the one worth running)
 
 No DUT. Jumper ONLY the pins the next module uses. `selftest root` prints
 its own pair list; for reference, today's root pairing (6 jumpers, plain
@@ -67,7 +155,7 @@ see `got` trailing one pattern behind `want`).
 
 THEN PULL ALL SIX JUMPERS.
 
-## Stage 1b — full rig self-test (optional, deep check)
+## Stage 1b — full rig self-test (rarely worth it)
 
 `run selftest` — all-pin version: PA<->PF bytewise (D22->A0 ... D29->A7),
 PC<->PL bytewise (D30->D42 ... D37->D49), plus 11 pool pairs it prints.
@@ -976,24 +1064,322 @@ rig emulating the bridge) unlocks here; INT-B2 reruns it through the
 real U25 bridge, already bench-proven on the mdr board.
 
 ---
+## Integration — CONTROL FIRST (block model, supersedes INT-A..INT-E)
 
-## Stages 11-13 —
-I/O, integrations, free-run
+All ten modules are bench-proven, so they are fixtures. Integration is no
+longer "test the seam between two boards." It is:
 
-Module tests land with plan 2 (docs/notes/plans/, forthcoming) — PC (stage
-7, above) landed early out of build-order because its board was next on
-the bench. The
-workflow will be identical for every module:
+    MAKE THE CONTROL UNIT REAL FIRST. THEN EVERY LATER BLOCK GETS ITS
+    STROBES FOR FREE, IN COPPER, AND THE RIG ONLY EVER SHEDS WIRES.
 
-    1. build the board, hand-check what you believe works
-    2. `selftest <mod>`      — rig-only, jumper the printed pairs
-    3. pull jumpers, wire per `pins <mod>` (GND first, series R on `O` rows)
-    4. `run <mod>`           — fix / approve
-    5. integration test when the build-program order says so
-       (INT-A after microcode, INT-B after ALU, INT-C after MAR,
-        INT-D after stage 4, INT-B2 after MDR, INT-E before free-run)
+### The gate: driven-wire count. It may never go up.
 
-Build order and the integration seams are in the spec's "Build program"
-section. Microcode ROM burning landed early with stage 4 above
-(microcode_gen.py); the program ROM image (asm/countdown.py, safe-fill =
-HALT opcode 0xFF) still arrives with plan 3.
+Rico's requirement, and it is the right one, because two things that look
+like separate goals are the same goal:
+
+    FEWER RIG WIRES == FEWER RIG-INTRODUCED ERROR MODES
+
+Every rig wire is a wire that can be one hole off, swapped in a ribbon, or
+landed on the wrong leg. All three have already cost bench time on this
+project. And the risk is NOT symmetric:
+
+    sampled wire wrong ...... false FAIL. Costs an evening, hurts nothing.
+    driven wire wrong ....... can fight a real driver. Contention, maybe
+                              damage.
+    driven STROBE wrong ..... worst case, because strobes are ENABLES. A
+                              wrong enable is precisely how two boards end
+                              up driving one bus.
+
+So the quantity to minimize hardest is RIG-DRIVEN STROBES.
+
+### Why that inverts the obvious plan
+
+The control unit has the highest fan-out in the machine — it reaches every
+board. A rig standing in for it must drive ~20 strobes across every
+datapath board at once: the largest and most dangerous harness the project
+could possibly build.
+
+Make it REAL first and that harness never exists. The rig's whole job
+becomes CLK, RESET, and a couple of forced bits.
+
+This is also what the original spec said — "control/microcode first
+because INT-A is the highest-risk seam and needs no datapath." The
+datapath-core plan drifted off that. Control-first restores it.
+
+### The wire budget
+
+    STEP  WIRE IN                        RIG DRIVES                  ~N
+    ----  ----------------------------   -------------------------   --
+    1     root + microcode +             CLK, RESET, IRB0-7,         11
+          control_word                   FLAG_Z
+    2     + pc + mar + memory            same — M0-15 and every      11
+                                         strobe are copper now
+    3     + mdr                          IRB DROPS: real IR, the      6
+                                         machine fetches itself
+    4     + registers + alu              FLAG_Z DROPS: real flags     2
+    5     + io                           rig moves to watching OB     2
+    6     Y1 in socket = FREE-RUN        nothing                      0
+
+Step 2 is the payoff: THREE BOARDS JOIN AT ZERO NEW DRIVEN WIRES, because
+M0-15 comes from PC/MAR and every strobe comes from the real decoder.
+
+RULE: a proposed block that raises the driven count is the wrong block.
+Re-cut it.
+
+---
+
+## Three instruments, three different questions
+
+The rig is not the only tool anymore, and each instrument answers a
+question the others structurally cannot.
+
+    RIG (ATmega2560)      WHAT.  Logic and topology. Exhaustive and
+                          automated — it can walk all 256 opcodes x 16
+                          T-states without complaint. Rig speed only:
+                          settle() is 5us and every bus op is a bit-banged
+                          per-pin loop. CANNOT SEE TIMING. Ever.
+
+    LOGIC ANALYZER        WHEN.  16 channels at real speed. The right tool
+    (DSLogic)             for enable overlap, T-state one-hot, END->T
+                          clear, and decode glitches. Wide enough to watch
+                          every SRC enable at once, which is exactly the
+                          contention question.
+
+    OSCILLOSCOPE          HOW.   Analog truth. Edge shape, ringing,
+    (Siglent SDS)         overshoot, and marginal levels — a "high" that
+                          is really 2.0V of floating charge. No digital
+                          instrument sees any of this. You have already
+                          been bitten by it once (U45.2 at 1.67V).
+
+### Can the Mega stand in for the LA and the scope?
+
+Partly, and it is worth doing as a FIRST look before hauling out the other
+two — but know the edges:
+
+    IT CAN
+      read a whole port in one instruction — PINA is a genuine 8-channel
+        simultaneous snapshot, 62.5ns wide
+      burst-capture one port in a tight loop at roughly 3 MSa/s
+        (~4-6 cycles per sample at 16MHz)
+      timestamp with Timer1 at 62.5ns resolution; Input Capture measures
+        a pulse width directly
+      hold maybe 3-4KB of samples => on the order of 1ms of capture
+
+    IT CANNOT
+      see a decode glitch. An LS '138 output can glitch for 10-30ns; the
+        Mega's sample period is ~300ns. It will MISS the event outright or
+        alias it. This matters because decode glitches are the exact fault
+        we brought the LA in to hunt.
+      see anything analog. No edge quality, no ringing, no marginal level.
+        A pin sitting at 2.0V reads as a clean HIGH.
+      trigger on a fault. No pulse-width or runt trigger — you cannot ask
+        it to "show me the glitch," only to sample blindly and hope.
+      capture two ports truly simultaneously (separate instructions, ~60ns
+        of skew — usually fine, not always).
+
+    ORDER OF USE: rig first (cheap, exhaustive, catches gross faults).
+    Mega burst-capture second (free, already wired, confirms sequence).
+    LA third (when sequence looks right but timing must be proven).
+    Scope last (when the LA shows something strange or a level looks soft).
+
+### Scope / LA bench rules — read before probing
+
+    1. SHORT GROUND. Use the ground spring, not the long clip lead. On a
+       breadboard a 6-inch ground lead manufactures ringing that is not
+       in the circuit, and you will chase it for an hour.
+    2. TRIGGER ON THE FAULT, DO NOT EYEBALL IT. A 20ns glitch is invisible
+       on a slow sweep. Set a pulse-width or runt trigger and let the
+       instrument find it.
+    3. PROBE THE CHIP PIN, NOT THE SLOT. A slot proves the wire; the pin
+       proves the chip got it.
+    4. x10 probe for anything you care about the edge of. x1 loads the
+       node enough to change what you are measuring.
+    5. The rig and the LA can share the board. The rig drives, the LA
+       watches — they do not conflict, and a rig-driven walk is a
+       repeatable stimulus for LA capture. Use that.
+
+---
+
+## BLOCK 1 — CONTROL (root + microcode + control_word)
+
+The finickiest boards on the machine, and the ones with no datapath
+dependency at all. Nothing downstream can be trusted until the control
+unit says the right thing at the right time.
+
+### Wiring
+
+Three boards to each other: microcode ROM outputs CW0-15 to the control
+word decoder inputs; root's T-state counter to the microcode address
+lines; END and HALT back to root.
+
+    RIG DRIVES     CLK, ~{RESET}, IRB0-7 (forces the instruction),
+                   FLAG_Z (one bit, standing in for the ALU)
+    RIG SAMPLES    every decoded strobe, T0-3, END, HALT, plus the
+                   control_word probes already in the bundle
+
+### Tests (control.*)
+
+    decode     For every implemented opcode x every T: force IRB, step T,
+               sample the decoded strobes, compare against
+                   cw_expect(MC_REAL_WORDS[(op << 4) | t], flag_z)
+               This is the old INT-A. Note the model is now a CHECKER, not
+               a driver — see below.
+    onehot     Never two SRC enables low at once. Never two DST loads low
+               at once. The rig can only catch SUSTAINED overlap; the LA
+               catches the transient. Both are run.
+    seq        Real T-state counter: END clears T at the documented state,
+               HALT freezes it, RESET recovers. The old INT-D.
+    cond       FLAG_Z forced both ways on a JNZ row: assert both U62 arms
+               (taken and not-taken). This closes the branch coverage the
+               ADD-only program ROM cannot reach — no reburn needed.
+    stability  Repeat the decode walk N times, assert identical results.
+
+### Scope / LA checks — the timing half
+
+Run these AFTER control.* is green. The rig proved WHAT; these prove WHEN.
+
+    LA, 16ch    CW0-15 + T0-3 captured together while the rig walks
+                control.decode. Compare each frame against the microcode
+                row. This is control.decode at real speed.
+
+    LA or 2ch   ~{ROM_OUT} and ~{RAM_OUT} on two channels, trigger on both
+                low. Characterise the decode glitch: after T changes on the
+                CLK rising edge, the microcode ROM outputs are invalid for
+                one access time and U28 decodes that garbage into transient
+                enables. Measure WHETHER it happens, HOW WIDE, and on which
+                transitions.
+                THIS IS A SUPPLY MEASUREMENT, NOT A CORRECTNESS ONE. See
+                "Machine invariant: EVERYTHING COMMITS ON CLK LOW" — no
+                state-changing path can be reached during CLK high, so the
+                worst case is two drivers fighting: current spike and
+                supply noise, never wrong data.
+                In BLOCK 1 it is harmless in the strongest sense — no
+                datapath boards are wired, so the '138 outputs go to rig
+                sample pins and there is literally nothing to fight. Best
+                possible place to measure it.
+                ACT ON IT only if the supply misbehaves (see the strobe-
+                HIGH check below). Do NOT gate the '138s pre-emptively.
+
+    scope 2ch   CLK vs T0. T must advance on one defined edge, one state
+                per clock, no double-step.
+                BAD TRACE: T moving on both edges, or a runt T pulse.
+
+    scope 2ch   T(last) vs END. NOTE: U6 is a '163, so its clear is
+                SYNCHRONOUS — END does not clear T the instant it appears,
+                it clears on the next rising edge. That is by design and is
+                not a race. HALT works the same way through CET.
+                What to confirm: END asserts during the correct state, and
+                T clears on the FOLLOWING edge — exactly one state later.
+                BAD TRACE: END asserting a state early or late; T clearing
+                without END; T failing to clear on the next edge.
+
+    scope 2ch   CLK vs ~{IR_LOAD} — the LE_IR = NOR(CLK, ~IR_LOAD) window.
+                Confirm it is a real pulse and measure its width against
+                the '373 setup requirement.
+                BAD TRACE: a window narrower than the latch needs, or one
+                that never opens.
+
+    scope 1ch   HALT asserted: T frozen, clock still running. Confirm the
+                freeze is clean and not a slow droop.
+
+    scope       Any strobe whose HIGH looks soft. Breadboard runs plus
+                fan-out can leave an enable sitting at a level that reads
+                as valid to the Mega and is marginal to a real gate.
+
+### What Block 1 retires
+
+    microcode ROM content EXECUTED for the first time (only the SA field
+      was previously proven, via alu.ops at the real '382s)
+    the tap runs from ROM to decoder
+    decode correctness in copper, at speed
+    END / HALT / T-state contract with the real ring counter
+    both branch arms
+    enable overlap — never tested at any level before now
+
+---
+
+## BLOCKS 2-6 — the accretion
+
+Each row is one wiring session. The rig only sheds.
+
+### BLOCK 2 — + pc + mar + memory     (driven wires: unchanged, 11)
+
+Three boards for free. M0-15 becomes copper between PC/MAR and memory;
+every strobe already comes from the real decoder. A real PC -> MAR -> ROM
+read loop, with the rig still forcing IRB.
+
+    SCOPE/LA   PC_MAR_MUX vs M0 — the tri-state handoff, strike-6
+               territory. BAD TRACE: any overlap where PC and MAR both
+               drive M.
+               Address settle vs ROM ~OE: the address must be stable
+               BEFORE the enable falls, or you read the previous byte.
+
+### BLOCK 3 — + mdr                   (driven wires: 11 -> 6)
+
+IR becomes real, so the machine fetches its own instructions and the rig
+stops forcing IRB. Biggest single drop in rig involvement.
+
+    SCOPE/LA   BUS_DIR vs ~{MDR_EN} on U25 — the bug-4 chip. Direction
+               must settle BEFORE the bridge enables. BAD TRACE: enable
+               asserting while DIR is still moving = a momentary fight
+               across the W/MDR boundary.
+
+### BLOCK 4 — + registers + alu       (driven wires: 6 -> 2)
+
+Real flags, so FLAG_Z stops being a rig-driven bit. The full datapath.
+
+    SCOPE/LA   LE_TMP_A / LE_TMP_B stamp windows against CLK — the
+               two-edge discipline, measured rather than assumed.
+               Flag commit vs result valid: the flags must latch AFTER
+               the '382 outputs settle.
+
+### BLOCK 5 — + io, single-stepped
+
+Everything wired. Rig owns CLK and RESET only, and moves to watching OB.
+Run the milestone program one clock at a time.
+
+### BLOCK 6 — FREE-RUN
+
+Y1 in the socket. Rig drives nothing — 8 wires on OB0-7, plus GND and
+HALT. The milestone program runs at real speed and OB reads 0x08.
+
+THIS is where timing is finally retired, and nothing before it can do
+that job.
+
+---
+
+## cw_expect is now a CHECKER, not a driver
+
+Under the datapath-first plan the rig had to impersonate the control unit,
+so it would have DRIVEN strobes computed from
+cw_expect(MC_REAL_WORDS[...]). Control-first deletes that job: the real
+ROM and the real decoder produce the strobes from step 1.
+
+The same two generated headers are still the single source of truth — they
+just verify hardware instead of substituting for it:
+
+    sample the real decoded strobes
+    compare against cw_expect(MC_REAL_WORDS[(op << 4) | t], flag_z)
+    a mismatch names the lying gate
+
+Smaller, safer, and it keeps the discipline: no eleventh table, nothing
+hand-written, the rig's notion of truth still derived from the burned
+image and a host-tested model.
+
+### Old names, for cross-reference
+
+    INT-A  -> Block 1 (control.decode)
+    INT-D  -> Block 1 (control.seq — A and D share a wiring, so merged)
+    INT-C  -> Block 2
+    INT-B  -> DELETED. It emulated the U25 bridge; Block 3 keeps it real.
+    INT-B2 -> Block 3
+    INT-E  -> Block 5
+
+### Program image
+
+The burned REAL image is the milestone: LDAI 5; LDBI 3; ADD; OUT; HALT.
+Test against what you will actually free-run, so Block 5 is a true dress
+rehearsal. Branch coverage does NOT need the countdown image — control.cond
+forces FLAG_Z both ways in Block 1 and proves both U62 arms with no reburn.
+The countdown/JNZ image stays available, a TL866 minute away, whenever a
+full-program branch test is wanted.

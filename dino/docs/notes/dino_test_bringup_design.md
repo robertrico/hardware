@@ -365,7 +365,60 @@ Human in loop for switches/LEDs:
    LED lights in order (y/n over serial).
 3. `sw.tristate`: /SW_OUT high -> W floats.
 
-## Integration tests (integ.c) — the seams worth paying for
+## Integration tests — SUPERSEDED 2026-07-28 by the BLOCK model
+
+HISTORICAL. The INT-A..INT-E ladder below was written when no module had
+been bench-proven and pairwise seams were the only safe unit of work. All
+ten modules passed by 2026-07-26, which changes the problem: the modules
+are fixtures, so integration is no longer about proving seams two at a
+time. It is about building the datapath core ONCE and then growing it in
+copper, with the rig retiring a slice per session.
+
+The live plan is BRINGUP.md, "Integration — CONTROL FIRST". Summary:
+
+  BLOCK 1  root + microcode + control_word (THE CONTROL UNIT). ~11 driven
+           wires: CLK, RESET, IRB0-7, FLAG_Z. No datapath dependency.
+  BLOCK 2  + pc + mar + memory   driven count UNCHANGED — three boards
+           join for free, M0-15 and every strobe are copper
+  BLOCK 3  + mdr                 11 -> 6 driven: real IR, machine fetches
+  BLOCK 4  + registers + alu     6 -> 2 driven: real flags
+  BLOCK 5  + io, single-stepped
+  BLOCK 6  FREE-RUN, Y1 in socket, 0 driven — 8 wires + GND + HALT
+
+THE GATE IS DRIVEN-WIRE COUNT AND IT MAY NEVER GO UP. Fewer rig wires ==
+fewer rig-introduced error modes: the same goal. Risk is asymmetric — a
+wrong SAMPLED wire is a false FAIL, a wrong DRIVEN wire can fight a real
+driver, and a wrong driven STROBE is worst because strobes are ENABLES,
+which is exactly how two boards end up on one bus. The control unit has
+the highest fan-out in the machine, so a rig impersonating it builds the
+largest and most dangerous harness of the project. Make it real first and
+that harness never exists.
+
+(The earlier datapath-core plan had the rig standing in for control across
+four boards at once — ~40 driven wires including ~20 strobes. Inverted
+2026-07-28 on Rico's wire-count constraint. Control-first also restores
+what this spec originally said: INT-A first, because it needs no datapath.)
+
+THREE INSTRUMENTS, THREE QUESTIONS. The rig answers WHAT — logic and
+topology, exhaustive, but rig-speed only (settle() is 5us; it CANNOT see
+timing). The DSLogic LA answers WHEN — 16ch at real speed: enable overlap,
+one-hot T, END->T clear, decode glitches. The scope answers HOW — analog
+edge quality, ringing, marginal levels. The Mega can stand in as a first
+look (PINA is a true 8ch 62.5ns snapshot, ~3 MSa/s burst capture, Timer1
+input capture at 62.5ns resolution) but CANNOT catch a 10-30ns decode
+glitch at a ~300ns sample period, sees nothing analog, and has no
+pulse-width trigger. Order of use: rig, Mega burst-capture, LA, scope.
+
+cw_expect is now a CHECKER, not a driver: sample the real strobes, compare
+against cw_expect(MC_REAL_WORDS[(op<<4)|t], flag_z). Same two generated
+headers, same single source of truth — verifying hardware instead of
+substituting for it.
+
+Name mapping: INT-A -> Block 3; INT-D -> Block 4; INT-C -> Block 2;
+INT-B2 -> Block 1 (its debt is paid inside the core); INT-E -> Block 5;
+INT-B DELETED (it emulated the bridge the core keeps real).
+
+--- historical ladder below, kept for the reasoning ---
 
 Chosen where assumptions cross module boundaries; pairs that share no
 assumption beyond a verified contract line are NOT tested pairwise.
@@ -409,7 +462,10 @@ assumption beyond a verified contract line are NOT tested pairwise.
 Each stage = wire module to rig -> `run <module>` green -> earn the
 integration test -> module becomes a trusted fixture for later stages.
 
-    1. rig self-test        loopback jumpers: every pinmap pin drives+reads
+    1. rig self-test        CLOSED 2026-07-28, not a gate — demoted to a
+                            diagnostic. The module tests exercise more of
+                            the path than a loopback jumper does; see
+                            BRINGUP.md stage 1.
     2. root                 clock/T/reset/END/HALT      (tests: root.*)
                             LIVE stage: Y1 seated, guided (button + serial)
     3. control_word         rig-driven CW               (control_word.*)
@@ -428,6 +484,10 @@ integration test -> module becomes a trusted fixture for later stages.
     13. free-run            Y1 in socket, rig demoted to logic-probe mode
                             (passive sampler on OB + HALT line), countdown
                             demo runs, HALT observed. DONE.
+
+    ^ stages 1-11 are DONE (all ten modules bench-proven 2026-07-26; stage
+      1 closed as a diagnostic). Stages 12-13 are replaced by the BLOCK
+      model — see the superseded-integration note above and BRINGUP.md.
 
 Rationale for the order: every stage's rig can trust everything before it;
 control/microcode first because INT-A is the highest-risk seam and needs no
