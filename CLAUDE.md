@@ -8,14 +8,14 @@ This is an embedded systems portfolio containing multiple hardware projects span
 
 ## Project Structure
 
-### DINO CPU (Discrete Integrated NISC Operator)
-- **Path**: `dino/`
-- **Description**: Custom 8-bit CPU built from discrete logic components (74-series ICs)
-- **Current Version**: v0.0.2 in schematic/design phase
-- **Key Files**: 
-  - Schematics: `dino/dino_v0_0_2/*.kicad_sch`
-  - Test files: `dino/tests/` (DSL logic analyzer captures)
-  - Documentation: `dino/docs/notes/`
+### DINO CPU — MOVED OUT 2026-07-28
+- **Now lives at**: https://github.com/robertrico/dino-homebrew
+- **Why**: it outgrew a portfolio folder — its own generator toolchain, a
+  bare-metal bring-up rig, KiCad schematics, and a third of this repo's
+  history. It has its own CLAUDE.md with the working rules.
+- The `dino/` directory was removed from this repo in the same commit. Its
+  full history is preserved in the new repo (via `git filter-repo`), and
+  remains in this repo's history before that commit.
 
 ### Earth Rover System
 - **Path**: `earth_rover/`
@@ -96,7 +96,6 @@ cd rpi_projects/
 
 ## Key File Types
 
-- **`.dsl`**: DSLogic analyzer capture files (binary format) - used for DINO CPU timing verification
 - **`.kicad_*`**: KiCad schematic and PCB files
 - **`env.sh`**: Project-specific environment setup with build/flash/debug functions
 - **CMakeLists.txt**: Build configuration for STM32 and Pico projects
@@ -115,18 +114,7 @@ cd rpi_projects/
 - ESP-NOW for wireless communication
 - Component-based architecture
 
-### DINO CPU Development
-- Discrete logic design using 74-series ICs
-- Systematic modular testing approach (documented in testing strategy)
-- Logic analyzer verification for timing analysis
-- KiCad for schematic capture
-
 ## Testing Strategy
-
-### DINO CPU
-- Modular integration testing (Ring Counter → Memory → ALU → Control)
-- Logic analyzer verification required for timing validation  
-- Hardware-in-the-loop testing with real discrete components
 
 ### Embedded Systems
 - Hardware bring-up with oscilloscope/logic analyzer
@@ -136,7 +124,6 @@ cd rpi_projects/
 ## Important Notes
 
 - Always source `env.sh` in project directories before building
-- DINO CPU requires physical hardware testing - no simulation
 - ESP32 projects require correct serial port configuration in `env.sh`
 - STM32 projects use custom linker scripts and startup code
 - Logic analyzer captures (`.dsl` files) are binary and project-specific
